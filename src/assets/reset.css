@@ -1,0 +1,16 @@
+/* 重置页面基本元素 */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f0eeee;
+  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+  'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  all: unset;
+}
