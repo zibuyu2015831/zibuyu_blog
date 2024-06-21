@@ -3,6 +3,15 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Search } from "@element-plus/icons-vue";
 
+// // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
+
+
+
+
+// // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
+
+
+
 // // // // // // // // // // ↓ 路径导航 ↓ // // // // // // // // // //
 
 const router = useRouter();
@@ -18,16 +27,19 @@ function goHomeClick() {
 }
 
 function goBackClick() {
+  // 函数写法
   // router.back()
   // router.forward()
 
-  // go(delta)
+  // 数字写法：go(delta)
   // go(1) -> forward()
   // go(-1) -> back()
   router.go(-1);
 }
 
 // // // // // // // // // // ↑ 路径导航 ↑ // // // // // // // // // //
+
+
 
 // // // // // // // // // // ↓ 搜索功能 ↓ // // // // // // // // // //
 const search_input = ref("");
@@ -43,7 +55,7 @@ function submintSearch() {
 
 <template>
   <el-row justify="center">
-    <el-col span="24" class="search_input">
+    <el-col span=24 class="search_input">
       <el-page-header @back="goBackClick">
         <template #content>
           <el-input
@@ -97,6 +109,7 @@ function submintSearch() {
       <el-text class="menu_title" type="info">我的</el-text>
     </div>
   </div>
+
 </template>
 
 <style scoped>

@@ -1,21 +1,13 @@
 <script setup>
-import { onMounted, ref, reactive, onBeforeMount, onBeforeUnmount, watch } from "vue";
+import {  ref, reactive } from "vue";
 import { getNews } from "@/api/getNews";
 import { ElNotification } from "element-plus";
-import useCurrentPath from "@/stores/nav";
-
+import useDeviceInfo from "@/stores/nav";
+import {storeToRefs} from "pinia";
 
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
-// // 1. 执行函数，拿到Store
-const currentPath = useCurrentPath();
 
-onMounted(() => {
-  // 获取当前页面的完整 URL
-  const currentPathString = window.location.pathname;
-  console.log("当前页面路径:", currentPathString);
-  currentPath.currentPath = currentPathString;
-});
 
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
@@ -24,44 +16,11 @@ onMounted(() => {
 
 // // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
 
-const isShowRightBox = ref(true);
-const isPaginationmall = ref(false);
-const isShowArticleImage = ref(true);
-const mainColumnSpanNum = ref(11);
+// 执行函数，拿到Store
+const deviceInfo = useDeviceInfo();
 
-
-const updateScreenWidth = () => {
-
-  if (window.innerWidth < 500) {
-    mainColumnSpanNum.value = 52;
-    isShowRightBox.value = false;
-    isPaginationmall.value = true;
-    isShowArticleImage.value = false;
-  }else if (window.innerWidth < 1640){
-    mainColumnSpanNum.value = 22;
-    isPaginationmall.value = false;
-    isShowRightBox.value = false;
-    isShowArticleImage.value = false;
-  }else{
-    mainColumnSpanNum.value = 11;
-    isPaginationmall.value = false;
-    isShowArticleImage.value = true;
-    isShowRightBox.value = true;
-  }
-};
-
-onMounted(() => {
-  updateScreenWidth()
-  window.addEventListener('resize', updateScreenWidth,{'passive': true});
-});
-
-onBeforeUnmount(() => {
-  updateScreenWidth()
-  window.removeEventListener('resize', updateScreenWidth);
-});
-
-
-
+// 读取状态
+const {isShowRightBox,isPaginationmall,isShowArticleImage,mainColumnSpanNum} = storeToRefs(deviceInfo)
 
 // // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
 
@@ -370,7 +329,6 @@ function submitUserRewardMessage() {
             <el-button @click="resetUserSuggestion">重置</el-button>
           </el-form-item>
         </el-form>
-        <div>我是一条意见反馈</div>
       </el-card>
 
       <el-card style="max-width: 480px" class="right_card">

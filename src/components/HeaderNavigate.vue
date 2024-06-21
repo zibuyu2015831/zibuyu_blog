@@ -1,42 +1,19 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, computed, reactive } from "vue";
-
+import { ref, reactive } from "vue";
+import useDeviceInfo from "@/stores/nav";
+import { storeToRefs } from "pinia";
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
-
-
 // // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
 
+// // // // // ↓ 根据屏幕向下滚动距离更改导航栏背景色 ↓ // // // // //
 
+const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
-// // // // // // // // // // ↓ 监听页面下滑，更改导航栏背景色 ↓ // // // // // // // // // //
+const { TextColor, backgroundColor } = storeToRefs(deviceInfo); // 读取状态
 
-const scrollTop = ref(0);
-
-const backgroundColor = computed(() => {
-  return scrollTop.value > 210 ? "#FFFFFF" : "transparent";
-});
-
-const TextColor = computed(() => {
-  return scrollTop.value > 210 ? "black" : "white";
-});
-
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
-
-function handleScroll() {
-  scrollTop.value = window.pageYOffset || document.documentElement.scrollTop;
-}
-
-// // // // // // // // // // ↑ 监听页面下滑，更改导航栏背景色 ↑ // // // // // // // // // //
-
-
+// // // // // ↑ 根据屏幕向下滚动距离更改导航栏背景色 ↑ // // // // //
 
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
 
@@ -56,12 +33,15 @@ function commitRegister() {
   registerDialogVisible.value = false;
 }
 
+function register_now(){
+  loginDialogVisible.value = false;
+  registerDialogVisible.value = true;
+}
+
+
 // // // // // // // // // // ↑ 注册功能 ↑ // // // // // // // // // //
 
-
-
 // // // // // // // // // // ↓ 登录功能 ↓ // // // // // // // // // //
-
 
 const loginDialogVisible = ref(false); // 登录跳出框
 
@@ -79,8 +59,14 @@ function commitLogin() {
   loginDialogVisible.value = false;
 }
 
-// // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 
+
+function login_now(){
+  loginDialogVisible.value = true;
+  registerDialogVisible.value = false;
+}
+
+// // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -89,10 +75,9 @@ function commitLogin() {
       <div class="nav_container" :style="{ backgroundColor: backgroundColor }">
         <div class="header_nav">
           <div class="nav_left" :style="{ color: TextColor }">
-            <router-link to="/home" class="text_logo">子不语博客</router-link>
+            <router-link to="/home" class="text_logo">思维兵工厂</router-link>
             <router-link to="/home">首页</router-link>
             <router-link to="/about">关于</router-link>
-            <router-link to="/test">测试</router-link>
             <router-link to="/article/1231">官方文档</router-link>
           </div>
 
@@ -119,7 +104,6 @@ function commitLogin() {
           </div>
         </div>
       </div>
-
     </el-col>
   </el-row>
 
@@ -140,8 +124,14 @@ function commitLogin() {
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="cancelLogin">取消</el-button>
-        <el-button type="primary" @click="commitLogin"> 登录 </el-button>
+        <span>
+          <el-button type="warning" class="register_now" @click="register_now"> 没有账号？立刻注册 </el-button>
+        </span>
+
+        <span>
+          <el-button @click="cancelLogin">取消</el-button>
+          <el-button type="primary" @click="commitLogin"> 登录 </el-button>
+        </span>
       </div>
     </template>
   </el-dialog>
@@ -185,14 +175,23 @@ function commitLogin() {
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="cancelRegister">取消</el-button>
-        <el-button type="primary" @click="commitRegister"> 注册 </el-button>
+        <span>
+          <el-button type="warning" class="login_now" @click="login_now"> 已有账号？前往登录 </el-button>
+        </span>
+        <span>
+          <el-button @click="cancelRegister">取消</el-button>
+          <el-button type="primary" @click="commitRegister"> 注册 </el-button>
+        </span>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+}
 
 .card_item {
   margin: 5px 30px;
@@ -205,7 +204,7 @@ function commitLogin() {
   height: 100px;
 }
 
-.card_item .card_img_title{
+.card_item .card_img_title {
   margin-top: 10px;
 }
 

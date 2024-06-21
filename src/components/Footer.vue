@@ -63,7 +63,7 @@ setInterval(() => {
 </script>
 
 <template>
-  <el-row>
+  <el-row class="footer">
     <el-col class="left" :span="mainColumnSpanNum" :offset="mainColumnOffsetNum">
       <div class="left_container">
         <div class="version">
@@ -110,7 +110,7 @@ setInterval(() => {
 
 <style scoped>
 .footer {
-  background-color: #ccccd6;
+  background-color: #FFFFFF;
 }
 
 .left_container {

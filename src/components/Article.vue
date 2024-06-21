@@ -1,11 +1,16 @@
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from "vue";
+import { ref, onMounted} from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
 import { v4 as uuidv4 } from "uuid";
+import useDeviceInfo from "@/stores/nav";
+import {storeToRefs} from "pinia";
+
+
+// // // // // ↓ markdown渲染 ↓ // // // // //
 
 const toc = [];
 const article = ref("");
@@ -52,13 +57,6 @@ marked.use(
   })
 );
 
-// 根据元素ID值实现页面跳转
-const scrollToAnchor = (slug) => {
-  const element = document.getElementById(slug);
-  if (element) {
-    element.scrollIntoView({ behavior: "smooth" });
-  }
-};
 
 const generateTOC = () => {
   return toc.map((item) => ({
@@ -74,24 +72,21 @@ onMounted(async () => {
   tocItems.value = generateTOC();
 });
 
-// 监听页面下滑，更改导航栏背景色
-const scrollTop = ref(0);
+// // // // // ↑ markdown渲染 ↑ // // // // //
 
-const isfixed = computed(() => {
-  return scrollTop.value > 640 ? true : false;
-});
 
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
 
-onBeforeUnmount(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
+// // // // // ↓ 根据视图向下滚动高度决定右侧样式 ↓ // // // // //
 
-function handleScroll() {
-  scrollTop.value = document.documentElement.scrollTop;
-}
+const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
+
+const {isArticleRightBlockFixed,isShowRightBox,mainColumnSpanNum} = storeToRefs(deviceInfo) // 读取状态
+
+// // // // // ↑ 根据视图向下滚动高度决定右侧样式 ↑ // // // // //
+
+
+
+// // // // // ↓ 页面向上、向下跳动按钮 ↓ // // // // //
 
 function backToTop() {
   window.scrollTo({
@@ -107,7 +102,19 @@ function backToButton() {
   });
 }
 
-// 评论输入框
+// 根据元素ID值实现页面跳转
+const scrollToAnchor = (slug) => {
+  const element = document.getElementById(slug);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
+// // // // // ↑ 页面向上、向下跳动按钮 ↑ // // // // //
+
+
+// // // // // ↓ 评论输入框 ↓ // // // // //
+
 const textarea = ref();
 const TextareaColor = ref("#F2F3F5");
 
@@ -116,13 +123,17 @@ function textOnBlur() {
 }
 
 function textOnFocus() {
-  TextareaColor.value = "#FFF";
+  TextareaColor.value = "#e9d7df";
 }
+
+// // // // // ↑ 评论输入框 ↑ // // // // //
+
+
 </script>
 
 <template>
-  <el-row class="main">
-    <el-col :span="11" :offset="4" class="left">
+  <el-row class="main" justify="center">
+    <el-col :span="mainColumnSpanNum"  class="left">
       <el-row justify="center">
         <div class="title"><span>我是标题</span></div>
       </el-row>
@@ -156,7 +167,15 @@ function textOnFocus() {
       </div>
     </el-col>
 
-    <el-col :span="5" class="right" :offset="1" :class="{ isfixed: isfixed }">
+
+
+    <el-col 
+    v-if="isShowRightBox"
+    class="right" 
+    :span="5" 
+    :offset="1" 
+    :class="{ isfixed: isArticleRightBlockFixed }"
+    >
       <el-card style="max-width: 480px" class="right_card author_info">
         <template #header>
           <div class="card-header">
@@ -271,13 +290,6 @@ function textOnFocus() {
   margin-bottom: 20px;
 }
 
-.isfixed {
-  width: 395px;
-  position: fixed;
-  right: 240px;
-  top: 100px;
-}
-
 .toc {
   margin-left: 20px;
 }
@@ -313,6 +325,25 @@ function textOnFocus() {
 .right_card {
   margin-top: 20px;
 }
+
+.main {
+  position: relative;
+}
+
+.right {
+  position: absolute;
+  width: 400px;
+  top: 50px;
+  right: 80px;
+}
+
+.isfixed {
+  width: 395px;
+  position: fixed;
+  right: 95px;
+  top: 100px;
+}
+
 
 /* 页面标题设置 */
 
