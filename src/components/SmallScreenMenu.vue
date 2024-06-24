@@ -2,16 +2,10 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Search } from "@element-plus/icons-vue";
-import { User, Lock, Promotion } from '@element-plus/icons-vue';
+import useUserInfo from "@/stores/userInfo";
+import { ElButton, ElDrawer } from 'element-plus'
 
-// // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
-
-
-
-
-// // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
-
-
+import {storeToRefs} from 'pinia'
 
 // // // // // // // // // // ↓ 路径导航 ↓ // // // // // // // // // //
 
@@ -53,6 +47,20 @@ function submintSearch() {
 }
 
 // // // // // // // // // // ↑ 搜索功能 ↑ // // // // // // // // // //
+
+
+// // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
+const userInfo = useUserInfo(); // 执行函数，拿到Store
+const { username, isLogin } = storeToRefs(userInfo); // 读取状态
+
+const isShowMyInfo= ref(false)
+function showMyInfo(){
+  console.log(isShowMyInfo.value)
+  isShowMyInfo.value = !isShowMyInfo.value
+  console.log(isShowMyInfo.value)
+
+}
+// // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -94,15 +102,57 @@ function submintSearch() {
       <el-text class="menu_title" type="info">主页</el-text>
     </div>
 
-    <div class="menu_item">
+    <div class="menu_item" @click="showMyInfo">
       <span class="iconfont icon-user menu_icon"></span>
       <el-text class="menu_title" type="info" >我的</el-text>
     </div>
+
+
+    <el-drawer 
+    v-model="isShowMyInfo"
+     direction="btt"
+     :show-close="false"
+     size="40%"
+     >
+
+      <template #default>
+        <div class="myInfoItems" v-if="isLogin">
+          <div class="myInfoItem">个人中心</div>
+          <div class="myInfoItem">我的消息</div>
+          <div class="myInfoItem">邀请码</div>
+          <div class="myInfoItem">退出</div>
+        </div>
+
+        <div class="myInfoItems" v-if="!isLogin">
+          <div class="myInfoItem">登录</div>
+          <div class="myInfoItem">注册</div>
+
+        </div>
+
+      </template>
+
+    </el-drawer>
   </div>
+
+
 
 </template>
 
 <style scoped>
+
+.myInfoItems{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+}
+
+.myInfoItem{
+  background-color: rgb(67, 91, 83);
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.5em;
+}
 
 /* ↓ 底部设计 ↓ */
 

@@ -17,7 +17,7 @@ const useDeviceInfo = defineStore('deviceInfo', {
     state: () => ({
         currentPath: 'home',
         theme: ref('light'),// 默认主题：亮色
-        theme_list: ['light','dark'], // 主题列表，新添加的主题需要在这里注册，否则不生效
+        theme_list: ['light', 'dark'], // 主题列表，新添加的主题需要在这里注册，否则不生效
         theme_store_key: 'webTheme',  // 向$store存储主题时的key，一般不用改
         userScreenWidth: ref(0), // 屏幕视口宽度
         userScreenHeight: ref(0), // 屏幕视口高度
@@ -27,10 +27,10 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
     getters: {
         // 网站当前主题
-        webTheme(state){
-            if (state.theme_list.includes(state.theme)){
+        webTheme(state) {
+            if (state.theme_list.includes(state.theme)) {
                 return state.theme
-            }else{
+            } else {
                 return 'light'
             }
         },
@@ -57,6 +57,22 @@ const useDeviceInfo = defineStore('deviceInfo', {
             return state.userScreenHeight * 0.725
         },
 
+        // 当用户向下滑动时，主界面的顶栏显示背景
+        isShowNavBackground(state) {
+
+            if (state.theme!=='dark'){
+                return true
+            }else{
+                if (state.scrollTop > 350) {
+                    return true
+                } else {
+                    return false
+                }
+            }
+
+            
+        },
+
         // 当用户向下滑动时，阅读界面的右侧板块固定在视口
         isArticleRightBlockFixed(state) {
             if (state.scrollTop > 530) {
@@ -67,13 +83,22 @@ const useDeviceInfo = defineStore('deviceInfo', {
         },
 
         // 当屏幕宽度小于1650时，文章列表不显示图片
-        isShowArticleImage(state) {
+        isBigScreen(state) {
             if (state.userScreenWidth > 1650) {
                 return true
             } else {
                 return false
             }
         },
+
+                // 当屏幕宽度小于1650时，文章列表不显示图片
+                isShowArticleImageInSmallScreen(state) {
+                    if (state.userScreenWidth > 1300) {
+                        return true
+                    } else {
+                        return false
+                    }
+                },
 
         // 当屏幕宽度小于500时，缩小页码显示
         isPaginationmall(state) {
@@ -84,25 +109,24 @@ const useDeviceInfo = defineStore('deviceInfo', {
             }
         },
 
-        // 当屏幕宽度小于1650时，不显示右侧板块
+        // 当屏幕宽度小于1650时，首页不显示右侧板块
         isShowRightBox(state) {
-            if (state.userScreenWidth > 1650) {
+            if (state.userScreenWidth > 1050) {
                 return true
             } else {
                 return false
             }
         },
 
-        // 当屏幕主题区域所占栅格数（elementPlus，一行分为0~24栅格）
-        mainColumnSpanNum(state) {
-            if (state.userScreenWidth < 500) {
-                return 22;
-            } else if (state.userScreenWidth < 1640) {
-                return 22;
-            } else {
-                return 11;
-            }
-        },
+                // 当屏幕宽度小于1400时，博文界面不显示右侧板块
+                isArticleShowRightBox(state) {
+                    if (state.userScreenWidth > 1400) {
+                        return true
+                    } else {
+                        return false
+                    }
+                },
+
 
         isShowHeaderNavigate(state) {
             if (state.userScreenWidth < 810) {

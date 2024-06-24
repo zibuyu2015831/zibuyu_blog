@@ -6,19 +6,19 @@ import useDeviceInfo from "@/stores/deviceInfo.js";
 import useUserInfo from "@/stores/userInfo";
 import { setLocalStorageWithExpiration } from "@/utils/uselocalStorage";
 import { storeToRefs } from "pinia";
-import { getLocalStorageValueWithExpiration } from "@/utils/uselocalStorage";
 
-// // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
+// // // // // // // // // // ↓ 切换主题 ↓ // // // // // // // // // //
+
+// 当用户切换主题时，修改html类属性，并将主题写入浏览器本地存储
 function themeChange() {
   document.documentElement.className = "";
   document.documentElement.classList.add(deviceInfo.theme);
 
-
   setLocalStorageWithExpiration(deviceInfo.theme_store_key, webTheme.value, 8);
 }
 
-// // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
+// // // // // // // // // // ↑ 切换主题 ↑ // // // // // // // // // //
 
 // // // // // ↓ 根据屏幕向下滚动距离更改导航栏背景色 ↓ // // // // //
 
@@ -135,7 +135,7 @@ function login_now() {
 
 // // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 登录状态下，右侧菜单栏的处理 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 登录状态下，顶栏右侧菜单栏的处理 ↓ // // // // // // // // // //
 
 const handleCommand = (command) => {
   if (command === "restLogin") {
@@ -147,8 +147,8 @@ const handleCommand = (command) => {
 </script>
 
 <template>
-  <el-row class="nav_container">
-    <el-col span="12" class="nav_left" >
+  <el-row class="nav_container" :class="{nav_background:deviceInfo.isShowNavBackground}">
+    <el-col span="12" class="nav_left">
       <router-link to="/home" class="text_logo">思维兵工厂</router-link>
 
       <router-link to="/home"
@@ -356,7 +356,7 @@ const handleCommand = (command) => {
   position: fixed;
   transition: all 0.3s;
   z-index: 999;
-background-color: var(--header-background);
+
   a {
     line-height: 60px;
     margin-right: 30px;
@@ -366,8 +366,13 @@ background-color: var(--header-background);
   }
 }
 
+.nav_background{
+  background-color: var(--header-background,#ffffff);
+  opacity: 0.9;
+}
+
 .nav_left {
-  color:var(--header-font);
+  color: var(--header-font);
   margin: 0 auto;
   line-height: 60px;
 

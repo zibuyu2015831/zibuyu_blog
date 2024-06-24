@@ -145,7 +145,7 @@ const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
 const {
   isArticleRightBlockFixed,
-  isShowRightBox,
+  isArticleShowRightBox,
   mainColumnSpanNum,
   webTheme,
 } = storeToRefs(deviceInfo); // 读取状态
@@ -196,7 +196,7 @@ function textOnFocus() {
 
 <template>
   <el-row class="main" justify="center">
-    <el-col :span="mainColumnSpanNum" class="left">
+    <el-col :span="isArticleShowRightBox?11:22" class="left">
       <div class="article_head">
         <el-row justify="center">
           <div class="title"><span>我是标题</span></div>
@@ -233,7 +233,7 @@ function textOnFocus() {
     </el-col>
 
     <el-col
-      v-if="isShowRightBox"
+      v-if="isArticleShowRightBox"
       class="right"
       :span="5"
       :offset="1"
@@ -404,10 +404,16 @@ function textOnFocus() {
   border-radius: 10px;
   font-size: 18px;
   margin-bottom: 20px;
+  background-color: var(--markdown_article_body_deactivated);
+  opacity: 0.9;
+}
+
+.markdown-body:hover{
+  background-color: var(--markdown_article_body_activated);
 }
 
 .article_head {
-  color: var(--article_head);
+  color: var(--markdown_article_title);
 }
 
 /* 右侧板块设置 */

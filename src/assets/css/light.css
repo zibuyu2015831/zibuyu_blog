@@ -1,16 +1,18 @@
-
-
 html.light {
   /* 自定义深色背景颜色 */
-  --el-bg-color: #626aef;
-  --footer_background: #ffffff;
-  --header_slogen_font:#eb3c70;
-  --home_background:#efebec;
-  --news-background:#dee6ed;
-  --header-background:#ffffff;
-  --header-font:#0f100f;
-  --article_head:black;
 
+  --header-background: #EAE7DC;
+  --header-font: #0f100f;
+  --header_slogen_font: #23020c;
+
+  --home_background: #efebec;
+  --footer_background: #EAE7DC;
+
+  --news-background: #dee6ed;
+
+  --markdown_article_title: black;
+  --markdown_article_body_deactivated:#EFEBEC;
+  --markdown_article_body_activated:#F0F0E3;
 
   --el-bg-color: rgb(248, 241, 241);
 

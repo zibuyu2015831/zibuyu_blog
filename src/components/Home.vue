@@ -1,18 +1,13 @@
 <script setup>
-import {  ref, reactive } from "vue";
+import { ref, reactive } from "vue";
 import { getNews } from "@/api/getNews";
 import { ElNotification } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo.js";
-import {storeToRefs} from "pinia";
+import { storeToRefs } from "pinia";
 import useUserInfo from "@/stores/userInfo";
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
-
-
-
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
-
-
 
 // // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
 
@@ -21,11 +16,14 @@ const deviceInfo = useDeviceInfo();
 const userInfo = useUserInfo(); // 执行函数，拿到Store
 
 // 读取状态
-const {isShowRightBox,isPaginationmall,isShowArticleImage,mainColumnSpanNum} = storeToRefs(deviceInfo)
+const {
+  isShowRightBox,
+  isPaginationmall,
+  isShowArticleImageInSmallScreen,
+  isBigScreen,
+} = storeToRefs(deviceInfo);
 const { userToken, username, isLogin } = storeToRefs(userInfo); // 读取状态
 // // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
-
-
 
 // // // // // // // // // // ↓ 异步获取顶部新闻 ↓ // // // // // // // // // //
 
@@ -45,8 +43,6 @@ setTimeout(() => {
 });
 
 // // // // // // // // // // ↑ 异步获取顶部新闻 ↑ // // // // // // // // // //
-
-
 
 // // // // // // // // // // ↓ 右侧打赏列表 ↓ // // // // // // // // // //
 
@@ -69,8 +65,6 @@ const rewardTableData = [
 ];
 
 // // // // // // // // // // ↑ 右侧打赏列表 ↑ // // // // // // // // // //
-
-
 
 // // // // // // // // // // ↓ 右侧板块：意见反馈 ↓ // // // // // // // // // //
 
@@ -119,10 +113,7 @@ function submitUserSuggestion() {
 
 // // // // // // // // // // ↑ 右侧板块：意见反馈 ↑ // // // // // // // // // //
 
-
-
 // // // // // // // // // // ↓ 右侧板块：用户打赏 ↓ // // // // // // // // // //
-
 
 const userRewardDialogVisible = ref(false); // 打赏提示框
 
@@ -154,52 +145,56 @@ function submitUserRewardMessage() {
 
 // // // // // // // // // // ↑ 右侧板块：用户打赏 ↑ // // // // // // // // // //
 
+const news_num = ref(0);
 
+function carouselChange(num) {
+  news_num.value = num;
+  console.log(news_num);
+}
 </script>
 
 <template>
-
-
-  <el-row class="main" justify="center"> 
-
-
-
-    <el-col :span="mainColumnSpanNum"  class="left">
-
+  <el-row class="main" justify="center" v-if="isBigScreen">
+    <el-col :span="11" class="left">
       <el-row justify="center">
-      <el-col class="news">
-        <el-carousel
-          height="200px"
-          direction="vertical"
-          type="card"
-          :autoplay="true"
-          :loop="true"
-        >
-          <el-carousel-item v-for="(item, index) in news" :key="index">
-            <h3 text="1xl" justify="center">
-              <a target="_blank" :href="item.link">
-    
+        <el-col class="news">
+          <el-carousel
+            height="200px"
+            direction="vertical"
+            type="card"
+            :autoplay="true"
+            :loop="true"
+            indicator-position="none"
+            @change="carouselChange"
+          >
+            <el-carousel-item v-for="(item, index) in news" :key="index">
+              <h3 text="1xl" justify="center">
+                <a
+                  target="_blank"
+                  :href="item.link"
+                  :class="{ new_activate: index !== news_num }"
+                  :id="index"
+                >
+                  <el-text class="mx-1" type="primary" size="large">{{
+                    item.name.slice(0, -2) != "B站排"
+                      ? "【 " + item.name.slice(0, -2) + " 】"
+                      : "【 B站 】"
+                  }}</el-text>
 
-                <el-text class="mx-1" type="primary" size="large">{{   item.name.slice(0,-2) !='B站排' ? "【 " + item.name.slice(0,-2) + " 】": '【 B站 】'  }}</el-text>
-
-                <el-text class="mx-1" size="large">{{ item.title }}</el-text>
-                
-              </a>
-            </h3>
-          </el-carousel-item>
-        </el-carousel>
-      </el-col>
+                  <el-text class="mx-1" size="large" type="warning">{{ item.title }}</el-text>
+                </a>
+              </h3>
+            </el-carousel-item>
+          </el-carousel>
+        </el-col>
       </el-row>
-
-
 
       <el-divider />
 
       <el-col class="article_list">
         <el-row justify="center" class="" v-for="movie in 10" :key="movie">
-          <el-card class="article_card" :body-style="{ padding: '5px 1px'}">
+          <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
             <el-image
-            v-if="isShowArticleImage"
               class="article_image"
               src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
               fit="fill"
@@ -208,17 +203,16 @@ function submitUserRewardMessage() {
             <div class="article_intro">
               <div class="title">
                 <a href="/article/123" class="title_text">
-                  <el-text tag="b" size="large" class="mx-1"  type="success" truncated >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text>
+                  <el-text tag="b" size="large" class="mx-1" type="success" truncated
+                    >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
+                  >
                 </a>
               </div>
 
               <div class="abstract">
-
-                <el-text line-clamp="2" size="default"   tag="i" >
+                <el-text line-clamp="2" size="default" tag="i">
                   这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
                 </el-text>
-
-                
               </div>
 
               <div class="data">
@@ -232,12 +226,10 @@ function submitUserRewardMessage() {
                 <div class="view_data">
                   <el-icon class="article_icon"><View /></el-icon>
                   <el-text class="mx-1" size="small">2009</el-text>
- 
                 </div>
                 <div class="like_data">
                   <el-icon class="article_icon"><StarFilled /></el-icon>
                   <el-text class="mx-1" size="small">2029</el-text>
-       
                 </div>
               </div>
             </div>
@@ -247,15 +239,17 @@ function submitUserRewardMessage() {
 
       <el-col class="article_page">
         <el-row justify="center">
-        
-          <el-pagination background layout="prev, pager, next" 
-          :total="1000" :small="isPaginationmall"/>
-        
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="1000"
+            :small="isPaginationmall"
+          />
         </el-row>
       </el-col>
     </el-col>
 
-    <el-col :span="5" :offset="1" class="right" v-if="isShowRightBox" >
+    <el-col :span="5" :offset="1" class="right" >
       <el-card style="max-width: 480px" class="right_card">
         <template #header>
           <div class="card-header">
@@ -371,10 +365,227 @@ function submitUserRewardMessage() {
           </el-table-column>
         </el-table>
       </el-card>
-
-  </el-col>
-
+    </el-col>
   </el-row>
+
+  <div  class="main" v-if="!isBigScreen">
+    <el-row justify="center">
+      <el-col class="news" :span="20">
+        <el-carousel
+          height="200px"
+          direction="vertical"
+          type="card"
+          :autoplay="true"
+          :loop="true"
+          indicator-position="none"
+          @change="carouselChange"
+        >
+          <el-carousel-item v-for="(item, index) in news" :key="index">
+            <h3 text="1xl" justify="center">
+              <a
+                target="_blank"
+                :href="item.link"
+                :class="{ new_activate: index !== news_num }"
+                :id="index"
+              >
+                <el-text class="mx-1" type="primary" size="large">{{
+                  item.name.slice(0, -2) != "B站排"
+                    ? "【 " + item.name.slice(0, -2) + " 】"
+                    : "【 B站 】"
+                }}</el-text>
+
+                <el-text class="mx-1" size="large">{{ item.title }}</el-text>
+              </a>
+            </h3>
+          </el-carousel-item>
+        </el-carousel>
+      </el-col>
+    </el-row>
+
+    <el-row justify="center" style="margin-top: 50px;">
+      <el-col :span="isShowRightBox?14:24" class="left">
+  
+        <el-col class="article_list">
+          <el-row justify="center" class="" v-for="movie in 10" :key="movie">
+            <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
+              <el-image
+                v-if="isShowArticleImageInSmallScreen"
+                class="article_image"
+                src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
+                fit="fill"
+              />
+  
+              <div class="article_intro">
+                <div class="title">
+                  <a href="/article/123" class="title_text">
+                    <el-text tag="b" size="large" class="mx-1" type="success" truncated
+                      >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
+                    >
+                  </a>
+                </div>
+  
+                <div class="abstract">
+                  <el-text line-clamp="2" size="default" tag="i">
+                    这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
+                  </el-text>
+                </div>
+  
+                <div class="data">
+                  <div class="category flex gap-2">
+                    <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
+                  </div>
+                  <div class="date">
+                    <el-icon class="article_icon"><Clock /></el-icon>
+                    <el-text class="mx-1" size="small">2024-06-19</el-text>
+                  </div>
+                  <div class="view_data">
+                    <el-icon class="article_icon"><View /></el-icon>
+                    <el-text class="mx-1" size="small">2009</el-text>
+                  </div>
+                  <div class="like_data">
+                    <el-icon class="article_icon"><StarFilled /></el-icon>
+                    <el-text class="mx-1" size="small">2029</el-text>
+                  </div>
+                </div>
+              </div>
+            </el-card>
+          </el-row>
+        </el-col>
+  
+        <el-col class="article_page">
+          <el-row justify="center">
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="1000"
+              :small="isPaginationmall"
+            />
+          </el-row>
+        </el-col>
+      </el-col>
+  
+      <el-col :span="6" class="right" v-if="isShowRightBox">
+        <el-card style="max-width: 480px" class="right_card">
+          <template #header>
+            <div class="card-header">
+              <span class="right_title">独家推广</span>
+            </div>
+          </template>
+          <div>
+            <el-carousel :interval="5000" arrow="always" :motion-blur="true" indicator-position="none">
+              <el-carousel-item v-for="item in 3" :key="item">
+                <h3 text="2xl" justify="center">{{ item }}</h3>
+              </el-carousel-item>
+            </el-carousel>
+          </div>
+        </el-card>
+  
+        <el-card style="max-width: 480px" class="right_card">
+          <template #header>
+            <div class="card-header">
+              <span class="right_title">个人介绍</span>
+            </div>
+          </template>
+  
+          <div class="card_item">子不语</div>
+          <div class="card_item">全栈开发工程师</div>
+          <div class="card_item">现居广州</div>
+          <div class="card_item">
+            <div class="block">
+              <img
+                clsaa="card_img"
+                src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+              />
+              <div class="card_img_title">微信</div>
+            </div>
+            <div class="block">
+              <img
+                clsaa="card_img"
+                src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+              />
+              <div class="card_img_title">支付宝</div>
+            </div>
+          </div>
+        </el-card>
+  
+        <el-card style="max-width: 480px" class="right_card">
+          <template #header>
+            <div class="card-header">
+              <span class="right_title">意见反馈</span>
+            </div>
+          </template>
+  
+          <el-form
+            :label-position="'top'"
+            label-width="auto"
+            :model="userSuggestion"
+            style="max-width: 600px"
+          >
+            <el-form-item label="联系方式">
+              <el-input
+                v-model="userSuggestion.contact"
+                placeholder="微信 / QQ / 邮箱皆可"
+              />
+            </el-form-item>
+            <el-form-item label="建议反馈">
+              <el-input
+                v-model="userSuggestion.note"
+                type="textarea"
+                placeholder="请输入反馈内容"
+                resize="none"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submitUserSuggestion">提交</el-button>
+              <el-button @click="resetUserSuggestion">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+  
+        <el-card style="max-width: 480px" class="right_card">
+          <template #header>
+            <div class="card-header">
+              <span class="right_title">打赏列表</span>
+              <span class="right_title right_sub_title">
+                <el-button type="primary" link @click="userRewardDialogVisible = true">
+                  我也要打赏
+                </el-button>
+              </span>
+            </div>
+          </template>
+  
+          <el-table
+            :data="rewardTableData"
+            style="width: 100%"
+            :table-layout="'true'"
+            max-height="200px"
+          >
+            <el-table-column label="昵称">
+              <template #default="scope">
+                <el-popover effect="light" trigger="hover" placement="top" width="auto">
+                  <template #default>
+                    <div>{{ scope.row.note }}</div>
+                  </template>
+                  <template #reference>
+                    {{ scope.row.name }}
+                  </template>
+                </el-popover>
+              </template>
+            </el-table-column>
+  
+            <el-table-column label="金额">
+              <template #default="scope">
+                <span>￥ &nbsp {{ scope.row.count }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
+
+
+  </div>
+
 
 
   <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
@@ -402,7 +613,11 @@ function submitUserRewardMessage() {
       style="max-width: 600px"
     >
       <el-form-item label="您的昵称">
-        <el-input v-model="userRewardMessage.name" placeholder="少侠，留下你的昵称呗" :value="username"/>
+        <el-input
+          v-model="userRewardMessage.name"
+          placeholder="少侠，留下你的昵称呗"
+          :value="username"
+        />
       </el-form-item>
       <el-form-item label="您的留言">
         <el-input
@@ -427,18 +642,10 @@ function submitUserRewardMessage() {
       </div>
     </template>
   </el-dialog>
-
-
-
-
-
 </template>
 
 <style scoped>
-
-
 /* ↓ 主体设置 ↓ */
-
 
 .main {
   background-color: var(--home_background);
@@ -457,11 +664,11 @@ function submitUserRewardMessage() {
 
 /* ↓ 文章列表设置 ↓ */
 
-.article_list{
+.article_list {
   margin: 0 5px;
 }
 
-.article_page{
+.article_page {
   margin-bottom: 30px;
 }
 
@@ -495,18 +702,15 @@ function submitUserRewardMessage() {
   max-width: 320px;
   max-height: 30px;
   margin-bottom: 10px;
-  
 }
 
 .article_intro .title a {
   all: unset;
   font-size: 25px;
   cursor: pointer;
-  
 }
 
 .article_intro .title .title_text {
-  
   background: linear-gradient(to right, #538dcb, #cb1ccb) no-repeat right bottom;
   background-size: 0 2px;
   transition: background-size 500ms;
@@ -615,5 +819,9 @@ function submitUserRewardMessage() {
 
 .el-divider__text {
   background-color: #f0eeee;
+}
+
+.new_activate {
+  opacity: 0.5;
 }
 </style>

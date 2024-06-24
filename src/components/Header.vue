@@ -107,7 +107,7 @@ console.log(currentImage);
   left: 50%;
   transform: translate(-50%, -50%);
   color: var(--header_slogen_font,white);
-  font-size: 35px;
+  font-size: 2em;
   font-weight: 800;
   text-align: center;
 }

@@ -65,7 +65,7 @@ setInterval(() => {
 
 <style scoped>
 .footer {
-  background-color: var(--footer-background,#ffffff);
+  background-color: var(--footer-background,grey);
 }
 
 .left_container {
