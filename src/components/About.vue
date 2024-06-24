@@ -1,19 +1,124 @@
 <script setup>
-  
-// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
-  
-// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
-  
+import { ref, onMounted, createApp, h } from "vue";
+
+// // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
+
+const message = "这是一个打字机效果的文本示例。";
+const displayText = ref("");
+const typingIndex = ref(0);
+const isTyping = ref(true); // 用于控制光标闪烁
+
+const typeText = () => {
+  if (typingIndex.value < message.length) {
+    displayText.value += message[typingIndex.value];
+    typingIndex.value++;
+    setTimeout(typeText, 500); // 每个字符显示的间隔时间（毫秒）
+  } else {
+    setTimeout(() => {
+      displayText.value = "";
+      typingIndex.value = 0;
+      typeText();
+    }, 3000); // 全部文本显示完后的停留时间（毫秒）
+  }
+};
+
+onMounted(() => {
+  typeText();
+  setInterval(() => {
+    isTyping.value = !isTyping.value; // 切换光标状态
+  }, 500); // 光标闪烁的间隔时间
+});
+
+// // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
+
+
+const htmlString = `
+    <div>
+      <el-image style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg" alt="图片加载失败" />
+    </div>
+  `;
+
+const htmlContent = `
+  <img style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg" alt="图片加载失败">`;
+
+onMounted(() => {
+  const imageVNode = h(ElImage, {
+    src: "https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg",
+    class: "image-class", // 设置类名
+    image_name: "example", // 自定义属性
+    "preview-src-list": [
+      "https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg",
+    ],
+    onError: () => {
+      console.log("Image failed to load!");
+    },
+  });
+
+  const buttonVNode = h(
+    ElButton,
+    {
+      type: "primary",
+      class: "btn",
+      btn_name: "sdsa", // 自定义属性
+      onClick: () => {
+        console.log("Button clicked!");
+      },
+    },
+    "Click Me"
+  );
+
+  const container = document.querySelector(".container");
+
+  const buttonApp = createApp({
+    render() {
+      return imageVNode;
+    },
+  });
+
+  if (container) {
+    console.log(13213);
+    // 动态创建一个 div 元素作为按钮的挂载点
+    const buttonContainer = document.createElement("div");
+    container.appendChild(buttonContainer);
+
+    // 挂载 Vue 应用实例到动态创建的 div 上
+    buttonApp.mount(buttonContainer);
+  }
+});
 </script>
 
 <template>
-  <h2>about界面</h2>
+  <h2 class="box">about界面<span class="iconfont icon-shengyin_shiti"></span></h2>
+  <div class="typewriter">
+    <span>{{ displayText }}</span><span v-if="isTyping">|</span>
+  </div>
+  <div class="box">{{ htmlContent }}</div>
+  <div class="container" ref="container"></div>
 </template>
 
 <style scoped>
-  
-/* ↓ 代码块 ↓ */ 
-  
+/* ↓ 代码块 ↓ */
+
+.example {
+  color: red;
+}
+
+.box {
+  height: 100px;
+  width: 100%;
+  color: black;
+}
+
 /* ↑ 代码块 ↑ */
-  
+
+
+
+.typewriter {
+  font-family: monospace;
+  white-space: pre;
+  overflow: hidden;
+  display: inline-block;
+}
+
+
 </style>

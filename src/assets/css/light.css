@@ -1,0 +1,18 @@
+
+
+html.light {
+  /* 自定义深色背景颜色 */
+  --el-bg-color: #626aef;
+  --footer_background: #ffffff;
+  --header_slogen_font:#eb3c70;
+  --home_background:#efebec;
+  --news-background:#dee6ed;
+  --header-background:#ffffff;
+  --header-font:#0f100f;
+  --article_head:black;
+
+
+  --el-bg-color: rgb(248, 241, 241);
+
+  --el-dialog-bg-color: rgb(98, 90, 90);
+}

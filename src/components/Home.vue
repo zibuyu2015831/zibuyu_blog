@@ -2,9 +2,9 @@
 import {  ref, reactive } from "vue";
 import { getNews } from "@/api/getNews";
 import { ElNotification } from "element-plus";
-import useDeviceInfo from "@/stores/nav";
+import useDeviceInfo from "@/stores/deviceInfo.js";
 import {storeToRefs} from "pinia";
-
+import useUserInfo from "@/stores/userInfo";
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
 
@@ -18,10 +18,11 @@ import {storeToRefs} from "pinia";
 
 // 执行函数，拿到Store
 const deviceInfo = useDeviceInfo();
+const userInfo = useUserInfo(); // 执行函数，拿到Store
 
 // 读取状态
 const {isShowRightBox,isPaginationmall,isShowArticleImage,mainColumnSpanNum} = storeToRefs(deviceInfo)
-
+const { userToken, username, isLogin } = storeToRefs(userInfo); // 读取状态
 // // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
 
 
@@ -122,6 +123,7 @@ function submitUserSuggestion() {
 
 // // // // // // // // // // ↓ 右侧板块：用户打赏 ↓ // // // // // // // // // //
 
+
 const userRewardDialogVisible = ref(false); // 打赏提示框
 
 const userRewardMessage = reactive({
@@ -205,7 +207,7 @@ function submitUserRewardMessage() {
 
             <div class="article_intro">
               <div class="title">
-                <a href="#" class="title_text">
+                <a href="/article/123" class="title_text">
                   <el-text tag="b" size="large" class="mx-1"  type="success" truncated >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text>
                 </a>
               </div>
@@ -400,7 +402,7 @@ function submitUserRewardMessage() {
       style="max-width: 600px"
     >
       <el-form-item label="您的昵称">
-        <el-input v-model="userRewardMessage.name" placeholder="少侠，留下你的昵称呗" />
+        <el-input v-model="userRewardMessage.name" placeholder="少侠，留下你的昵称呗" :value="username"/>
       </el-form-item>
       <el-form-item label="您的留言">
         <el-input
@@ -437,12 +439,9 @@ function submitUserRewardMessage() {
 
 /* ↓ 主体设置 ↓ */
 
-.page{
-  background-color: #f0eeee;
-}
 
 .main {
-  background-color: #f0eeee;
+  background-color: var(--home_background);
   padding-bottom: 50px;
 }
 
@@ -606,12 +605,12 @@ function submitUserRewardMessage() {
 
 .el-carousel__item:nth-child(2n + 1) {
   border-radius: 20px;
-  background-color: #dee6ed;
+  background-color: var(--news-background);
 }
 
 .el-carousel__item:nth-child(2n) {
   border-radius: 20px;
-  background-color: #dee6ed;
+  background-color: var(--news-background);
 }
 
 .el-divider__text {

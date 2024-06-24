@@ -1,6 +1,8 @@
 # zibuyu_blog
 
-This template should help get you started developing with Vue 3 in Vite.
+This template should help get you started `developing` with Vue 3 in Vite.
+
+> 这是一段引用。
 
 ## Recommended IDE Setup
 

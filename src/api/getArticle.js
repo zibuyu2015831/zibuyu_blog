@@ -1,9 +1,11 @@
  function getArticle(article_id){
-  return `# Anaconda 安装与使用
+  return `# \`Anaconda\` 安装与使用
 
-  虚拟环境是一个可以隔离项目的python解释器和安装模块的工具，
+  **虚拟环境**是一个可以隔离项目的\`python\`解释器和安装模块的工具，
+
+  [image-20231002222837381](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
-  使用虚拟环境可以实现：一个项目对应一个python解释器及其对应模块包，不同项目独立隔离在不同的目录下。
+  > 使用虚拟环境可以实现：一个项目对应一个python解释器及其对应模块包，不同项目独立隔离在不同的目录下。
   
   工作中常用的虚拟环境工具：anaconda（开发环境）、virtualenv、miniconda（生产环境）
   
@@ -23,31 +25,31 @@
   print(time.time.now())
   \`\`\`
 
-  ![image-20231002210654869](https://files.mdnice.com/user/107/296d7426-52d1-4157-ba3a-76a6ea60a5fc.jpg)
+  ![image-20231002210654869](https://pic.dmjnb.com/pic/cbea51521d791bfe2bf0993d19ba0e46)
   
-  ![image-20231002220516926](https://files.mdnice.com/user/107/296d7426-52d1-4157-ba3a-76a6ea60a5fc.jpg)
+  ![image-20231002220516926](https://wallpaperm.cmcm.com/dcf1a499b17a0ce4ff0ecc11bd2ff8dc.jpg)
   
   第二步：下载的安装包是一个sh脚本文件，执行此文件即可。
   
-  ![image-20231002221016264](https://files.mdnice.com/user/107/8fc3319f-c1a0-42dd-a5a5-acba3f50e4da.jpg)
+  ![image-20231002221016264](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
   阅读协议，按enter、空格、字母f都可...
   
-  ![image-20231002221057713](https://files.mdnice.com/user/107/8fc3319f-c1a0-42dd-a5a5-acba3f50e4da.jpg)
+  ![image-20231002221057713](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)
   
   同意协议
   
-  ![image-20231002221213122](https://files.mdnice.com/user/107/1c24537b-7137-4c35-8baf-43b0a5aa916f.jpg)
+  ![image-20231002221213122](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
   
-  ![image-20231002221704155](https://files.mdnice.com/user/107/1c24537b-7137-4c35-8baf-43b0a5aa916f.jpg)
+  ![image-20231002221704155](https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg)
   
-  ![image-20231002221815965](https://files.mdnice.com/user/107/1c24537b-7137-4c35-8baf-43b0a5aa916f.jpg)
+  ![image-20231002221815965](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
   安装完成，初始化
   
-  ![image-20231002222417525](https://files.mdnice.com/user/107/1c24537b-7137-4c35-8baf-43b0a5aa916f.jpg)
+  ![image-20231002222417525](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
   
-  ![image-20231002222837381](https://files.mdnice.com/user/107/1c24537b-7137-4c35-8baf-43b0a5aa916f.jpg)
+  ![image-20231002222837381](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
   命令：
   
@@ -55,19 +57,19 @@
   eval "$(/home/zibuyu/anaconda3/bin/conda shell.bash hook)"
   \`\`\`
   
-  ![image-20231002223050477](https://img2023.cnblogs.com/blog/2600375/202310/2600375-20231002224832987-574293476.png)
+  ![image-20231002223050477](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
   ## 02 小工具
-  
+
   ### ipython
   
-  ![image-20231002223447882](https://img2023.cnblogs.com/blog/2600375/202310/2600375-20231002224832609-1805183835.png)
+  ![image-20231002223447882](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
   
   ### jupyter-notebook
   
-  ![image-20231002223958363](https://img2023.cnblogs.com/blog/2600375/202310/2600375-20231002224832175-1256631494.png)
+  ![image-20231002223958363](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
   
-  ![image-20231002224040514](https://img2023.cnblogs.com/blog/2600375/202310/2600375-20231002224831632-664397609.png)
+  ![image-20231002224040514](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
   
   
   

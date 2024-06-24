@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Zoom</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+@keyframes typing {
+    from { width: 0; }
+}
+
+.typewriter {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid;
+    animation: typing 5s steps(13, end) infinite,
+               blink-caret 0.75s step-end infinite;
+}
+
+.typewriter::before {
+    content: "Hello, World!";
+    display: inline-block;
+    animation: typing 5s steps(13, end) infinite;
+}
+
+@keyframes blink-caret {
+    50% { border-color: transparent; }
+}
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="typing-effect">Hello, World!</div>
+  </div>
+  <script>
+    function typeWriter(element) {
+      const text = element.innerHTML;
+      element.innerHTML = '';
+      let i = 0;
+      const timer = setInterval(() => {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+        } else {
+          clearInterval(timer);
+        }
+      }, 100);
+    }
+
+    // 使用示例
+    typeWriter(document.getElementById('typing-effect'));
+  </script>
+</body>
+
+</html>

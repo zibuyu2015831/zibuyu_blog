@@ -1,21 +1,34 @@
 <script setup>
-import { ref, onMounted} from "vue";
+import { ref, h, onBeforeMount, render, onBeforeUnmount } from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
-import { v4 as uuidv4 } from "uuid";
-import useDeviceInfo from "@/stores/nav";
-import {storeToRefs} from "pinia";
+import "@/assets/css/zibuyu-markdown.css";
 
+import { v4 as uuidv4 } from "uuid";
+import useDeviceInfo from "@/stores/deviceInfo.js";
+import { storeToRefs } from "pinia";
 
 // // // // // ↓ markdown渲染 ↓ // // // // //
 
-const toc = [];
+// 文章是否被当前用户点赞
+const userLike = ref(true);
+
+function userLikeArticle() {
+  userLike.value = !userLike.value;
+}
+
+// 使用正则表达式匹配并替换HTML标签，得到真正文本
+function stripHtmlTags(html) {
+  return html.replace(/<[^>]*>/g, "");
+}
+
+const toc = []; // 存放目录的标题与id
+const imageIdList = []; // 存放图片的id与url
 const article = ref("");
 const tocItems = ref([]);
-
 const marked = new Marked();
 
 marked.use({
@@ -23,7 +36,7 @@ marked.use({
   gfm: true,
   renderer: {
     heading: function heading(text, depth) {
-      let slug = uuidv4();
+      let headId = "uuid" + uuidv4().replace(/-/g, "");
       let depth_class = "";
 
       switch (depth) {
@@ -40,9 +53,33 @@ marked.use({
           break;
       }
 
-      toc.push({ text, slug, depth_class });
+      const real_text = stripHtmlTags(text);
 
-      return `<h${depth} id="${slug}">${text}</h${depth}>`;
+      toc.push({ real_text, headId, depth_class });
+
+      return `<h${depth} id="${headId}"><span>${text}</span></h${depth}>`;
+    },
+    image: function image(img_url, second, title) {
+      let imageId = "uuid" + uuidv4().replace(/-/g, "");
+      let pId = "uuid" + uuidv4().replace(/-/g, "");
+
+      imageIdList.push({
+        parentId: pId,
+        imageId: imageId,
+        imageUrl: img_url,
+      });
+
+      return `<p style="text-align:center" id="${pId}" >
+        <img id="${imageId}" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
+        <span style="color: gray; font-size: 16px;"> ↑ ${title} ↑ </span>
+        </p>`;
+    },
+    link: function link(content, second, title) {
+      return `<a href="${content}" target="_blank">${title}</a>`;
+    },
+    html: function html(content) {
+      console.log("123");
+      console.log("123", content);
     },
   },
 });
@@ -57,34 +94,63 @@ marked.use(
   })
 );
 
-
 const generateTOC = () => {
   return toc.map((item) => ({
-    text: item.text,
-    slug: item.slug,
+    text: item.real_text,
+    headId: item.headId,
     depth_class: item.depth_class,
   }));
 };
 
-onMounted(async () => {
+const generateimageIdList = () => {
+  return imageIdList.map((item) => ({
+    parentId: item.parentId,
+    imageId: item.imageId,
+    imageUrl: item.imageUrl,
+  }));
+};
+
+onBeforeMount(async () => {
   const markdownTEXT = await getArticle(132156);
   article.value = marked.parse(markdownTEXT);
   tocItems.value = generateTOC();
 });
 
+// 设置图片点击放大功能
+const zoomedImage = ref(null);
+
+const closeZoom = () => {
+  zoomedImage.value = null;
+};
+
+setTimeout(() => {
+  const images = generateimageIdList();
+
+  images.forEach((image) => {
+    const imageDOM = document.querySelector(`#${image.imageId}`);
+    if (imageDOM) {
+      imageDOM.addEventListener("click", () => {
+        zoomedImage.value = image.imageUrl;
+        console.log(`Image with id ${image.imageId} was clicked! ${image.imageUrl}`);
+      });
+    }
+  });
+}, 0);
+
 // // // // // ↑ markdown渲染 ↑ // // // // //
-
-
 
 // // // // // ↓ 根据视图向下滚动高度决定右侧样式 ↓ // // // // //
 
 const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
-const {isArticleRightBlockFixed,isShowRightBox,mainColumnSpanNum} = storeToRefs(deviceInfo) // 读取状态
+const {
+  isArticleRightBlockFixed,
+  isShowRightBox,
+  mainColumnSpanNum,
+  webTheme,
+} = storeToRefs(deviceInfo); // 读取状态
 
 // // // // // ↑ 根据视图向下滚动高度决定右侧样式 ↑ // // // // //
-
-
 
 // // // // // ↓ 页面向上、向下跳动按钮 ↓ // // // // //
 
@@ -103,15 +169,14 @@ function backToButton() {
 }
 
 // 根据元素ID值实现页面跳转
-const scrollToAnchor = (slug) => {
-  const element = document.getElementById(slug);
+const scrollToAnchor = (headId) => {
+  const element = document.getElementById(headId);
   if (element) {
     element.scrollIntoView({ behavior: "smooth" });
   }
 };
 
 // // // // // ↑ 页面向上、向下跳动按钮 ↑ // // // // //
-
 
 // // // // // ↓ 评论输入框 ↓ // // // // //
 
@@ -127,26 +192,26 @@ function textOnFocus() {
 }
 
 // // // // // ↑ 评论输入框 ↑ // // // // //
-
-
 </script>
 
 <template>
   <el-row class="main" justify="center">
-    <el-col :span="mainColumnSpanNum"  class="left">
-      <el-row justify="center">
-        <div class="title"><span>我是标题</span></div>
-      </el-row>
-      <el-row justify="center">
-        <div class="date">我是日期</div>
-      </el-row>
-      <el-row justify="center">
-        <div class="tag">我是标签</div>
-      </el-row>
+    <el-col :span="mainColumnSpanNum" class="left">
+      <div class="article_head">
+        <el-row justify="center">
+          <div class="title"><span>我是标题</span></div>
+        </el-row>
+        <el-row justify="center">
+          <div class="date">我是日期</div>
+        </el-row>
+        <el-row justify="center">
+          <div class="tag">我是标签</div>
+        </el-row>
+      </div>
 
       <el-divider />
 
-      <div v-html="article" class="markdown-body"></div>
+      <div v-html="article" class="markdown-body article_body" :class="webTheme"></div>
 
       <el-divider />
 
@@ -167,14 +232,12 @@ function textOnFocus() {
       </div>
     </el-col>
 
-
-
-    <el-col 
-    v-if="isShowRightBox"
-    class="right" 
-    :span="5" 
-    :offset="1" 
-    :class="{ isfixed: isArticleRightBlockFixed }"
+    <el-col
+      v-if="isShowRightBox"
+      class="right"
+      :span="5"
+      :offset="1"
+      :class="{ isfixed: isArticleRightBlockFixed }"
     >
       <el-card style="max-width: 480px" class="right_card author_info">
         <template #header>
@@ -197,24 +260,22 @@ function textOnFocus() {
         <div class="toc">
           <div
             v-for="item in tocItems"
-            :key="item.slug"
+            :key="item.headId"
             :class="item.depth_class"
-            @click="() => scrollToAnchor(item.slug)"
+            @click="() => scrollToAnchor(item.headId)"
           >
             {{ item.text }}
           </div>
         </div>
         <el-divider />
         <div class="toc_icon">
-          <!-- 由于SVG图标默认不携带任何属性 -->
-          <!-- 你需要直接提供它们 -->
           <el-tooltip
             class="box-item"
             effect="dark"
             content="AI问答"
             placement="top-start"
           >
-            <el-icon class="ai_chat"><ChatDotRound /></el-icon>
+            <span class="iconfont icon-message"></span>
           </el-tooltip>
 
           <el-tooltip
@@ -223,7 +284,7 @@ function textOnFocus() {
             content="我来评论两句"
             placement="top-start"
           >
-            <el-icon class="comment"><Comment /></el-icon>
+            <span class="iconfont icon-iconfontconment2"></span>
           </el-tooltip>
 
           <el-tooltip
@@ -232,7 +293,11 @@ function textOnFocus() {
             content="点赞+收藏"
             placement="top-start"
           >
-            <el-icon class="star"><Star /> </el-icon>
+            <span
+              class="iconfont"
+              :class="{ 'icon-good1': userLike, 'icon-good': !userLike }"
+              @click="userLikeArticle"
+            ></span>
           </el-tooltip>
 
           <el-tooltip
@@ -241,7 +306,7 @@ function textOnFocus() {
             content="返回底部"
             placement="top-start"
           >
-            <el-icon class="share" @click="backToButton"> <Bottom /></el-icon>
+            <span class="iconfont icon-arrow-to-bottom" @click="backToButton"></span>
           </el-tooltip>
 
           <el-tooltip
@@ -250,16 +315,26 @@ function textOnFocus() {
             content="返回开头"
             placement="top-start"
           >
-            <el-icon class="top" @click="backToTop"> <Top /> </el-icon>
+            <span class="iconfont icon-arrow-to-top" @click="backToTop"></span>
           </el-tooltip>
         </div>
       </el-card>
     </el-col>
   </el-row>
+
+  <div>
+    <div class="overlay" :class="{ active: zoomedImage }" @click="closeZoom"></div>
+    <div v-if="zoomedImage" class="zoomed-image" @click="closeZoom">
+      <img :src="zoomedImage" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
 
+.main{
+  background-color: var(--home_background);
+}
 /* 用户评论样式 */
 
 .comment_input {
@@ -281,9 +356,21 @@ function textOnFocus() {
 /* 右侧文章目录下方按钮样式 */
 
 .toc_icon {
-  font-size: 25px;
   display: flex;
   justify-content: space-evenly;
+}
+
+.toc_icon span {
+  font-size: 25px;
+}
+
+.toc_icon .icon-good1 {
+  color: #cb3f1c;
+}
+
+.toc_icon .icon-arrow-to-bottom,
+.toc_icon .icon-arrow-to-top {
+  font-size: 23px;
 }
 
 .right_card {
@@ -313,11 +400,14 @@ function textOnFocus() {
 /* 文章主题样式 */
 
 .markdown-body {
-  background-color: #c0cad5; /* 自定义背景颜色 */
   padding: 30px;
   border-radius: 10px;
   font-size: 18px;
   margin-bottom: 20px;
+}
+
+.article_head {
+  color: var(--article_head);
 }
 
 /* 右侧板块设置 */
@@ -340,12 +430,11 @@ function textOnFocus() {
 .isfixed {
   width: 395px;
   position: fixed;
-  right: 95px;
-  top: 100px;
+  right: 80px;
+  top: 150px;
 }
 
-
-/* 页面标题设置 */
+/* ↓ 页面标题设置 ↓ */
 
 .title {
   font-size: 40px;
@@ -354,15 +443,42 @@ function textOnFocus() {
   margin-bottom: 10px;
 }
 
-.title span{
-  background:linear-gradient(to right,#538dcb,#cb1ccb ) no-repeat right bottom;
+.title span {
+  background: linear-gradient(to right, #538dcb, #cb1ccb) no-repeat right bottom;
   background-size: 0 3px;
   transition: background-size 1000ms;
 }
 
-.title span:hover{
+.title span:hover {
   background-position-x: left;
   background-size: 100% 3px;
 }
 
+/* ↑ 页面标题设置 ↑ */
+
+/* ↓ 图片点击之后的样式 ↓ */
+.zoomed-image {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: rgb(233, 240, 229);
+  padding: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+.overlay.active {
+  display: block;
+}
+/* ↑ 图片点击之后的样式 ↑ */
 </style>

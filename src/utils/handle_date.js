@@ -18,7 +18,7 @@ export function calculateTime(timestampStr) {
   const days = Math.floor(difference / (24 * 60 * 60));
   
   // 构造输出字符串
-  const result = `运行了${days}天${hours}时${minutes}分${seconds}秒`;
+  const result = `${days}天${hours}时${minutes}分${seconds}秒`;
   
   return result;
 }

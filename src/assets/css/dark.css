@@ -1,0 +1,17 @@
+
+
+html.dark {
+  /* 自定义深色背景颜色 */
+  --header-background:#514c4c;
+  --footer-background: var(--header-background);
+  --header_slogen_font:#e2b2c0;
+  --home_background:#212121;
+  --news-background:#514c4c;
+  
+  --header-font:#d0e3d3;
+  --article_head:white;
+
+  --el-bg-color: rgb(126, 117, 117);
+
+  --el-dialog-bg-color: rgb(98, 90, 90);
+}
