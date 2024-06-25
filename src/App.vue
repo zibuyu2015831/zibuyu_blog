@@ -4,11 +4,11 @@ import Footer from "@/components/Footer.vue";
 import HeaderNavigate from "@/components/HeaderNavigate.vue";
 import SmallScreenMenu from "@/components/SmallScreenMenu.vue";
 import useDeviceInfo from "@/stores/deviceInfo";
-import { onMounted, onBeforeUnmount, reactive, onBeforeMount } from "vue";
+import { onMounted, onBeforeUnmount, ref, onBeforeMount, computed } from "vue";
 import { getLocalStorageValueWithExpiration } from "@/utils/uselocalStorage";
 import { storeToRefs } from "pinia";
 
-// // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 响应式布局：获取用户屏幕尺寸，添加监听 ↓ // // // // // // // // // //
 
 // 执行函数，拿到Store
 const deviceInfo = useDeviceInfo();
@@ -84,32 +84,58 @@ onBeforeMount(() => {
   if (local_webTheme && deviceInfo.theme_list.includes(local_webTheme)) {
     document.documentElement.classList.add(local_webTheme);
     deviceInfo.theme = local_webTheme;
-
-  
   } else {
     if (isDayTime()) {
+      document.documentElement.classList.remove(...document.documentElement.classList);
       document.documentElement.classList.add("light");
-
     } else {
+      document.documentElement.classList.remove(...document.documentElement.classList);
       document.documentElement.classList.add("dark");
-  
     }
   }
 });
 
-
-
-
 // // // // // // // // // // ↑ 页面主题颜色 ↑ // // // // // // // // // //
 
-const font = reactive(watermarkColor.value);
+const isShowDoor = ref(true);
+
+setTimeout(() => {
+  isShowDoor.value = false;
+}, 1000);
+
+const isHeaderReady = ref(false);
+const isRouterViewReady = ref(false);
+const allReady = computed(() => {
+  console.log("一切是否准备完成：", isHeaderReady.value && isRouterViewReady.value);
+  return isHeaderReady.value && isRouterViewReady.value;
+});
+
+const isHeaderViewMounted = () => {
+  console.log("header组件加载完成");
+  isHeaderReady.value = true;
+  // 在这里执行你的回调函数
+};
+
+const isRouterViewMounted = () => {
+  console.log("router-view 组件加载完成");
+  isRouterViewReady.value = true;
+};
 </script>
 
 <template>
-  <Header></Header>
+  <el-row :gutter="0" class="container" v-if="isShowDoor">
+    <el-col :span="12">
+      <div class="door left-door" :class="{ 'left-door-dispear': allReady }"></div>
+    </el-col>
+    <el-col :span="12">
+      <div class="door right-door" :class="{ 'right-door-dispear': allReady }"></div>
+    </el-col>
+  </el-row>
+
+  <Header @vue:mounted="isHeaderViewMounted"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="!isShowHeaderNavigate"></SmallScreenMenu>
-  <router-view></router-view>
+  <router-view @vue:mounted="isRouterViewMounted"></router-view>
   <!-- <el-watermark class="common-layout" :font="font" content="思维兵工厂">
     <router-view></router-view>
   </el-watermark> -->
@@ -118,7 +144,40 @@ const font = reactive(watermarkColor.value);
 </template>
 
 <style scoped>
-.common-layout {
-  background-color: #f0eeee;
+.container {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.door {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background-color: var(--door);
+  transition: transform 1s ease-in-out;
+}
+
+.left-door {
+  left: 0;
+  transform-origin: left;
+}
+
+.right-door {
+  right: 0;
+  transform-origin: right;
+}
+
+.left-door-dispear {
+  transform: perspective(1000px) rotateY(-90deg);
+  z-index: 1;
+}
+
+.right-door-dispear {
+  transform: perspective(1000px) rotateY(90deg);
+  z-index: 1;
 }
 </style>

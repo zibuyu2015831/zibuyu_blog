@@ -13,10 +13,14 @@ export default {
 
       if (theme === 'dark') {
         import('@/assets/css/dark.css').then(() => {
+          document.documentElement.classList.remove(...document.documentElement.classList);
+          document.documentElement.classList.add("dark");
           console.log('导入了黑夜主题，插件');
         });
       } else {
         import('@/assets/css/light.css').then(() => {
+          document.documentElement.classList.remove(...document.documentElement.classList);
+          document.documentElement.classList.add("light");
           console.log('导入了白天主题，插件');
         });
       }

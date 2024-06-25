@@ -400,7 +400,7 @@ function textOnFocus() {
 /* 文章主题样式 */
 
 .markdown-body {
-  padding: 30px;
+  padding: 3%;
   border-radius: 10px;
   font-size: 18px;
   margin-bottom: 20px;

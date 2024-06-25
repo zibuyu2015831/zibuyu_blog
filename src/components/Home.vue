@@ -5,9 +5,18 @@ import { ElNotification } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 import useUserInfo from "@/stores/userInfo";
+
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 新闻轮播图 ↓ // // // // // // // // // //
+const news_num = ref(0);
+
+function carouselChange(num) {
+  news_num.value = num;
+}
+// // // // // // // // // // ↑ 新闻轮播图 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
 
@@ -144,13 +153,6 @@ function submitUserRewardMessage() {
 }
 
 // // // // // // // // // // ↑ 右侧板块：用户打赏 ↑ // // // // // // // // // //
-
-const news_num = ref(0);
-
-function carouselChange(num) {
-  news_num.value = num;
-  console.log(news_num);
-}
 </script>
 
 <template>
@@ -167,21 +169,28 @@ function carouselChange(num) {
             indicator-position="none"
             @change="carouselChange"
           >
-            <el-carousel-item v-for="(item, index) in news" :key="index">
-              <h3 text="1xl" justify="center">
+            <el-carousel-item
+              v-for="(item, index) in news"
+              :key="index"
+              :class="{
+                news_activate: index === news_num,
+                news_deactivate: index !== news_num,
+              }"
+            >
+              <h3 text="1xl" justify="center" class="news_content">
                 <a
                   target="_blank"
                   :href="item.link"
-                  :class="{ new_activate: index !== news_num }"
+                  :class="{ news_activate: index === news_num }"
                   :id="index"
                 >
-                  <el-text class="mx-1" type="primary" size="large">{{
-                    item.name.slice(0, -2) != "B站排"
-                      ? "【 " + item.name.slice(0, -2) + " 】"
-                      : "【 B站 】"
-                  }}</el-text>
-
-                  <el-text class="mx-1" size="large" type="warning">{{ item.title }}</el-text>
+                  <span
+                    >{{
+                      item.name.slice(0, -2) != "B站排"
+                        ? "【 " + item.name.slice(0, -2) + " 】"
+                        : "【 B站 】"
+                    }}{{ item.title }}</span
+                  >
                 </a>
               </h3>
             </el-carousel-item>
@@ -239,17 +248,19 @@ function carouselChange(num) {
 
       <el-col class="article_page">
         <el-row justify="center">
-          <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="1000"
-            :small="isPaginationmall"
-          />
+          <div>
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="1000"
+              :small="isPaginationmall"
+            />
+          </div>
         </el-row>
       </el-col>
     </el-col>
 
-    <el-col :span="5" :offset="1" class="right" >
+    <el-col :span="5" :offset="1" class="right">
       <el-card style="max-width: 480px" class="right_card">
         <template #header>
           <div class="card-header">
@@ -368,7 +379,7 @@ function carouselChange(num) {
     </el-col>
   </el-row>
 
-  <div  class="main" v-if="!isBigScreen">
+  <div class="main" v-if="!isBigScreen">
     <el-row justify="center">
       <el-col class="news" :span="20">
         <el-carousel
@@ -380,21 +391,28 @@ function carouselChange(num) {
           indicator-position="none"
           @change="carouselChange"
         >
-          <el-carousel-item v-for="(item, index) in news" :key="index">
-            <h3 text="1xl" justify="center">
+          <el-carousel-item
+            v-for="(item, index) in news"
+            :key="index"
+            :class="{
+              news_activate: index === news_num,
+              news_deactivate: index !== news_num,
+            }"
+          >
+            <h3 text="1xl" justify="center" class="news_content">
               <a
                 target="_blank"
                 :href="item.link"
-                :class="{ new_activate: index !== news_num }"
+                :class="{ news_activate: index === news_num }"
                 :id="index"
               >
-                <el-text class="mx-1" type="primary" size="large">{{
-                  item.name.slice(0, -2) != "B站排"
-                    ? "【 " + item.name.slice(0, -2) + " 】"
-                    : "【 B站 】"
-                }}</el-text>
-
-                <el-text class="mx-1" size="large">{{ item.title }}</el-text>
+                <span
+                  >{{
+                    item.name.slice(0, -2) != "B站排"
+                      ? "【 " + item.name.slice(0, -2) + " 】"
+                      : "【 B站 】"
+                  }}{{ item.title }}</span
+                >
               </a>
             </h3>
           </el-carousel-item>
@@ -402,9 +420,8 @@ function carouselChange(num) {
       </el-col>
     </el-row>
 
-    <el-row justify="center" style="margin-top: 50px;">
-      <el-col :span="isShowRightBox?14:24" class="left">
-  
+    <el-row justify="center" style="margin-top: 50px">
+      <el-col :span="isShowRightBox ? 14 : 24" class="left">
         <el-col class="article_list">
           <el-row justify="center" class="" v-for="movie in 10" :key="movie">
             <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
@@ -414,7 +431,7 @@ function carouselChange(num) {
                 src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
                 fit="fill"
               />
-  
+
               <div class="article_intro">
                 <div class="title">
                   <a href="/article/123" class="title_text">
@@ -423,13 +440,13 @@ function carouselChange(num) {
                     >
                   </a>
                 </div>
-  
+
                 <div class="abstract">
                   <el-text line-clamp="2" size="default" tag="i">
                     这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
                   </el-text>
                 </div>
-  
+
                 <div class="data">
                   <div class="category flex gap-2">
                     <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
@@ -451,19 +468,21 @@ function carouselChange(num) {
             </el-card>
           </el-row>
         </el-col>
-  
+
         <el-col class="article_page">
           <el-row justify="center">
-            <el-pagination
-              background
-              layout="prev, pager, next"
-              :total="1000"
-              :small="isPaginationmall"
-            />
+            <div>
+              <el-pagination
+                background
+                layout="prev, pager, next"
+                :total="1000"
+                :small="isPaginationmall"
+              />
+            </div>
           </el-row>
         </el-col>
       </el-col>
-  
+
       <el-col :span="6" class="right" v-if="isShowRightBox">
         <el-card style="max-width: 480px" class="right_card">
           <template #header>
@@ -472,21 +491,26 @@ function carouselChange(num) {
             </div>
           </template>
           <div>
-            <el-carousel :interval="5000" arrow="always" :motion-blur="true" indicator-position="none">
+            <el-carousel
+              :interval="5000"
+              arrow="always"
+              :motion-blur="true"
+              indicator-position="none"
+            >
               <el-carousel-item v-for="item in 3" :key="item">
                 <h3 text="2xl" justify="center">{{ item }}</h3>
               </el-carousel-item>
             </el-carousel>
           </div>
         </el-card>
-  
+
         <el-card style="max-width: 480px" class="right_card">
           <template #header>
             <div class="card-header">
               <span class="right_title">个人介绍</span>
             </div>
           </template>
-  
+
           <div class="card_item">子不语</div>
           <div class="card_item">全栈开发工程师</div>
           <div class="card_item">现居广州</div>
@@ -507,14 +531,14 @@ function carouselChange(num) {
             </div>
           </div>
         </el-card>
-  
+
         <el-card style="max-width: 480px" class="right_card">
           <template #header>
             <div class="card-header">
               <span class="right_title">意见反馈</span>
             </div>
           </template>
-  
+
           <el-form
             :label-position="'top'"
             label-width="auto"
@@ -541,7 +565,7 @@ function carouselChange(num) {
             </el-form-item>
           </el-form>
         </el-card>
-  
+
         <el-card style="max-width: 480px" class="right_card">
           <template #header>
             <div class="card-header">
@@ -553,7 +577,7 @@ function carouselChange(num) {
               </span>
             </div>
           </template>
-  
+
           <el-table
             :data="rewardTableData"
             style="width: 100%"
@@ -572,7 +596,7 @@ function carouselChange(num) {
                 </el-popover>
               </template>
             </el-table-column>
-  
+
             <el-table-column label="金额">
               <template #default="scope">
                 <span>￥ &nbsp {{ scope.row.count }}</span>
@@ -582,11 +606,7 @@ function carouselChange(num) {
         </el-card>
       </el-col>
     </el-row>
-
-
   </div>
-
-
 
   <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
     <div class="card_item">
@@ -807,21 +827,35 @@ function carouselChange(num) {
   text-align: center;
 }
 
-.el-carousel__item:nth-child(2n + 1) {
+.el-carousel__item.news_deactivate {
+  opacity: 0.5;
   border-radius: 20px;
-  background-color: var(--news-background);
+  font-size: clamp(8px, 3.8vw, 18px); /* 设置字体大小的最小值、自适应值和最大值 */
+
+  background-color: var(--news_deactivate_background);
 }
 
-.el-carousel__item:nth-child(2n) {
+.el-carousel__item.news_activate {
+  opacity: 1;
   border-radius: 20px;
-  background-color: var(--news-background);
+  font-size: clamp(10px, 4vw, 20px); /* 设置字体大小的最小值、自适应值和最大值 */
+  overflow: hidden; /* 超出部分隐藏 */
+
+  background-color: var(--news_activate_background);
+}
+
+.el-carousel__item .news_content {
+  color: var(--news_content);
+  padding: auto 10px;
+  display: inline-block; /* 使span可以设置宽度和高度 */
+  word-wrap: break-word; /* 长单词换行 */
+  white-space: nowrap; /* 文本不换行 */
+  overflow: hidden; /* 超出部分隐藏 */
+  text-overflow: ellipsis; /* 使用省略号表示被修剪的文本 */
+  width: 100%;
 }
 
 .el-divider__text {
   background-color: #f0eeee;
-}
-
-.new_activate {
-  opacity: 0.5;
 }
 </style>

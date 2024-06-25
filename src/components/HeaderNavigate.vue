@@ -165,6 +165,8 @@ const handleCommand = (command) => {
     </el-col>
 
     <el-col span="12" class="nav_right" :style="{ color: TextColor }">
+
+
       <div class="theme">
         <el-radio-group
           v-model="deviceInfo.theme"
@@ -236,16 +238,16 @@ const handleCommand = (command) => {
         :model="loginInfo"
         style="max-width: 600px"
       >
-        <el-form-item label="用户名">
+        <el-form-item label="用户名" :required="true">
           <el-input v-model="loginInfo.username" />
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item label="密码" :required="true">
           <el-input v-model="loginInfo.password" type="password" />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <div class="dialog-footer">
+        <div class="dialog_footer">
           <span>
             <el-button type="warning" class="register_now" @click="register_now">
               没有账号？立刻注册
@@ -267,19 +269,19 @@ const handleCommand = (command) => {
         :model="loginInfo"
         style="max-width: 600px"
       >
-        <el-form-item label="用户名">
+        <el-form-item label="用户名" :required="true">
           <el-input v-model="registerInfo.username" />
         </el-form-item>
 
-        <el-form-item label="密码">
+        <el-form-item label="密码" :required="true">
           <el-input v-model="registerInfo.password" type="password" />
         </el-form-item>
 
-        <el-form-item label="再次输入密码">
+        <el-form-item label="再次输入密码" :required="true">
           <el-input v-model="registerInfo.password" type="password" />
         </el-form-item>
 
-        <el-form-item label="邀请码">
+        <el-form-item label="邀请码" :required="true">
           <el-input
             v-model="registerInfo.registerCode"
             placeholder="关注公众号【思维兵工厂】，回复“邀请码”"
@@ -298,7 +300,7 @@ const handleCommand = (command) => {
       </el-form>
 
       <template #footer>
-        <div class="dialog-footer">
+        <div class="dialog_footer">
           <span>
             <el-button type="warning" class="login_now" @click="login_now">
               已有账号？前往登录
@@ -330,7 +332,7 @@ const handleCommand = (command) => {
 
 /* ↑ 导航栏右侧 ↑ */
 
-.dialog-footer {
+.dialog_footer {
   display: flex;
   justify-content: space-between;
 }
@@ -367,12 +369,12 @@ const handleCommand = (command) => {
 }
 
 .nav_background{
-  background-color: var(--header-background,#ffffff);
+  background-color: var(--header_background,#ffffff);
   opacity: 0.9;
 }
 
 .nav_left {
-  color: var(--header-font);
+  color: var(--header_font);
   margin: 0 auto;
   line-height: 60px;
 

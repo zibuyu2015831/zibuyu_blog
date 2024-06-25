@@ -1,14 +1,20 @@
 html.light {
   /* 自定义深色背景颜色 */
+  --door:#E8E1CD;
+  --header_background: #EAE7DC;
+  --header_font: #0f100f;
+  --header_slogen_font: #f70edc;
 
-  --header-background: #EAE7DC;
-  --header-font: #0f100f;
-  --header_slogen_font: #23020c;
-
-  --home_background: #efebec;
+  --home_background: #F6F6F6;
   --footer_background: #EAE7DC;
 
-  --news-background: #dee6ed;
+
+  --news_activate_background: #d1c6a7;
+  --news_deactivate_background: #CCBE97;
+  --news_content: #0b4417;
+  --small_screen_menu_bg:#EAE7DC;
+  --small_screen_menu_font:black;
+  --small_screen_menu_font_activate:rgb(139, 8, 28);
 
   --markdown_article_title: black;
   --markdown_article_body_deactivated:#EFEBEC;

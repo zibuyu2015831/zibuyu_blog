@@ -45,7 +45,7 @@ setInterval(() => {
       <a href="#" target="_blank">
         <img class="footer_icon" src="../assets/image/bilibili.png" alt="哔哩哔哩" />
       </a>
-      <a href="#" target="_blank">
+      <a href="https://gitee.com/zibuyu2015831" target="_blank">
         <img class="footer_icon" src="../assets/image/gitee.png" alt="gitee" />
       </a>
       <a href="#" target="_blank">
@@ -65,7 +65,7 @@ setInterval(() => {
 
 <style scoped>
 .footer {
-  background-color: var(--footer-background,grey);
+  background-color: var(--footer_background,grey);
 }
 
 .left_container {

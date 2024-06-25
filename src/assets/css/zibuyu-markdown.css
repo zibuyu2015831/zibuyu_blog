@@ -357,6 +357,10 @@
    border-bottom: none;
  }
 
+ .markdown-body a:before {
+  content: '✍🏻 ';
+}
+
 
  .markdown-body abbr[title] {
    border-bottom: none;
@@ -650,8 +654,8 @@
    font-weight: lighter;
    font-size: 0.9em;
    font-style: italic;
-   padding: 30px 38px;
-   margin: 30px;
+   padding: 3% 3%;
+   margin: 3%;
    position: relative;
    line-height: 1.8;
    text-indent: 0;

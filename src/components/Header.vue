@@ -50,12 +50,6 @@ const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
 const { homeImageHeight } = storeToRefs(deviceInfo); // 读取状态
 
-const currentImage =
-  deviceInfo.theme === "dark"
-    ? "../assets/image/header_night.jpg"
-    : "../assets/image/header_day.jpg";
-
-console.log(currentImage);
 
 // // // // // ↑ 根据视口高度，修改首图高度 ↑ // // // // //
 </script>
