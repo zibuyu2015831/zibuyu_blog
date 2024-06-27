@@ -1,7 +1,7 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onBeforeUpdate } from "vue";
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
@@ -13,29 +13,55 @@ const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoSto
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
-const textareaRef = ref(null);
+const chatAreaRef = ref(null);
+
+const titleAreaRef = ref(null); // 标题行高度
+const messageAreaRef = ref(null); // 消息栏高度
+const inputAreaRef = ref(null); // 输入区域高度
+
+const textareaRef = ref(null); // 文本输入框高度
 
 const handlerHeight = () => {
   if (textareaRef.value) {
     textareaRef.value.style.height = "auto"; // Reset height to auto to get the correct scroll height
     let height = textareaRef.value.scrollHeight;
     if (height > 100) {
-      // Assuming 20px per row, 5 rows * 20px = 100px
       height = 100;
     }
     textareaRef.value.style.height = `${height}px`;
+
+    inputAreaRef.value.style.height = `${height + 20}px`;
+
+    resetMessageAreaHeight();
   }
 };
 
+function resetMessageAreaHeight() {
+  if (inputAreaRef.value && titleAreaRef.value) {
+    let inputHeight = inputAreaRef.value.offsetHeight;
+    let titleHeight = titleAreaRef.value.offsetHeight;
+
+    const height = deviceInfoStore.userScreenHeight - inputHeight - titleHeight;
+
+    messageAreaRef.value.style.height = `${height}px`;
+    messageAreaRef.value.style.top = `${titleAreaRef.value.offsetHeight}px`;
+    inputAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
+    titleAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
+  }
+}
+
+onMounted(() => {
+  resetMessageAreaHeight();
+});
+
+onBeforeUpdate(() => {
+  resetMessageAreaHeight();
+});
+
 const buttonSize = computed(() => {
-  console.log("重新计算大小");
-  console.log(isEnglishButtonSmall.value);
   if (isEnglishButtonSmall.value) {
-    console.log("按钮小");
     return "middle";
   } else {
-    console.log("按钮大");
-
     return "large";
   }
 });
@@ -77,16 +103,92 @@ const buttonSize = computed(() => {
     </div>
 
     <div class="right">
-      <div class="chat_area">
-        <div class="title_area">
-          <div class="title"><span>我是标题</span></div>
+      <div class="chat_area" ref="chatAreaRef">
+        <div class="title_area" ref="titleAreaRef">
+          <div class="title">
+            <span>我是标题</span>
+          </div>
           <div class="right_icon">
             <span class="iconfont icon-caidan_"></span>
           </div>
         </div>
 
-        <div class="message_area"></div>
-        <div class="input_area">
+        <div class="message_area" ref="messageAreaRef">
+          <div class="react_content_user">
+            <div>用户发送的内容：你是谁</div>
+          </div>
+
+          <div class="react_content_system">
+            <div>系统发送的内容：我是英语外教</div>
+          </div>
+
+          <div class="react_content_user">
+            <div>
+              用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：
+            </div>
+          </div>
+
+          <div class="react_content_system">
+            <div>
+              系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教
+            </div>
+          </div>
+
+          <div class="react_content_user">
+            <div>用户发送的内容：你是谁</div>
+          </div>
+
+          <div class="react_content_system">
+            <div>系统发送的内容：我是英语外教</div>
+          </div>
+
+          <div class="react_content_user">
+            <div>
+              用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：
+            </div>
+          </div>
+
+          <div class="react_content_system">
+            <div>
+              系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教
+            </div>
+          </div>
+          <div class="react_content_user">
+            <div>
+              用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：
+            </div>
+          </div>
+
+          <div class="react_content_system">
+            <div>
+              系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教
+            </div>
+          </div>
+          <div class="react_content_user">
+            <div>
+              用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：
+            </div>
+          </div>
+
+          <div class="react_content_system">
+            <div>
+              系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教
+            </div>
+          </div>
+          <div class="react_content_user">
+            <div>
+              用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：用户发送的内容：
+            </div>
+          </div>
+
+          <div class="react_content_system">
+            <div>
+              系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教系统发送的内容：我是英语外教
+            </div>
+          </div>
+        </div>
+
+        <div class="input_area" ref="inputAreaRef">
           <form action="" class="input_form">
             <textarea
               name=""
@@ -113,7 +215,7 @@ const buttonSize = computed(() => {
 /* 重置表单元素的默认样式 */
 textarea {
   margin: 0;
-  padding: 12px;
+  padding: 12px 15px;
 
   background: none;
   outline: none;
@@ -121,11 +223,10 @@ textarea {
   font-size: inherit;
   border: none;
   line-height: 28px;
-  font-size: 20px;
-  width: 90%;
-
+  min-width: 52px;
+  font-size: clamp(16px, 2vh, 22px);
+  width: 85%;
   resize: none;
-  min-height: 54px;
   vertical-align: bottom;
   display: inline-block;
 }
@@ -157,63 +258,69 @@ textarea {
 
 .left .top {
   width: 100%;
-  height: 8%;
-  font-size: 40px;
+  height: 8vh;
+  font-size: 4vh;
   text-align: center;
-  padding: 5px;
+
   border-bottom: 1px solid rgb(14, 2, 2);
+
+  span {
+    line-height: 8vh;
+  }
 }
 
 .left .middle {
   width: 100%;
-  height: 72%;
+  height: 70vh;
   background-color: rgb(12, 229, 44);
   text-align: center;
-
-  .content {
-    display: inline-block;
-    width: 100%;
-
-    .function_item {
-      font-size: 1.4em;
-      width: 90%;
-      height: 50px;
-      line-height: 50px;
-      margin: 15px 10px;
-      border-radius: 10px;
-      background-color: blueviolet;
-    }
-
-    .function_item:hover {
-      border: 3px solid navajowhite;
-    }
-  }
 }
+
+.left .middle .content {
+  display: inline-block;
+  width: 100%;
+}
+
+.left .middle .content .function_item {
+  font-size: clamp(16px, 2.5vh, 22px);
+  width: 90%;
+  height: 50px;
+  line-height: 50px;
+  margin: 0.9vh 10px;
+  border-radius: 10px;
+  background-color: blueviolet;
+}
+
+.left .middle .content .function_item:hover {
+  border: 3px solid navajowhite;
+}
+
 
 .left .bottom {
   width: 100%;
-  height: 20%;
+  height: 22vh;
 
   bottom: 0;
   background-color: rgb(229, 135, 12);
   text-align: left;
-  .content {
-    margin-left: 30px;
-    display: inline-block;
-    text-align: left;
-  }
 }
 
 .left .bottom .content {
-  div {
-    margin: 15px 0;
-    font-size: 18px;
-    font-weight: 800;
-  }
+  margin-top: 2vh;
+  margin-left: 30px;
+  display: inline-block;
+  text-align: left;
+}
 
-  span {
-    margin-right: 15px;
-  }
+
+.left .bottom .content div {
+  margin: 0.9vh 0;
+  font-size: clamp(16px, 2vh, 22px);
+  font-weight: 800;
+}
+
+.left .bottom .content span {
+  margin-right: 15px;
 }
 
 /* ↑ 左侧布局 ↑ */
@@ -224,106 +331,159 @@ textarea {
   flex-grow: 1;
   height: 100%;
   background-color: rgb(195, 133, 57);
+}
 
-  .chat_area {
-    margin: 0 auto;
-    height: 100%;
-    max-width: 900px;
-    background-color: rgb(106, 59, 59);
-    position: relative;
-  }
+.right .chat_area {
+  margin: 0 auto;
+  height: 100%;
+  max-width: 900px;
+  background-color: rgb(106, 59, 59);
+  position: relative;
 }
 
 .chat_area .title_area {
-  height: 7%;
+  height: 6vh;
+
   background-color: rgb(46, 122, 24);
+  position: fixed;
+  top: 0;
+  z-index: 999;
+}
 
-  .title {
-    font-size: 1.4em;
-    vertical-align: bottom;
-    text-align: center;
-    display: inline-block;
-    height: 100%;
-    width: 90%;
-    background-color: blueviolet;
-  }
+.chat_area .title_area .right_icon {
+  vertical-align: bottom;
+  text-align: center;
 
-  .right_icon {
-    vertical-align: bottom;
-    text-align: center;
+  display: inline-block;
+  height: 6vh;
+  width: 15%;
+  background-color: antiquewhite;
 
-    display: inline-block;
-    height: 100%;
-    width: 10%;
-    background-color: antiquewhite;
 
-    span {
-      font-size: 20px; /* 默认字体大小为20px */
-    }
+}
 
-    @media screen and (min-width: 600px) {
-      span {
-        font-size: calc(
-          20px + (25 - 20) * ((100vw - 600px) / (1200 - 600))
-        ); /* 根据屏幕宽度调整字体大小 */
-      }
-    }
-  }
+.chat_area .title_area .right_icon span {
+  line-height: 6vh;
+  font-size: clamp(20px, 4vw, 30px); /* 默认字体大小为20px */
+}
 
-  span {
-    display: inline-block;
-    position: relative;
-    top: 50%;
-    transform: translate(0, -50%);
-  }
+.chat_area .title_area .title {
+  font-size: clamp(18px, 1.4vw, 24px);
+  line-height: 6vh;
+  vertical-align: bottom;
+  text-align: center;
+  display: inline-block;
+  height: 6vh;
+  width: 85%;
+  background-color: blueviolet;
 }
 
 .chat_area .message_area {
-  height: 93%;
+  position: relative;
   background-color: rgb(24, 122, 117);
+  overflow-y: auto; /* 根据内容溢出自动显示滚动条 */
+  margin: 0;
+}
+
+.react_content_system {
+  max-width: 65%;
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-left: 50px;
+
+  float: left;
+  clear: both;
+  position: relative;
+  background-color: rgb(195, 224, 9);
+}
+
+.react_content_system::before {
+  content: "";
+  position: absolute;
+  background-image: url("@/assets/image/ai_avatar.png");
+  height: 35px;
+  width: 35px;
+  background-size: cover; /* 或者使用 contain */
+
+  left: -45px;
+  top: 5px;
+}
+
+.react_content_user {
+  max-width: 65%;
+
+  padding: 10px;
+  margin-right: 50px;
+  margin-bottom: 10px;
+
+  float: right;
+  clear: both;
+  position: relative;
+
+  background-color: rgb(255, 85, 0);
+}
+
+.react_content_user:after {
+  content: "";
+  position: absolute;
+  background-image: url("@/assets/image/user_avatar.png");
+  height: 35px;
+  width: 35px;
+  background-size: cover; /* 或者使用 contain */
+
+  right: -40px;
+  top: 10px;
 }
 
 .chat_area .input_area {
-  bottom: 0px;
-  position: absolute;
-  width: 100%;
+  position: fixed;
+  bottom: 0;
+  z-index: 999;
+
+  width: 40vw;
+  height: 72px;
   background-color: rgb(42, 122, 24);
   text-align: center;
 
-  .input_form {
-    text-align: center;
+}
 
-    position: relative;
-    margin: 0 auto;
-    width: 90%;
+.chat_area .input_area .tip {
+  font-size: 14px;
+  height: 20px;
+  color: red;
+  padding: 0;
+  line-height: 20px;
+}
 
-    display: flex;
-    justify-content: center;
-    border-radius: 25px;
+.chat_area .input_area .input_form {
+  text-align: center;
 
-    background-color: blanchedalmond;
-    .submit_buttom {
-      margin: auto 10px;
-      vertical-align: bottom;
-    }
-    .audio {
-      vertical-align: bottom;
+  position: relative;
+  margin: 0 auto;
+  width: 90%;
 
-      font-size: 28px;
-      margin: auto;
-      color: rgb(100, 10, 10);
-    }
+  display: flex;
+  justify-content: center;
+  border-radius: 25px;
 
-    .audio:hover {
-      color: rgb(12, 225, 225);
-    }
-  }
+  background-color: blanchedalmond;
 
-  .tip {
-    color: red;
-    padding: 0;
-    padding: 8px;
-  }
+}
+
+.chat_area .input_area .input_form  .submit_buttom {
+  margin: auto 10px;
+  vertical-align: bottom;
+}
+.chat_area .input_area .input_form  .audio {
+  vertical-align: bottom;
+
+  font-size: 28px;
+  margin: auto;
+  color: rgb(100, 10, 10);
+}
+
+.chat_area .input_area .input_form  .audio:hover {
+  color: rgb(12, 225, 225);
 }
 
 /* ↑ 右侧布局 ↑ */
