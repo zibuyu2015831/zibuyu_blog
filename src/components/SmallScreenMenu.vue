@@ -11,10 +11,10 @@ import { storeToRefs } from "pinia";
 
 // // // // // ↓ 状态读取 ↓ // // // // //
 
-const userInfo = useUserInfo(); // 执行函数，拿到Store
-const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
+const userInfoStore = useUserInfo(); // 执行函数，拿到Store
+const deviceInfoStore = useDeviceInfo(); // 执行函数，拿到Store
 
-const { isLogin } = storeToRefs(userInfo); // 读取状态
+const { isLogin } = storeToRefs(userInfoStore); // 读取状态
 
 // // // // // ↑ 状态读取 ↑ // // // // //
 
@@ -73,11 +73,11 @@ function showMenu() {
 
 // 切换主题
 function useDarkTheme() {
-  deviceInfo.theme = "dark";
+  deviceInfoStore.theme = "dark";
 }
 
 function useLightTheme() {
-  deviceInfo.theme = "light";
+  deviceInfoStore.theme = "light";
 
 }
 // // // // // // // // // // ↑ 底部菜单：个人中心 ↑ // // // // // // // // // //
@@ -130,8 +130,8 @@ function cancelLogin() {
 function resetLogin() {
   // 从localStorage移除token
   localStorage.removeItem("login_token");
-  userInfo.isLogin = false;
-  userInfo.username = "";
+  userInfoStore.isLogin = false;
+  userInfoStore.username = "";
 
   ElMessage({
     message: "您已经退出登录~",
@@ -164,13 +164,13 @@ function commitLogin() {
   if (user_token) {
     //  将登录状态写入状态管理
     sessionStorage.setItem("login_token", user_token);
-    userInfo.userToken = user_token;
-    userInfo.username = loginInfo.username;
-    userInfo.isLogin = true;
+    userInfoStore.userToken = user_token;
+    userInfoStore.username = loginInfo.username;
+    userInfoStore.isLogin = true;
 
-    console.log("useUserInfo.isLogin ", userInfo.isLogin);
-    console.log("useUserInfo.username ", userInfo.username);
-    console.log("useUserInfo.userToken ", userInfo.userToken);
+    console.log("useUserInfo.isLogin ", userInfoStore.isLogin);
+    console.log("useUserInfo.username ", userInfoStore.username);
+    console.log("useUserInfo.userToken ", userInfoStore.userToken);
 
     loginInfo.username = "";
     loginInfo.password = "";
@@ -255,14 +255,14 @@ function login_now() {
           <div class="bottomMenuItem"  @click="registerDialogVisible = true">注册</div>
           <div
             class="bottomMenuItem"
-            v-if="deviceInfo.webTheme !== 'dark'"
+            v-if="deviceInfoStore.webTheme !== 'dark'"
             @click="useDarkTheme"
           >
             深色主题
           </div>
           <div
             class="bottomMenuItem"
-            v-if="deviceInfo.webTheme === 'dark'"
+            v-if="deviceInfoStore.webTheme === 'dark'"
             @click="useLightTheme"
           >
             浅色主题

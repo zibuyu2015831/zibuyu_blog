@@ -1,8 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import { calculateTime } from "@/utils/handle_date";
-import { storeToRefs } from "pinia";
-import useDeviceInfo from "@/stores/deviceInfo";
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 

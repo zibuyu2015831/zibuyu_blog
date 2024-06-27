@@ -10,19 +10,11 @@ import useUserInfo from "@/stores/userInfo";
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 新闻轮播图 ↓ // // // // // // // // // //
-const news_num = ref(0);
-
-function carouselChange(num) {
-  news_num.value = num;
-}
-// // // // // // // // // // ↑ 新闻轮播图 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
 // 执行函数，拿到Store
-const deviceInfo = useDeviceInfo();
-const userInfo = useUserInfo(); // 执行函数，拿到Store
+const deviceInfoStore = useDeviceInfo();
+const userInfoStore = useUserInfo();
 
 // 读取状态
 const {
@@ -30,9 +22,19 @@ const {
   isPaginationmall,
   isShowArticleImageInSmallScreen,
   isBigScreen,
-} = storeToRefs(deviceInfo);
-const { userToken, username, isLogin } = storeToRefs(userInfo); // 读取状态
-// // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
+} = storeToRefs(deviceInfoStore);
+
+const { username } = storeToRefs(userInfoStore); // 读取状态
+
+// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 新闻轮播图 ↓ // // // // // // // // // //
+const news_num = ref(0);
+
+function carouselChange(num) {
+  news_num.value = num;
+}
+// // // // // // // // // // ↑ 新闻轮播图 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 异步获取顶部新闻 ↓ // // // // // // // // // //
 
@@ -820,7 +822,6 @@ function submitUserRewardMessage() {
 /* ↓ element 样式 ↓ */
 
 .el-carousel__item h3 {
-  color: #011325;
   opacity: 0.75;
   line-height: 100px;
   margin: 0;

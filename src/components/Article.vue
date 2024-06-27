@@ -11,10 +11,22 @@ import { v4 as uuidv4 } from "uuid";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
+// // // // // ↓ 状态管理 ↓ // // // // //
+
+const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
+
+const {
+  isArticleRightBlockFixed,
+  isArticleShowRightBox,
+  webTheme,
+} = storeToRefs(deviceInfo); // 读取状态
+
+// // // // // ↑ 状态管理 ↑ // // // // //
+
 // // // // // ↓ markdown渲染 ↓ // // // // //
 
 // 文章是否被当前用户点赞
-const userLike = ref(true);
+const userLike = ref(false);
 
 function userLikeArticle() {
   userLike.value = !userLike.value;
@@ -139,18 +151,7 @@ setTimeout(() => {
 
 // // // // // ↑ markdown渲染 ↑ // // // // //
 
-// // // // // ↓ 根据视图向下滚动高度决定右侧样式 ↓ // // // // //
 
-const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
-
-const {
-  isArticleRightBlockFixed,
-  isArticleShowRightBox,
-  mainColumnSpanNum,
-  webTheme,
-} = storeToRefs(deviceInfo); // 读取状态
-
-// // // // // ↑ 根据视图向下滚动高度决定右侧样式 ↑ // // // // //
 
 // // // // // ↓ 页面向上、向下跳动按钮 ↓ // // // // //
 

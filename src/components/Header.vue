@@ -1,11 +1,20 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
+
+// // // // // ↓ 状态管理 ↓ // // // // //
+
+const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
+
+const { homeImageHeight } = storeToRefs(deviceInfo); // 读取状态
+
+
+// // // // // ↑ 状态管理 ↑ // // // // //
 
 // // // // // // // // // // ↓ 首页标语-打字机效果 ↓ // // // // // // // // // //
 
@@ -44,14 +53,7 @@ onMounted(() => {
 
 // // // // // // // // // // ↑ 首页标语-打字机效果 ↑ // // // // // // // // // //
 
-// // // // // ↓ 根据视口高度，修改首图高度 ↓ // // // // //
 
-const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
-
-const { homeImageHeight } = storeToRefs(deviceInfo); // 读取状态
-
-
-// // // // // ↑ 根据视口高度，修改首图高度 ↑ // // // // //
 </script>
 
 <template>

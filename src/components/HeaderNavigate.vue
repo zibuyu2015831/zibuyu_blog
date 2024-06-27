@@ -1,34 +1,34 @@
 <script setup>
 import { ElMessage } from "element-plus";
-
 import { ref, reactive } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import useUserInfo from "@/stores/userInfo";
 import { setLocalStorageWithExpiration } from "@/utils/uselocalStorage";
 import { storeToRefs } from "pinia";
 
+// // // // // ↓ 状态管理 ↓ // // // // //
+
+const deviceInfoStore = useDeviceInfo(); // 执行函数，拿到Store
+const userInfoStore = useUserInfo(); // 执行函数，拿到Store
+
+const { TextColor, webTheme } = storeToRefs(deviceInfoStore); // 读取状态
+const { username, isLogin } = storeToRefs(userInfoStore); // 读取状态
+
+// // // // // ↑ 状态管理 ↑ // // // // //
 
 // // // // // // // // // // ↓ 切换主题 ↓ // // // // // // // // // //
 
 // 当用户切换主题时，修改html类属性，并将主题写入浏览器本地存储
 function themeChange() {
   document.documentElement.className = "";
-  document.documentElement.classList.add(deviceInfo.theme);
+  document.documentElement.classList.add(deviceInfoStore.theme);
 
-  setLocalStorageWithExpiration(deviceInfo.theme_store_key, webTheme.value, 8);
+  setLocalStorageWithExpiration(deviceInfoStore.theme_store_key, webTheme.value, 8);
 }
 
 // // // // // // // // // // ↑ 切换主题 ↑ // // // // // // // // // //
 
-// // // // // ↓ 根据屏幕向下滚动距离更改导航栏背景色 ↓ // // // // //
 
-const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
-const userInfo = useUserInfo(); // 执行函数，拿到Store
-
-const { TextColor, webTheme } = storeToRefs(deviceInfo); // 读取状态
-const { username, isLogin } = storeToRefs(userInfo); // 读取状态
-
-// // // // // ↑ 根据屏幕向下滚动距离更改导航栏背景色 ↑ // // // // //
 
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
 
@@ -75,8 +75,8 @@ function cancelLogin() {
 function resetLogin() {
   // 从localStorage移除token
   localStorage.removeItem("login_token");
-  userInfo.isLogin = false;
-  userInfo.username = "";
+  userInfoStore.isLogin = false;
+  userInfoStore.username = "";
 
   ElMessage({
     message: "您已经退出登录~",
@@ -109,13 +109,13 @@ function commitLogin() {
   if (user_token) {
     //  将登录状态写入状态管理
     sessionStorage.setItem("login_token", user_token);
-    userInfo.userToken = user_token;
-    userInfo.username = loginInfo.username;
-    userInfo.isLogin = true;
+    userInfoStore.userToken = user_token;
+    userInfoStore.username = loginInfo.username;
+    userInfoStore.isLogin = true;
 
-    console.log("useUserInfo.isLogin ", userInfo.isLogin);
-    console.log("useUserInfo.username ", userInfo.username);
-    console.log("useUserInfo.userToken ", userInfo.userToken);
+    console.log("useUserInfo.isLogin ", userInfoStore.isLogin);
+    console.log("useUserInfo.username ", userInfoStore.username);
+    console.log("useUserInfo.userToken ", userInfoStore.userToken);
 
     loginInfo.username = "";
     loginInfo.password = "";
@@ -147,7 +147,7 @@ const handleCommand = (command) => {
 </script>
 
 <template>
-  <el-row class="nav_container" :class="{nav_background:deviceInfo.isShowNavBackground}">
+  <el-row class="nav_container" :class="{nav_background:deviceInfoStore.isShowNavBackground}">
     <el-col span="12" class="nav_left">
       <router-link to="/home" class="text_logo">思维兵工厂</router-link>
 
@@ -159,9 +159,18 @@ const handleCommand = (command) => {
         ><el-text type="danger" size="large" tag="b">关于</el-text></router-link
       >
 
+      <router-link to="/english_chat"
+      ><el-text type="danger" size="large" tag="b">英语训练营</el-text></router-link
+    >
+
+    <router-link to="/web_site"
+    ><el-text type="danger" size="large" tag="b">好站收藏</el-text></router-link
+  >
+
       <router-link to="/article/1231"
         ><el-text type="danger" size="large" tag="b">官方文档</el-text></router-link
       >
+
     </el-col>
 
     <el-col span="12" class="nav_right" :style="{ color: TextColor }">
@@ -169,7 +178,7 @@ const handleCommand = (command) => {
 
       <div class="theme">
         <el-radio-group
-          v-model="deviceInfo.theme"
+          v-model="deviceInfoStore.theme"
           @change="themeChange"
           size="small"
           fill="#3170a7"

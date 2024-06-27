@@ -11,21 +11,21 @@ import { storeToRefs } from "pinia";
 // // // // // // // // // // ↓ 响应式布局：获取用户屏幕尺寸，添加监听 ↓ // // // // // // // // // //
 
 // 执行函数，拿到Store
-const deviceInfo = useDeviceInfo();
+const deviceInfoStore = useDeviceInfo();
 
 // 读取状态
-const { isShowHeaderNavigate, watermarkColor, webTheme } = storeToRefs(deviceInfo);
+const { isShowHeaderNavigate,isShowHeaderAndFooterComponent,isShowBottomMenu} = storeToRefs(deviceInfoStore);
 
 // 实时监控屏幕尺寸，存入状态管理
 const updateScreenWidth = () => {
-  deviceInfo.userScreenWidth = window.innerWidth;
-  deviceInfo.userScreenHeight = window.innerHeight;
+  deviceInfoStore.userScreenWidth = window.innerWidth;
+  deviceInfoStore.userScreenHeight = window.innerHeight;
 };
 
 // 实时监控用户滚动，存入状态管理
 const handleScroll = () => {
-  deviceInfo.scrollTop = document.documentElement.scrollTop;
-  // console.log('向下滚动了： ',deviceInfo.scrollTop)
+  deviceInfoStore.scrollTop = document.documentElement.scrollTop;
+  // console.log('向下滚动了： ',deviceInfoStore.scrollTop)
 };
 
 // 挂载组件时添加屏幕尺寸变化监听函数
@@ -39,12 +39,7 @@ onBeforeUnmount(() => {
   updateScreenWidth();
   window.removeEventListener("resize", updateScreenWidth, { passive: true });
 });
-
-// 获取当前页面的 URL
-onMounted(() => {
-  deviceInfo.currentPath = window.location.pathname;
-});
-
+ 
 // 挂载组件时添加屏幕滚动变化监听函数
 onMounted(() => {
   window.addEventListener("scroll", handleScroll, { passive: true });
@@ -79,11 +74,11 @@ function isDayTime() {
 }
 
 onBeforeMount(() => {
-  const local_webTheme = getLocalStorageValueWithExpiration(deviceInfo.theme_store_key);
+  const local_webTheme = getLocalStorageValueWithExpiration(deviceInfoStore.theme_store_key);
 
-  if (local_webTheme && deviceInfo.theme_list.includes(local_webTheme)) {
+  if (local_webTheme && deviceInfoStore.theme_list.includes(local_webTheme)) {
     document.documentElement.classList.add(local_webTheme);
-    deviceInfo.theme = local_webTheme;
+    deviceInfoStore.theme = local_webTheme;
   } else {
     if (isDayTime()) {
       document.documentElement.classList.remove(...document.documentElement.classList);
@@ -97,29 +92,34 @@ onBeforeMount(() => {
 
 // // // // // // // // // // ↑ 页面主题颜色 ↑ // // // // // // // // // //
 
+
+
+// // // // // // // // // // ↓ 开屏动画 ↓ // // // // // // // // // //
+/*
+等待页面组件加载完成，避免出现空白界面的情况
+*/
 const isShowDoor = ref(true);
 
+// 3秒之后，遮罩真正去除（组件加载完成时只是变透明了）
 setTimeout(() => {
   isShowDoor.value = false;
-}, 1000);
+}, 3000);  
 
 const isHeaderReady = ref(false);
 const isRouterViewReady = ref(false);
 const allReady = computed(() => {
-  console.log("一切是否准备完成：", isHeaderReady.value && isRouterViewReady.value);
   return isHeaderReady.value && isRouterViewReady.value;
 });
 
 const isHeaderViewMounted = () => {
-  console.log("header组件加载完成");
   isHeaderReady.value = true;
-  // 在这里执行你的回调函数
 };
 
 const isRouterViewMounted = () => {
-  console.log("router-view 组件加载完成");
   isRouterViewReady.value = true;
 };
+
+// // // // // // // // // // ↑ 开屏动画 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -132,15 +132,15 @@ const isRouterViewMounted = () => {
     </el-col>
   </el-row>
 
-  <Header @vue:mounted="isHeaderViewMounted"></Header>
+  <Header @vue:mounted="isHeaderViewMounted" v-if="isShowHeaderAndFooterComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
-  <SmallScreenMenu v-if="!isShowHeaderNavigate"></SmallScreenMenu>
+  <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
   <router-view @vue:mounted="isRouterViewMounted"></router-view>
   <!-- <el-watermark class="common-layout" :font="font" content="思维兵工厂">
     <router-view></router-view>
   </el-watermark> -->
 
-  <Footer v-if="isShowHeaderNavigate"></Footer>
+  <Footer v-if="isShowHeaderAndFooterComponent" ></Footer>
 </template>
 
 <style scoped>
@@ -169,6 +169,11 @@ const isRouterViewMounted = () => {
 .right-door {
   right: 0;
   transform-origin: right;
+}
+
+.container-dispear{
+  width: 0;
+  height: 0;
 }
 
 .left-door-dispear {

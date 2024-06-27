@@ -12,18 +12,20 @@ html.dark {
 
   --footer_background: #514c4c;
 
-  --news_activate_background: #9a8d6a;
-  --news_deactivate_background: #CCBE97;
+  --news_activate_background: #0B161C;
+  --news_deactivate_background: var(--news_activate_background);
   --news_content: #a93920;
-  --small_screen_menu_bg:#514C4C;
-  --small_screen_menu_font:rgb(134, 167, 229);
-  --small_screen_menu_font_activate:rgb(139, 8, 28);
+
+  --small_screen_menu_bg:var(--header_background);
+  --small_screen_menu_font:#86a7e5;
+  --small_screen_menu_font_activate:#8b081c;
   
 
   --markdown_article_title:white;
   --markdown_article_body_deactivated:#0B161C;
   --markdown_article_body_activated:#192c35;
 
+  --watermarkColor:white;
   --el-bg-color: black;
 
   --el-dialog-bg-color: black;

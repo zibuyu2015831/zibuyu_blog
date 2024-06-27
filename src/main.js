@@ -16,13 +16,14 @@ const app = createApp(App)
 
 app.directive('dynamic-html', dynamicHtml);
 
-app.use(router)
-
+app.use(createPinia())
 
 // 完整导入ElementPlus
 // app.use(ElementPlus)
 
-app.use(createPinia()).use(themePlugin)
+app.use(themePlugin)
+
+app.use(router)
 
 app.mount('#app')
 
