@@ -1,3 +1,7 @@
+/*
+pinia自带文件，留作演示
+*/
+
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 

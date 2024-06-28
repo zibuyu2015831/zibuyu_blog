@@ -1,3 +1,4 @@
+import 'normalize.css'
 import './assets/css/reset.css'
 import '@/assets/css/iconfont.css'
 import 'element-plus/dist/index.css'
@@ -5,6 +6,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import themePlugin from '@/plugins/themePlugin.js'
 import dynamicHtml  from '@/utils/dynamicHtml.js'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 

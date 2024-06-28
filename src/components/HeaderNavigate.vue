@@ -28,8 +28,6 @@ function themeChange() {
 
 // // // // // // // // // // ↑ 切换主题 ↑ // // // // // // // // // //
 
-
-
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
 
 const registerDialogVisible = ref(false); // 注册跳出框
@@ -147,35 +145,39 @@ const handleCommand = (command) => {
 </script>
 
 <template>
-  <el-row class="nav_container" :class="{nav_background:deviceInfoStore.isShowNavBackground}">
+  <el-row
+    class="nav_container"
+    :class="{ nav_background: deviceInfoStore.isShowNavBackground }"
+  >
     <el-col span="12" class="nav_left">
       <router-link to="/home" class="text_logo">思维兵工厂</router-link>
 
-      <router-link to="/home"
-        ><el-text type="danger" size="large" tag="b">首页</el-text></router-link
-      >
+      <router-link to="/home">
+        <el-text type="danger" size="large" tag="b">首页</el-text>
+      </router-link>
 
-      <router-link to="/about"
-        ><el-text type="danger" size="large" tag="b">关于</el-text></router-link
-      >
+      <router-link to="/about">
+        <el-text type="danger" size="large" tag="b">关于</el-text>
+      </router-link>
 
-      <router-link to="/english_chat"
-      ><el-text type="danger" size="large" tag="b">英语训练营</el-text></router-link
-    >
+      <router-link to="/english_chat">
+        <el-text type="danger" size="large" tag="b">英语自习室</el-text>
+      </router-link>
 
-    <router-link to="/web_site"
-    ><el-text type="danger" size="large" tag="b">好站收藏</el-text></router-link
-  >
+      <router-link to="/web_site">
+        <el-text type="danger" size="large" tag="b">好站收藏</el-text>
+      </router-link>
 
-      <router-link to="/article/1231"
-        ><el-text type="danger" size="large" tag="b">官方文档</el-text></router-link
-      >
+      <router-link to="/test">
+        <el-text type="danger" size="large" tag="b">测试</el-text>
+      </router-link>
 
+      <router-link to="/article/1231">
+        <el-text type="danger" size="large" tag="b">官方文档</el-text>
+      </router-link>
     </el-col>
 
     <el-col span="12" class="nav_right" :style="{ color: TextColor }">
-
-
       <div class="theme">
         <el-radio-group
           v-model="deviceInfoStore.theme"
@@ -377,8 +379,8 @@ const handleCommand = (command) => {
   }
 }
 
-.nav_background{
-  background-color: var(--header_background,#ffffff);
+.nav_background {
+  background-color: var(--header_background, #ffffff);
   opacity: 0.9;
 }
 

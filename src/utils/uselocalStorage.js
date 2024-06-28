@@ -1,3 +1,9 @@
+/**
+ * 
+ * @param {string} key 在LocalStorage里存储的键
+ * @param {string} value 在LocalStorage里存储的值，json格式字符串
+ * @param {number} expirationHours 该值有效期
+ */
 function setLocalStorageWithExpiration(key, value, expirationHours) {
   // 计算过期时间（以毫秒为单位）
   const expirationTime = new Date().getTime() + expirationHours * 60 * 60 * 1000;
@@ -7,6 +13,11 @@ function setLocalStorageWithExpiration(key, value, expirationHours) {
 }
 
 
+/**
+ * 
+ * @param {string} key  在LocalStorage里存储的键，根据该键获取对应的值
+ * @returns 数据不存在或者过期返回undefined；否则返回该值
+ */
 function getLocalStorageValueWithExpiration(key) {
   // 从localStorage中获取数据
   const storedItem = localStorage.getItem(key);

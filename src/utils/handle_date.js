@@ -1,3 +1,7 @@
+/*
+此函数用于将时间戳字符串转为“xx天xx时xx分xx秒”格式的字符串
+*/
+
 export function calculateTime(timestampStr) {
   // 将时间戳字符串转换为秒数
   const timestamp = parseInt(timestampStr, 10);

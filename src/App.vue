@@ -14,7 +14,11 @@ import { storeToRefs } from "pinia";
 const deviceInfoStore = useDeviceInfo();
 
 // 读取状态
-const { isShowHeaderNavigate,isShowHeaderAndFooterComponent,isShowBottomMenu} = storeToRefs(deviceInfoStore);
+const {
+  isShowHeaderNavigate,
+  isShowHeaderAndFooterComponent,
+  isShowBottomMenu,
+} = storeToRefs(deviceInfoStore);
 
 // 实时监控屏幕尺寸，存入状态管理
 const updateScreenWidth = () => {
@@ -25,7 +29,6 @@ const updateScreenWidth = () => {
 // 实时监控用户滚动，存入状态管理
 const handleScroll = () => {
   deviceInfoStore.scrollTop = document.documentElement.scrollTop;
-  // console.log('向下滚动了： ',deviceInfoStore.scrollTop)
 };
 
 // 挂载组件时添加屏幕尺寸变化监听函数
@@ -39,7 +42,7 @@ onBeforeUnmount(() => {
   updateScreenWidth();
   window.removeEventListener("resize", updateScreenWidth, { passive: true });
 });
- 
+
 // 挂载组件时添加屏幕滚动变化监听函数
 onMounted(() => {
   window.addEventListener("scroll", handleScroll, { passive: true });
@@ -74,7 +77,9 @@ function isDayTime() {
 }
 
 onBeforeMount(() => {
-  const local_webTheme = getLocalStorageValueWithExpiration(deviceInfoStore.theme_store_key);
+  const local_webTheme = getLocalStorageValueWithExpiration(
+    deviceInfoStore.theme_store_key
+  );
 
   if (local_webTheme && deviceInfoStore.theme_list.includes(local_webTheme)) {
     document.documentElement.classList.add(local_webTheme);
@@ -92,22 +97,22 @@ onBeforeMount(() => {
 
 // // // // // // // // // // ↑ 页面主题颜色 ↑ // // // // // // // // // //
 
-
-
 // // // // // // // // // // ↓ 开屏动画 ↓ // // // // // // // // // //
 /*
 等待页面组件加载完成，避免出现空白界面的情况
 */
 const isShowDoor = ref(true);
 
-// 3秒之后，遮罩真正去除（组件加载完成时只是变透明了）
-setTimeout(() => {
-  isShowDoor.value = false;
-}, 3000);  
-
 const isHeaderReady = ref(false);
 const isRouterViewReady = ref(false);
 const allReady = computed(() => {
+  if (isHeaderReady.value && isRouterViewReady.value) {
+    // 动画效果设置为1秒，1秒之后，遮罩真正去除（组件加载完成时只是变透明了）
+    setTimeout(() => {
+      isShowDoor.value = false;
+    }, 1000);
+  }
+
   return isHeaderReady.value && isRouterViewReady.value;
 });
 
@@ -132,7 +137,10 @@ const isRouterViewMounted = () => {
     </el-col>
   </el-row>
 
-  <Header @vue:mounted="isHeaderViewMounted" v-if="isShowHeaderAndFooterComponent"></Header>
+  <Header
+    @vue:mounted="isHeaderViewMounted"
+    v-if="isShowHeaderAndFooterComponent"
+  ></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
   <router-view @vue:mounted="isRouterViewMounted"></router-view>
@@ -140,7 +148,7 @@ const isRouterViewMounted = () => {
     <router-view></router-view>
   </el-watermark> -->
 
-  <Footer v-if="isShowHeaderAndFooterComponent" ></Footer>
+  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
 </template>
 
 <style scoped>
@@ -171,7 +179,7 @@ const isRouterViewMounted = () => {
   transform-origin: right;
 }
 
-.container-dispear{
+.container-dispear {
   width: 0;
   height: 0;
 }
