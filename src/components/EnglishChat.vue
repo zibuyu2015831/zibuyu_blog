@@ -1,7 +1,57 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
-import { ref, onMounted, computed, onBeforeUpdate, onBeforeUnmount } from "vue";
+import { ref, onMounted, computed, reactive, onBeforeUnmount } from "vue";
+import { ElMessage } from "element-plus";
+// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
+
+// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 打赏弹出框 ↓ // // // // // // // // // //
+
+const userRewardDialogVisible = ref(false); // 打赏提示框
+
+// // // // // // // // // // ↑ 打赏弹出框 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 交互信息的按钮功能 ↓ // // // // // // // // // //
+
+const copyText = async (textToCopy) => {
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    ElMessage({
+      message: "复制成功",
+      type: "success",
+    });
+    console.log("");
+  } catch (err) {
+    ElMessage.error("复制失败");
+  }
+};
+
+// // // // // // // // // // ↑ 交互信息的按钮功能 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
+const messageMarginBottom = ref(12);
+// // // // // // // // // // ↑ 关于CSS布局的常量 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 文字按钮的出现与隐藏 ↓ // // // // // // // // // //
+
+function show_button(event) {
+  const buttonElement = event.target.nextElementSibling;
+  console.log(buttonElement);
+  if (buttonElement && buttonElement.classList.contains("react_content_button")) {
+    buttonElement.style.display = "block";
+  }
+}
+
+function hide_button(event) {
+  const buttonElement = event.target.querySelector(".react_content_button");
+  if (buttonElement && buttonElement.classList.contains("react_content_button")) {
+    buttonElement.style.display = "none";
+  }
+}
+
+// // // // // // // // // // ↑ 文字按钮的出现与隐藏 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
@@ -11,14 +61,35 @@ const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoSto
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 布局常量 ↓ // // // // // // // // // //
+// 切换主题颜色
+function changeTheme(theme) {
+  deviceInfoStore.theme = theme;
+}
 
-// // // // // // // // // // ↑ 布局常量 ↑ // // // // // // // // // //
+// // // // // // // // // // ↓ 配置弹出框 ↓ // // // // // // // // // //
+
+// 配置弹出框
+const botSettingVisible = ref(false);
+
+function showSetting(role) {
+  if (role === "ai") {
+    botSettingVisible.value = true;
+  }
+}
+
+const botSetting = reactive({
+  translate: false, // 是否开启翻译（用户发送中文时，给出英文表达）
+  grammarCheck: false, // 是否开启语法检测（用户发送英文时，给出语法检测）
+  voiceEvaluate: false, // 是否开启语音评测
+  answerExample: false, // 是否给出回答示例
+  collectWord: false, // 是否自动收集重难点单词
+});
+
+// // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
 
-const inputBottom = 25 // 输入区域距离底部的位置（单位px）
-
+const inputBottom = 25; // 输入区域距离底部的位置（单位px）
 
 const titleHeight = computed(() => {
   return deviceInfoStore.userScreenWidth < 500 ? 40 : 55;
@@ -61,7 +132,12 @@ function resetChatAreaHeight() {
   if (inputAreaRef.value && titleAreaRef.value) {
     let inputHeight = inputAreaRef.value.offsetHeight;
 
-    const height = deviceInfoStore.userScreenHeight - inputHeight - titleHeight.value -inputBottom -30;
+    const height =
+      deviceInfoStore.userScreenHeight -
+      inputHeight -
+      titleHeight.value -
+      inputBottom -
+      30;
 
     // 确定中间聊天框的高度
     messageAreaRef.value.style.height = `${height}px`;
@@ -69,10 +145,9 @@ function resetChatAreaHeight() {
 }
 
 function resetChatAreaWidth() {
-
-console.log('chatAreaRef.value.offsetWidth ',chatAreaRef.value.offsetWidth)
-console.log('chatAreaRef.value.clientWidth ',chatAreaRef.value.clientWidth)
-console.log('chatAreaRef.value.scrollWidth ',chatAreaRef.value.scrollWidth)
+  console.log("chatAreaRef.value.offsetWidth ", chatAreaRef.value.offsetWidth);
+  console.log("chatAreaRef.value.clientWidth ", chatAreaRef.value.clientWidth);
+  console.log("chatAreaRef.value.scrollWidth ", chatAreaRef.value.scrollWidth);
 
   // 确定输入区域的宽度
   inputAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
@@ -210,6 +285,7 @@ const chatHistory = ref({
       <div class="top"><span>思维兵工厂</span></div>
 
       <div class="middle">
+
         <div class="content">
           <div class="split_line"></div>
           <div class="function_item">口语陪练</div>
@@ -220,21 +296,66 @@ const chatHistory = ref({
 
       <div class="bottom">
         <div class="content">
-          <div>
+          <div class="bottom_item">
             <span class="icon-user iconfont"></span>
             <span>个人中心</span>
           </div>
-          <div>
-            <span class="icon-chess-one iconfont"></span>
 
-            <span>前往博客</span>
+          <div class="bottom_item">
+            <span class="icon-chess-one iconfont"></span>
+            <router-link to="/home">
+              <span>前往博客</span>
+            </router-link>
+            
           </div>
-          <div>
+
+          <div class="bottom_item" @click="userRewardDialogVisible=true">
             <span class="icon-link iconfont"></span>
 
-            <span>来个打赏</span>
+            <span>打赏作者</span>
+          </div>
+
+          <div
+            v-if="deviceInfoStore.webTheme === 'light'"
+            @click="changeTheme('dark')"
+            class="bottom_item"
+          >
+            <span class="icon-night iconfont"></span>
+
+            <span>深色主题</span>
+          </div>
+
+          <div
+            v-if="deviceInfoStore.webTheme === 'dark'"
+            @click="changeTheme('light')"
+            class="bottom_item"
+          >
+            <span class="icon-daytime-mode iconfont"></span>
+
+            <span>浅色主题</span>
           </div>
         </div>
+
+        <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
+          <div class="card_item">
+            <div class="block">
+              <img
+                clsaa="card_img"
+                src="@/assets/image/reward_code_wechat.jpg"
+              />
+              <div class="card_img_title">微信</div>
+            </div>
+            <div class="block">
+              <img
+                clsaa="card_img"
+                src="@/assets/image/reward_code_alipay.jpg"
+              />
+              <div class="card_img_title">支付宝</div>
+            </div>
+          </div>
+
+        </el-dialog>
+
       </div>
     </div>
 
@@ -245,25 +366,124 @@ const chatHistory = ref({
             <span class="iconfont icon-caidan_"></span>
           </div>
 
-          <div class="title" ref="chatTitleRef" >
-            <span >我是标题</span>
+          <div class="title" ref="chatTitleRef">
+            <span>我是标题</span>
           </div>
         </div>
 
         <div class="message_area" ref="messageAreaRef">
           <div
-            :class="{
-              react_content_user: item.role === 'user',
-              react_content_ai: item.role === 'ai',
-            }"
+            class="message_parent clear-fix"
             v-for="(item, index) in chatHistory.data"
             :key="index"
           >
-            <div>{{ item.content }}</div>
+            <div
+              :class="{
+                react_content_user: item.role === 'user',
+                react_content_ai: item.role === 'ai',
+              }"
+              @mouseleave="hide_button"
+            >
+              <div class="avatar" @click="showSetting(item.role)"></div>
+              <div @mouseenter="show_button">
+                <div class="content">{{ item.content }}</div>
+              </div>
+
+              <div class="react_content_button" v-if="item.role === 'ai'">
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="播放"
+                  placement="bottom-start"
+                >
+                  <span class="icon-play-circle-o iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="刷新"
+                  placement="bottom-start"
+                >
+                  <span class="icon-conmentrefresh iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="示例"
+                  placement="bottom-start"
+                >
+                  <span class="icon-message iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="遮盖"
+                  placement="bottom-start"
+                >
+                  <span class="icon-a-juxing2221 iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="bottom-start"
+                >
+                  <span
+                    class="icon-copy3 iconfont copy_icon"
+                    @click="copyText(item.content)"
+                  ></span>
+                </el-tooltip>
+              </div>
+
+              <div class="react_content_button" v-if="item.role === 'user'">
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="播放"
+                  placement="bottom-start"
+                >
+                  <span class="icon-play-circle-o iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="语法"
+                  placement="bottom-start"
+                >
+                  <span class="icon-message iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="评分"
+                  placement="bottom-start"
+                >
+                  <span class="icon-information-o iconfont"></span>
+                </el-tooltip>
+
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="复制"
+                  placement="bottom-start"
+                >
+                  <span
+                    class="icon-copy3 iconfont copy_icon"
+                    @click="copyText(item.content)"
+                  ></span>
+                </el-tooltip>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="input_area" ref="inputAreaRef" >
+        <div class="input_area" ref="inputAreaRef">
           <form action="" class="input_form" :class="{ focused: isFocused }">
             <textarea
               rows="1"
@@ -281,12 +501,144 @@ const chatHistory = ref({
           </form>
           <div class="tip">交互内容由AI生成，请注意鉴别</div>
         </div>
+
+        <el-dialog v-model="botSettingVisible" title="功能开关" width="350">
+          <div class="setting_items">
+            <div class="setting_item">
+              <span class="setting_item_text">是否开启语法检测：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="当输入英文时，将同时进行检测语法"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.grammarCheck"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
+
+            <div class="setting_item">
+              <span class="setting_item_text">是否开启中文翻译：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="当输入中文时，将同时给出对应的英文表达"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.translate"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
+
+            <div class="setting_item">
+              <span class="setting_item_text">是否开启语音评测：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="当输入英文语音时，将同时给出语音评测分数"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.voiceEvaluate"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
+
+            <div class="setting_item">
+              <span class="setting_item_text">是否开启回答提示：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="将同时输出回答提示，防止没有交流思路"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.answerExample"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
+
+            <div class="setting_item">
+              <span class="setting_item_text">是否自动收集单词：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="将自动收集交流过程的重难点单词，方便导出"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.collectWord"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
+          </div>
+        </el-dialog>
+
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.clear-fix::after {
+  content: "";
+  display: block; /* 必须设置为块级元素 */
+  clear: both;
+
+  /* 以下是为了兼容其他浏览器 */
+  visibility: hidden;
+  height: 0;
+  line-height: 0; /* 行高为0；*/
+  height: 0; /* 高度为0；*/
+  font-size: 0; /* 字体大小为0；*/
+}
+
+/* ↓ 打赏界面 ↓ */
+
+.card_item{
+  display: flex;
+  justify-content: space-around;
+}
+
+.card_item .block {
+  margin: 5px 30px;
+  display: inline-block;
+  text-align: center;
+}
+
+.card_item img {
+  width: 120px;
+  height: 120px;
+}
+/* ↑ 打赏界面 ↑ */
+
 /* ↓ 整体布局 ↓ */
 
 .page {
@@ -317,6 +669,7 @@ const chatHistory = ref({
   min-height: calc(v-bind(titleHeight) * 1px);
   font-size: clamp(28px, 3vh, 38px);
   text-align: center;
+  margin-top: 12px;
 }
 
 .left .top span {
@@ -356,8 +709,8 @@ const chatHistory = ref({
 
 .left .bottom {
   width: 100%;
-  height: 22vh;
-  min-height: 180px;
+  height: 25vh;
+  min-height: 200px;
   bottom: 0;
 }
 
@@ -368,10 +721,11 @@ const chatHistory = ref({
   text-align: left;
 }
 
-.left .bottom .content div {
+.left .bottom .content .bottom_item {
   margin: 18px 0;
   font-size: 18px;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .left .bottom .content span {
@@ -443,52 +797,58 @@ const chatHistory = ref({
 .react_content_ai {
   max-width: 65%;
   padding: 10px;
-  margin-bottom: 10px;
+  margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
   margin-left: 50px;
-
   float: left;
   clear: both;
   position: relative;
   border-radius: 10px;
+}
+.react_content_ai .content {
+  position: relative;
   background-color: var(--english_reacte_content_ai_bg);
+  padding: 10px;
+  border-radius: 15px;
 }
 
-.react_content_ai::before {
-  content: "";
-  position: absolute;
-  background-image: url("@/assets/image/ai_avatar.png");
+.react_content_ai .avatar {
   height: 35px;
   width: 35px;
-  background-size: cover; /* 或者使用 contain */
-
+  position: absolute;
   left: -45px;
-  top: 5px;
+  top: 2px;
+  background-size: cover;
+  background-image: url("@/assets/image/ai_avatar.png");
+  cursor: pointer;
 }
 
 .react_content_user {
   max-width: 65%;
-
   padding: 10px;
-  margin-right: 50px;
-  margin-bottom: 10px;
-
+  margin-right: 60px;
+  margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
   float: right;
   clear: both;
   position: relative;
   border-radius: 10px;
-  background-color: var(--english_reacte_content_user_bg);
 }
 
-.react_content_user:after {
-  content: "";
-  position: absolute;
-  background-image: url("@/assets/image/user_avatar.png");
+.react_content_user .content {
+  position: relative;
+  background-color: var(--english_reacte_content_user_bg);
+  padding: 10px;
+
+  border-radius: 15px;
+}
+
+.react_content_user .avatar {
   height: 35px;
   width: 35px;
-  background-size: cover; /* 或者使用 contain */
-
-  right: -40px;
-  top: 10px;
+  position: absolute;
+  right: -45px;
+  top: 2px;
+  background-size: contain;
+  background-image: url("@/assets/image/user_avatar.png");
 }
 
 .chat_area .input_area {
@@ -499,6 +859,24 @@ const chatHistory = ref({
   width: 40vw;
   height: 72px;
   text-align: center;
+}
+
+.react_content_button span {
+  margin-right: 15px;
+}
+
+.message_area .react_content_ai .react_content_button {
+  position: absolute;
+  bottom: -12px;
+  left: 20px;
+  display: none;
+}
+
+.message_area .react_content_user .react_content_button {
+  position: absolute;
+  bottom: -12px;
+  right: 15px;
+  display: none;
 }
 
 .chat_area .input_area .tip {
@@ -520,7 +898,6 @@ const chatHistory = ref({
   display: flex;
   justify-content: center;
   border-radius: 25px;
-
   background-color: var(--english_input_area_bg);
 }
 
@@ -564,14 +941,32 @@ const chatHistory = ref({
 
 /* ↑ 右侧布局 ↑ */
 
+/* ↓ 弹出框样式 ↓ */
 
+.setting_items {
+  font-size: 17px;
+  display: flex;
+  flex-direction: column;
+}
+
+.setting_item {
+  margin: 5px auto;
+}
+
+.setting_item_text {
+  margin-right: 15px;
+}
+
+/* ↑ 弹出框样式 ↑ */
+
+/* ↓ 滚动条设置 ↓ */
 .message_area::-webkit-scrollbar {
   width: 3px;
   height: 1px;
 }
 
 .message_area::-webkit-scrollbar-thumb {
-  background:  var( --english_scrollbar);
+  background: var(--english_scrollbar);
 }
 
 .message_area::-webkit-scrollbar-track {
@@ -579,11 +974,12 @@ const chatHistory = ref({
 }
 
 .message_area::-webkit-scrollbar-button {
-  background-color: var( --english_scrollbar);
+  background-color: var(--english_scrollbar);
 }
 
 .message_area::-webkit-scrollbar-button:hover {
   background-color: #999999;
 }
 
+/* ↑ 滚动条设置 ↑ */
 </style>

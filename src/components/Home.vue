@@ -615,14 +615,14 @@ function submitUserRewardMessage() {
       <div class="block">
         <img
           clsaa="card_img"
-          src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+          src="@/assets/image/reward_code_wechat.jpg"
         />
         <div class="card_img_title">微信</div>
       </div>
       <div class="block">
         <img
           clsaa="card_img"
-          src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
+          src="@/assets/image/reward_code_alipay.jpg"
         />
         <div class="card_img_title">支付宝</div>
       </div>
@@ -815,8 +815,8 @@ function submitUserRewardMessage() {
 
 .card_item img {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
 }
 
 /* ↓ element 样式 ↓ */

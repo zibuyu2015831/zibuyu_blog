@@ -1,8 +1,8 @@
 @font-face {
-  font-family: "iconfont"; /* Project id 4596084 */
-  src: url('../font/iconfont.woff2') format('woff2'),
-       url('../font/iconfont.woff') format('woff'),
-       url('../font/iconfont.ttf') format('truetype');
+  font-family: "iconfont"; /* Project id 4603433 */
+  src: url('@/assets/font/iconfont.woff2') format('woff2'),
+       url('@/assets/font/iconfont.woff') format('woff'),
+       url('@/assets/font/iconfont.ttf') format('truetype');
 }
 
 .iconfont {
@@ -13,136 +13,72 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-jia:before {
-  content: "\e600";
-}
-
-.icon-iconfontconment2:before {
-  content: "\e605";
-}
-
-.icon-gouwuchexuanzhong:before {
-  content: "\e601";
-}
-
-.icon-cart:before {
-  content: "\e602";
-}
-
-.icon-home:before {
-  content: "\e603";
-}
-
-.icon-home2:before {
-  content: "\e604";
-}
-
-.icon-tubiao03:before {
-  content: "\e606";
-}
-
-.icon-tubiao04:before {
-  content: "\e607";
-}
-
-.icon-tubiao215:before {
-  content: "\e612";
-}
-
-.icon-tubiao209:before {
-  content: "\e61a";
-}
-
-.icon-tubiao2151:before {
-  content: "\e637";
-}
-
-.icon-good:before {
-  content: "\e717";
-}
-
-.icon-deshengyinvoice23:before {
-  content: "\e62a";
-}
-
-.icon-deshengyinvoice21:before {
-  content: "\e62e";
-}
-
-.icon-dark:before {
-  content: "\e60c";
-}
-
-.icon-good1:before {
-  content: "\e62b";
-}
-
-.icon-chess-queen:before {
-  content: "\ef6a";
-}
-
-.icon-mind_map:before {
-  content: "\e702";
-}
-
-.icon-arrow-to-bottom:before {
-  content: "\e83c";
-}
-
-.icon-arrow-to-top:before {
-  content: "\e83d";
-}
-
-.icon-conmentrefresh:before {
-  content: "\e65c";
-}
-
-.icon-night:before {
-  content: "\e65e";
-}
-
-.icon-shengyin_shiti:before {
-  content: "\eca5";
-}
-
 .icon-shoucang_shixin:before {
   content: "\eca6";
 }
 
-.icon-Chinese:before {
+.icon-tingzhi1:before {
+  content: "\e649";
+}
+
+.icon-chess-knight:before {
   content: "\e608";
 }
 
-.icon-robot:before {
-  content: "\e66e";
+.icon-Chinese:before {
+  content: "\e603";
 }
 
-.icon-icons-mind_map:before {
-  content: "\e664";
+.icon-robot1:before {
+  content: "\e66e";
 }
 
 .icon-shengyin:before {
   content: "\e87c";
 }
 
-.icon-chess-pawn:before {
+.icon-e-learning-monitor:before {
   content: "\e68c";
 }
 
-.icon-chess-king:before {
-  content: "\e609";
+.icon-chess-horse:before {
+  content: "\e68b";
 }
 
-.icon-chess-knight:before {
-  content: "\e60a";
+.icon-chess-pawn:before {
+  content: "\e68d";
+}
+
+.icon-great1:before {
+  content: "\e60e";
+}
+
+.icon-chess-king:before {
+  content: "\e604";
+}
+
+.icon-chess-knight1:before {
+  content: "\e606";
 }
 
 .icon-chess-rook:before {
-  content: "\e60b";
+  content: "\e607";
 }
 
-.icon-DarkTheme-1:before {
-  content: "\e65a";
+.icon-copy:before {
+  content: "\e60a";
+}
+
+.icon-tingzhi2:before {
+  content: "\e800";
+}
+
+.icon-copy1:before {
+  content: "\e624";
+}
+
+.icon-robot2:before {
+  content: "\e7ee";
 }
 
 .icon-top_gerenxinxi:before {
@@ -153,16 +89,24 @@
   content: "\e8a2";
 }
 
+.icon-stop-circle:before {
+  content: "\ea91";
+}
+
 .icon-fanhuidingbu2:before {
   content: "\e657";
 }
 
-.icon-light:before {
-  content: "\e60d";
+.icon-icon-See:before {
+  content: "\e60b";
 }
 
-.icon-dark1:before {
-  content: "\e71c";
+.icon-copy2:before {
+  content: "\e67f";
+}
+
+.icon-comment1:before {
+  content: "\e691";
 }
 
 .icon-a-Rectangle2Copy22:before {
@@ -174,22 +118,30 @@
 }
 
 .icon-a-ICONmention:before {
-  content: "\e613";
+  content: "\e612";
 }
 
 .icon-a-ICONmention_cancel:before {
   content: "\e618";
 }
 
-.icon-dark2:before {
-  content: "\e72f";
+.icon-password:before {
+  content: "\e738";
+}
+
+.icon-ban1:before {
+  content: "\eaf5";
+}
+
+.icon-copy3:before {
+  content: "\eb18";
 }
 
 .icon-ClearNight-qing-yewan:before {
-  content: "\e60e";
+  content: "\e60c";
 }
 
-.icon-robot1:before {
+.icon-robot3:before {
   content: "\e815";
 }
 
@@ -206,7 +158,19 @@
 }
 
 .icon-chess:before {
-  content: "\e60f";
+  content: "\e60d";
+}
+
+.icon-daohang2:before {
+  content: "\10183";
+}
+
+.icon-copy4:before {
+  content: "\e779";
+}
+
+.icon-icon-mention:before {
+  content: "\ea83";
 }
 
 .icon-yinliang-F:before {
@@ -218,11 +182,11 @@
 }
 
 .icon-yinliang-L:before {
-  content: "\e654";
+  content: "\e655";
 }
 
 .icon-jingyin-L:before {
-  content: "\e655";
+  content: "\e656";
 }
 
 .icon-shengyinluzhi-copy:before {
@@ -270,39 +234,39 @@
 }
 
 .icon-chess-queen1:before {
-  content: "\e627";
+  content: "\e629";
 }
 
 .icon-edit_name:before {
-  content: "\e610";
+  content: "\e60f";
 }
 
 .icon-lujing-18:before {
-  content: "\e614";
+  content: "\e610";
 }
 
 .icon-lujing-19:before {
-  content: "\e615";
+  content: "\e614";
 }
 
 .icon-lujing-20:before {
-  content: "\e616";
+  content: "\e615";
 }
 
 .icon-a-juxing2221:before {
-  content: "\e617";
+  content: "\e616";
 }
 
 .icon-lujing-7:before {
-  content: "\e619";
+  content: "\e617";
 }
 
 .icon-a-jianqudingceng56:before {
-  content: "\e61b";
+  content: "\e619";
 }
 
 .icon-lujing-3:before {
-  content: "\e61c";
+  content: "\e61a";
 }
 
 .icon-a-ChessRook:before {
@@ -310,15 +274,15 @@
 }
 
 .icon-shoucang:before {
-  content: "\e61d";
+  content: "\e61b";
 }
 
 .icon-bianji:before {
-  content: "\e61e";
+  content: "\e61c";
 }
 
 .icon-qunzu:before {
-  content: "\e61f";
+  content: "\e61d";
 }
 
 .icon-circle-close-o:before {
@@ -337,6 +301,10 @@
   content: "\e677";
 }
 
+.icon-eye-o:before {
+  content: "\e678";
+}
+
 .icon-file-jpg:before {
   content: "\e67b";
 }
@@ -350,7 +318,7 @@
 }
 
 .icon-heart-off:before {
-  content: "\e67f";
+  content: "\e680";
 }
 
 .icon-information-o:before {
@@ -362,70 +330,194 @@
 }
 
 .icon-message:before {
-  content: "\e684";
-}
-
-.icon-pause-circle-o:before {
   content: "\e685";
 }
 
-.icon-link:before {
+.icon-pause-circle-o:before {
   content: "\e686";
 }
 
-.icon-play-circle-o:before {
+.icon-link:before {
   content: "\e687";
 }
 
-.icon-poweroff:before {
+.icon-play-circle-o:before {
   content: "\e688";
 }
 
-.icon-share:before {
+.icon-poweroff:before {
   content: "\e689";
 }
 
-.icon-setting-o:before {
-  content: "\e68a";
-}
-
-.icon-user:before {
-  content: "\e68b";
-}
-
-.icon-wifi:before {
-  content: "\e68d";
-}
-
-.icon-heart-on:before {
+.icon-share:before {
   content: "\e68f";
 }
 
-.icon-tag:before {
-  content: "\e691";
+.icon-setting-o:before {
+  content: "\e690";
 }
 
-.icon-tags:before {
+.icon-user:before {
   content: "\e692";
 }
 
+.icon-wifi:before {
+  content: "\e693";
+}
+
+.icon-heart-on:before {
+  content: "\e694";
+}
+
+.icon-tag:before {
+  content: "\e695";
+}
+
+.icon-tags:before {
+  content: "\e696";
+}
+
 .icon-qingbaojiansuoicon:before {
-  content: "\e620";
+  content: "\e61e";
 }
 
 .icon-baocun:before {
-  content: "\e621";
+  content: "\e61f";
 }
 
 .icon-bianji1:before {
-  content: "\e622";
+  content: "\e620";
 }
 
 .icon-huiyuanguanli:before {
-  content: "\e623";
+  content: "\e621";
 }
 
 .icon-caidan_:before {
-  content: "\e624";
+  content: "\e622";
+}
+
+.icon-luyin:before {
+  content: "\e600";
+}
+
+.icon-liebiao:before {
+  content: "\e601";
+}
+
+.icon-iconfontconment2:before {
+  content: "\e605";
+}
+
+.icon-record:before {
+  content: "\e6b6";
+}
+
+.icon-record1:before {
+  content: "\e85f";
+}
+
+.icon-18yiban:before {
+  content: "\e654";
+}
+
+.icon-good:before {
+  content: "\e717";
+}
+
+.icon-deshengyinvoice23:before {
+  content: "\e62a";
+}
+
+.icon-xiugaimima:before {
+  content: "\e684";
+}
+
+.icon-fly:before {
+  content: "\e609";
+}
+
+.icon-deshengyinvoice21:before {
+  content: "\e62e";
+}
+
+.icon-good1:before {
+  content: "\e62b";
+}
+
+.icon-comment:before {
+  content: "\e627";
+}
+
+.icon-robot:before {
+  content: "\e87d";
+}
+
+.icon-Bad:before {
+  content: "\e613";
+}
+
+.icon-record2:before {
+  content: "\e68a";
+}
+
+.icon-conments:before {
+  content: "\e628";
+}
+
+.icon-great:before {
+  content: "\e602";
+}
+
+.icon-tingzhi:before {
+  content: "\e640";
+}
+
+.icon-unseen:before {
+  content: "\e6e0";
+}
+
+.icon-daohang:before {
+  content: "\e63b";
+}
+
+.icon-caidan:before {
+  content: "\e65d";
+}
+
+.icon-daohang1:before {
+  content: "\e77d";
+}
+
+.icon-caidan1:before {
+  content: "\eaf1";
+}
+
+.icon-chess-queen:before {
+  content: "\ef6a";
+}
+
+.icon-ban:before {
+  content: "\e827";
+}
+
+.icon-arrow-to-bottom:before {
+  content: "\e83c";
+}
+
+.icon-arrow-to-top:before {
+  content: "\e83d";
+}
+
+.icon-conmentrefresh:before {
+  content: "\e65c";
+}
+
+.icon-night:before {
+  content: "\e65e";
+}
+
+.icon-shengyin_shiti:before {
+  content: "\eca5";
 }
 
