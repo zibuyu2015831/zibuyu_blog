@@ -3,15 +3,11 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
 import { ref, onMounted, computed, reactive, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
+
+import MenuButton from "@/content/MenuButton.vue";
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 打赏弹出框 ↓ // // // // // // // // // //
-
-const userRewardDialogVisible = ref(false); // 打赏提示框
-
-// // // // // // // // // // ↑ 打赏弹出框 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 交互信息的按钮功能 ↓ // // // // // // // // // //
 
@@ -36,19 +32,34 @@ const messageMarginBottom = ref(12);
 
 // // // // // // // // // // ↓ 文字按钮的出现与隐藏 ↓ // // // // // // // // // //
 
+// 显示按钮
 function show_button(event) {
   const buttonElement = event.target.nextElementSibling;
-  console.log(buttonElement);
   if (buttonElement && buttonElement.classList.contains("react_content_button")) {
     buttonElement.style.display = "block";
   }
 }
 
+// 隐藏按钮
 function hide_button(event) {
   const buttonElement = event.target.querySelector(".react_content_button");
   if (buttonElement && buttonElement.classList.contains("react_content_button")) {
     buttonElement.style.display = "none";
   }
+}
+
+// 显示文本
+function showText(event, text_id) {
+  if (event.target.classList.contains("hidden_text")) {
+    chatHistory.value.data[text_id].isHidden = false;
+    event.target.classList.remove("hidden_text");
+  }
+}
+
+// 隐藏文本
+function hiddenText(text_id) {
+  console.log("text_id", text_id);
+  chatHistory.value.data[text_id].isHidden = true;
 }
 
 // // // // // // // // // // ↑ 文字按钮的出现与隐藏 ↑ // // // // // // // // // //
@@ -83,6 +94,7 @@ const botSetting = reactive({
   voiceEvaluate: false, // 是否开启语音评测
   answerExample: false, // 是否给出回答示例
   collectWord: false, // 是否自动收集重难点单词
+  hiddenWord: false, // 是否自动收集重难点单词
 });
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
@@ -92,7 +104,7 @@ const botSetting = reactive({
 const inputBottom = 25; // 输入区域距离底部的位置（单位px）
 
 const titleHeight = computed(() => {
-  return deviceInfoStore.userScreenWidth < 500 ? 40 : 55;
+  return 55;
 });
 
 const chatAreaRef = ref(null); // 聊天区域
@@ -181,14 +193,17 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", resetChatAreaSize, { passive: true });
 });
 
-const isFocused = ref(false);
+// 边框颜色
+const borderColor = ref("#333ce1");
 
-function changeBorder() {
-  isFocused.value = true;
+// 聚焦时加重边框颜色
+function heavierBorder() {
+  borderColor.value = "#333ce1";
 }
 
-function removeBorder() {
-  isFocused.value = false;
+// 失去聚焦时减轻边框颜色
+function lighterBorder() {
+  borderColor.value = "#989cea";
 }
 
 // // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
@@ -198,82 +213,40 @@ function removeBorder() {
 const chatHistory = ref({
   hasPrevious: true,
 
-  data: [
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
+  data: {
+    1: {
       content: "ai发送的内容",
       role: "ai",
+      isHidden: false,
     },
-    {
+    2: {
       content: "用户发送的内容",
       role: "user",
+      isHidden: false,
     },
-    {
+    3: {
       content: "ai发送的内容",
       role: "ai",
+      isHidden: false,
     },
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
-      content:
-        "ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容",
-      role: "ai",
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-    },
-    {
+    4: {
       content:
         "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
       role: "user",
+      isHidden: false,
     },
-    {
-      content: "ai发送的内容",
+    5: {
+      content:
+        "ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容",
       role: "ai",
+      isHidden: true,
     },
-    {
+    6: {
       content: "用户发送的内容",
       role: "user",
+      isHidden: false,
     },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-    },
-  ],
+  },
 });
 
 // // // // // // // // // // ↑ 聊天记录获取 ↑ // // // // // // // // // //
@@ -282,12 +255,12 @@ const chatHistory = ref({
 <template>
   <div class="page" :style="{ height: deviceInfoStore.userScreenHeight + 'px' }">
     <div class="left" v-if="isEnglishWebShowLeft">
-      <div class="top"><span>思维兵工厂</span></div>
+      <div class="top"><span class="text">思维兵工厂</span></div>
 
       <div class="middle">
-
         <div class="content">
           <div class="split_line"></div>
+
           <div class="function_item">口语陪练</div>
           <div class="function_item">作文批改</div>
           <div class="function_item">百科问答</div>
@@ -306,10 +279,9 @@ const chatHistory = ref({
             <router-link to="/home">
               <span>前往博客</span>
             </router-link>
-            
           </div>
 
-          <div class="bottom_item" @click="userRewardDialogVisible=true">
+          <div class="bottom_item" @click="deviceInfoStore.isShowReawrdDialog = true">
             <span class="icon-link iconfont"></span>
 
             <span>打赏作者</span>
@@ -335,27 +307,6 @@ const chatHistory = ref({
             <span>浅色主题</span>
           </div>
         </div>
-
-        <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
-          <div class="card_item">
-            <div class="block">
-              <img
-                clsaa="card_img"
-                src="@/assets/image/reward_code_wechat.jpg"
-              />
-              <div class="card_img_title">微信</div>
-            </div>
-            <div class="block">
-              <img
-                clsaa="card_img"
-                src="@/assets/image/reward_code_alipay.jpg"
-              />
-              <div class="card_img_title">支付宝</div>
-            </div>
-          </div>
-
-        </el-dialog>
-
       </div>
     </div>
 
@@ -363,7 +314,9 @@ const chatHistory = ref({
       <div class="chat_area" ref="chatAreaRef">
         <div class="title_area" ref="titleAreaRef">
           <div class="right_icon" v-if="!isEnglishWebShowLeft">
-            <span class="iconfont icon-caidan_"></span>
+            <span>
+              <MenuButton :iconSize="30" :navs="navs"></MenuButton>
+            </span>
           </div>
 
           <div class="title" ref="chatTitleRef">
@@ -386,7 +339,13 @@ const chatHistory = ref({
             >
               <div class="avatar" @click="showSetting(item.role)"></div>
               <div @mouseenter="show_button">
-                <div class="content">{{ item.content }}</div>
+                <div :id="index" class="content">
+                  <span
+                    @click="showText($event, index)"
+                    :class="{ hidden_text: item.role === 'ai' && item.isHidden }"
+                    >{{ item.content }}</span
+                  >
+                </div>
               </div>
 
               <div class="react_content_button" v-if="item.role === 'ai'">
@@ -405,7 +364,7 @@ const chatHistory = ref({
                   content="刷新"
                   placement="bottom-start"
                 >
-                  <span class="icon-conmentrefresh iconfont"></span>
+                  <span class="icon-refresh iconfont"></span>
                 </el-tooltip>
 
                 <el-tooltip
@@ -423,7 +382,10 @@ const chatHistory = ref({
                   content="遮盖"
                   placement="bottom-start"
                 >
-                  <span class="icon-a-juxing2221 iconfont"></span>
+                  <span
+                    @click="hiddenText(index)"
+                    class="icon-a-juxing2221 iconfont"
+                  ></span>
                 </el-tooltip>
 
                 <el-tooltip
@@ -484,17 +446,17 @@ const chatHistory = ref({
         </div>
 
         <div class="input_area" ref="inputAreaRef">
-          <form action="" class="input_form" :class="{ focused: isFocused }">
+          <form action="" class="input_form">
             <textarea
               rows="1"
               ref="textareaRef"
               @input="handlerHeight"
               placeholder="请输入问题"
               autofocus
-              @focus="changeBorder"
-              @blur="removeBorder"
+              @focus="heavierBorder"
+              @blur="lighterBorder"
             ></textarea>
-            <span class="iconfont icon-deshengyinvoice21 audio"></span>
+            <span class="iconfont icon-voice audio"></span>
             <el-button type="success" round class="submit_buttom" :size="buttonSize"
               >发 送</el-button
             >
@@ -598,9 +560,27 @@ const chatHistory = ref({
                 />
               </el-tooltip>
             </div>
+
+            <div class="setting_item">
+              <span class="setting_item_text">是否自动模糊文本：</span>
+
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="开启后将模糊文本，专注练习听力"
+                placement="right-start"
+              >
+                <el-switch
+                  v-model="botSetting.hiddenWord"
+                  inline-prompt
+                  active-text="是"
+                  inactive-text="否"
+                  size="large"
+                />
+              </el-tooltip>
+            </div>
           </div>
         </el-dialog>
-
       </div>
     </div>
   </div>
@@ -622,7 +602,7 @@ const chatHistory = ref({
 
 /* ↓ 打赏界面 ↓ */
 
-.card_item{
+.card_item {
   display: flex;
   justify-content: space-around;
 }
@@ -670,6 +650,23 @@ const chatHistory = ref({
   font-size: clamp(28px, 3vh, 38px);
   text-align: center;
   margin-top: 12px;
+  filter: contrast(30);
+}
+
+.left .top .text {
+  animation: showup 3s forwards;
+}
+
+@keyframes showup {
+  from {
+    letter-spacing: -50px;
+    filter: blur(10px);
+  }
+
+  to {
+    letter-spacing: 10px;
+    filter: blur(0px);
+  }
 }
 
 .left .top span {
@@ -770,6 +767,8 @@ const chatHistory = ref({
   line-height: calc(v-bind(titleHeight) * 1px);
   height: calc(v-bind(titleHeight) * 1px);
   font-size: clamp(20px, 4vw, 30px); /* 默认字体大小为20px */
+  margin-left: 30px;
+  color: var(--english_top_menu_icon);
 }
 
 .chat_area .title_area .title {
@@ -811,12 +810,16 @@ const chatHistory = ref({
   border-radius: 15px;
 }
 
+.hidden_text {
+  filter: blur(3px);
+}
+
 .react_content_ai .avatar {
   height: 35px;
   width: 35px;
   position: absolute;
-  left: -45px;
-  top: 2px;
+  left: -40px;
+  top: 12px;
   background-size: cover;
   background-image: url("@/assets/image/ai_avatar.png");
   cursor: pointer;
@@ -845,8 +848,8 @@ const chatHistory = ref({
   height: 35px;
   width: 35px;
   position: absolute;
-  right: -45px;
-  top: 2px;
+  right: -40px;
+  top: 12px;
   background-size: contain;
   background-image: url("@/assets/image/user_avatar.png");
 }
@@ -899,10 +902,7 @@ const chatHistory = ref({
   justify-content: center;
   border-radius: 25px;
   background-color: var(--english_input_area_bg);
-}
-
-.focused {
-  border: 2px solid var(--english_input_area_border_focus);
+  border: 2px solid v-bind(borderColor);
 }
 
 /* 重置表单元素的默认样式 */
@@ -929,14 +929,10 @@ const chatHistory = ref({
 }
 .chat_area .input_area .input_form .audio {
   vertical-align: bottom;
-
+  cursor: pointer;
   font-size: 28px;
   margin: auto;
-  color: rgb(100, 10, 10);
-}
-
-.chat_area .input_area .input_form .audio:hover {
-  color: rgb(12, 225, 225);
+  color: var(--english_audio_icon);
 }
 
 /* ↑ 右侧布局 ↑ */

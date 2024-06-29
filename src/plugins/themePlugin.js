@@ -1,5 +1,6 @@
 // themePlugin.js
 import useDeviceInfo from '@/stores/deviceInfo'; // 引入 Pinia store
+import { setLocalStorageWithExpiration } from "@/utils/uselocalStorage";
 
 export default {
   install(app) {
@@ -20,6 +21,10 @@ export default {
         });
       }
 
+      const deviceInfoStore = useDeviceInfo();
+
+      // 将主题写入浏览器本地存储，设置有效期为6小时
+      setLocalStorageWithExpiration(deviceInfoStore.theme_store_key, theme, 6);
     })
 
 

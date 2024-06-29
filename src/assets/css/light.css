@@ -35,7 +35,9 @@ html.light {
   --english_input_area_tip:#C4C4C6;
   --english_scrollbar_bg:var(--english_right_bg);
   --english_scrollbar:#3C3C3C;
-
+  --english_top_menu_icon:black;
+  --english_audio_icon:rgb(115, 30, 30);
+  --menu_button_activate_bg:#8cd6f1;
 
 
 
@@ -47,7 +49,7 @@ html.light {
 
   --watermarkColor:black;
 
-  --el-bg-color: rgb(248, 241, 241);
+  --el-bg-color: rgb(243, 244, 247);
 
-  --el-dialog-bg-color: rgb(98, 90, 90);
+  
 }

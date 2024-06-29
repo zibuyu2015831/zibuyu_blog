@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h, onBeforeMount, render, onBeforeUnmount } from "vue";
+import { ref,  onBeforeMount} from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
@@ -16,6 +16,11 @@ import { storeToRefs } from "pinia";
 const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
 const {
+  isShowHeaderNavigate,
+  isShowHeaderAndFooterComponent,
+  isShowBottomMenu,
+
+
   isArticleRightBlockFixed,
   isArticleShowRightBox,
   webTheme,
@@ -196,6 +201,14 @@ function textOnFocus() {
 </script>
 
 <template>
+  <Header
+    v-if="isShowHeaderAndFooterComponent"
+  ></Header>
+  <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
+  <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
+
+
+
   <el-row class="main" justify="center">
     <el-col :span="isArticleShowRightBox?11:22" class="left">
       <div class="article_head">
@@ -329,6 +342,9 @@ function textOnFocus() {
       <img :src="zoomedImage" />
     </div>
   </div>
+
+  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
+
 </template>
 
 <style scoped>

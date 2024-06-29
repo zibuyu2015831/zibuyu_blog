@@ -16,18 +16,6 @@ const { username, isLogin } = storeToRefs(userInfoStore); // 读取状态
 
 // // // // // ↑ 状态管理 ↑ // // // // //
 
-// // // // // // // // // // ↓ 切换主题 ↓ // // // // // // // // // //
-
-// 当用户切换主题时，修改html类属性，并将主题写入浏览器本地存储
-function themeChange() {
-  document.documentElement.className = "";
-  document.documentElement.classList.add(deviceInfoStore.theme);
-
-  setLocalStorageWithExpiration(deviceInfoStore.theme_store_key, webTheme.value, 8);
-}
-
-// // // // // // // // // // ↑ 切换主题 ↑ // // // // // // // // // //
-
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
 
 const registerDialogVisible = ref(false); // 注册跳出框
@@ -150,7 +138,9 @@ const handleCommand = (command) => {
     :class="{ nav_background: deviceInfoStore.isShowNavBackground }"
   >
     <el-col span="12" class="nav_left">
-      <router-link to="/home" class="text_logo">思维兵工厂</router-link>
+      <router-link to="/home" class="text_logo">
+        <span class="text">思维兵工厂</span>
+      </router-link>
 
       <router-link to="/home">
         <el-text type="danger" size="large" tag="b">首页</el-text>
@@ -181,13 +171,12 @@ const handleCommand = (command) => {
       <div class="theme">
         <el-radio-group
           v-model="deviceInfoStore.theme"
-          @change="themeChange"
           size="small"
           fill="#3170a7"
           text-color="#fff"
         >
           <el-radio-button label="&#xe71c;&nbsp;夜晚" value="dark" class="iconfont" />
-          <el-radio-button label="&#xe60c;&nbsp;白天" value="light" class="iconfont" />
+          <el-radio-button label="&#xe60d;&nbsp;白天" value="light" class="iconfont" />
         </el-radio-group>
       </div>
 
@@ -369,14 +358,14 @@ const handleCommand = (command) => {
   position: fixed;
   transition: all 0.3s;
   z-index: 999;
+}
 
-  a {
-    line-height: 60px;
-    margin-right: 30px;
-    font-size: 16px;
-    text-decoration: none;
-    cursor: pointer;
-  }
+.nav_container a {
+  line-height: 60px;
+  margin-right: 30px;
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .nav_background {
@@ -388,16 +377,32 @@ const handleCommand = (command) => {
   color: var(--header_font);
   margin: 0 auto;
   line-height: 60px;
+}
 
-  .text_logo {
-    font-size: 25px;
-    display: inline-block;
-    margin: auto 20px;
+.nav_left .text_logo {
+  font-size: 25px;
+  display: inline-block;
+  margin: auto 20px;
 
-    margin-bottom: auto;
-    margin-left: 20px;
-    margin-right: 50px;
+  margin-bottom: auto;
+  margin-left: 20px;
+  margin-right: 50px;
+}
+
+@keyframes showup {
+  from {
+    letter-spacing: -50px;
+    filter: blur(10px);
   }
+
+  to {
+    letter-spacing: 10px;
+    filter: blur(0px);
+  }
+}
+
+.nav_left .text_logo .text {
+  animation: showup 3s forwards;
 }
 
 .nav_right {

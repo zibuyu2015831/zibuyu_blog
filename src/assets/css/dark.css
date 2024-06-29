@@ -39,14 +39,19 @@ html.dark {
   --english_input_area_tip:#4D4D4D;
   --english_scrollbar_bg:var(--english_right_bg);
   --english_scrollbar:#3C3C3C;
+  --english_top_menu_icon:#FFFFFF;
+  --english_audio_icon:rgb(154, 200, 214);
+  --menu_button_activate_bg:#6f4848;
 
+  
+  --menu_button_activate_bg:#989cea;
 
 
 
 
 
   --watermarkColor:white;
-  --el-bg-color: black;
+  --el-bg-color: rgb(44, 37, 39);
 
-  --el-dialog-bg-color: black;
+
 }

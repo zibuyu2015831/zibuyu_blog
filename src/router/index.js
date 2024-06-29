@@ -16,33 +16,33 @@ const router = createRouter({
     {
       path: '/home',
       name: 'home',
-      component: () => import('@/components/Home.vue')
+      component: () => import('@/views/Home.vue')
     },
     {
       path: '/about',
       name: 'about',
-      component: () => import('@/components/About.vue')
+      component: () => import('@/views/About.vue')
     },
     {
       path: '/article/:article_id',
       name: 'article',
-      component: () => import('@/components/Article.vue')
+      component: () => import('@/views/Article.vue')
     },
     {
       path: '/english_chat',
       name: 'english_chat',
-      component: () => import('@/components/EnglishChat.vue')
+      component: () => import('@/views/EnglishChat.vue')
     },
     {
       path: '/web_site',
       name: 'web_site',
-      component: () => import('@/components/WebSite.vue')
+      component: () => import('@/views/WebSite.vue')
     }
     ,
     {
       path: '/test',
       name: 'test',
-      component: () => import('@/components/Test.vue')
+      component: () => import('@/views/Test.vue')
     }
   ]
 })

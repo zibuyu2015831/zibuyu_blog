@@ -6,6 +6,10 @@ import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 import useUserInfo from "@/stores/userInfo";
 
+import postSuggestion from "@/content/postSuggestion.vue";
+import Advertising from "@/content/Advertising.vue";
+import RewardList from "@/content/RewardList.vue";
+import MyInfo from "@/content/MyInfo.vue";
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
@@ -18,6 +22,10 @@ const userInfoStore = useUserInfo();
 
 // 读取状态
 const {
+  isShowHeaderNavigate,
+  isShowHeaderAndFooterComponent,
+  isShowBottomMenu,
+
   isShowRightBox,
   isPaginationmall,
   isShowArticleImageInSmallScreen,
@@ -158,6 +166,15 @@ function submitUserRewardMessage() {
 </script>
 
 <template>
+
+  <Header
+    v-if="isShowHeaderAndFooterComponent"
+  ></Header>
+  <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
+  <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
+
+
+
   <el-row class="main" justify="center" v-if="isBigScreen">
     <el-col :span="11" class="left">
       <el-row justify="center">
@@ -263,121 +280,27 @@ function submitUserRewardMessage() {
     </el-col>
 
     <el-col :span="5" :offset="1" class="right">
-      <el-card style="max-width: 480px" class="right_card">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">独家推广</span>
-          </div>
-        </template>
-        <div>
-          <el-carousel :interval="5000" arrow="always" :motion-blur="true">
-            <el-carousel-item v-for="item in 3" :key="item">
-              <h3 text="2xl" justify="center">{{ item }}</h3>
-            </el-carousel-item>
-          </el-carousel>
-        </div>
-      </el-card>
 
-      <el-card style="max-width: 480px" class="right_card">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">个人介绍</span>
-          </div>
-        </template>
+      <div class="right_card">
+        <Advertising>  </Advertising>
+      </div>
 
-        <div class="card_item">子不语</div>
-        <div class="card_item">全栈开发工程师</div>
-        <div class="card_item">现居广州</div>
-        <div class="card_item">
-          <div class="block">
-            <img
-              clsaa="card_img"
-              src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
-            />
-            <div class="card_img_title">微信</div>
-          </div>
-          <div class="block">
-            <img
-              clsaa="card_img"
-              src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
-            />
-            <div class="card_img_title">支付宝</div>
-          </div>
-        </div>
-      </el-card>
 
-      <el-card style="max-width: 480px" class="right_card">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">意见反馈</span>
-          </div>
-        </template>
+      <div class="right_card">
+        <MyInfo>  </MyInfo>
+      </div>
 
-        <el-form
-          :label-position="'top'"
-          label-width="auto"
-          :model="userSuggestion"
-          style="max-width: 600px"
-        >
-          <el-form-item label="联系方式">
-            <el-input
-              v-model="userSuggestion.contact"
-              placeholder="微信 / QQ / 邮箱皆可"
-            />
-          </el-form-item>
-          <el-form-item label="建议反馈">
-            <el-input
-              v-model="userSuggestion.note"
-              type="textarea"
-              placeholder="请输入反馈内容"
-              resize="none"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="submitUserSuggestion">提交</el-button>
-            <el-button @click="resetUserSuggestion">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
+      <div class="right_card">
+        <postSuggestion>  </postSuggestion>
+      </div>
 
-      <el-card style="max-width: 480px" class="right_card">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">打赏列表</span>
-            <span class="right_title right_sub_title">
-              <el-button type="primary" link @click="userRewardDialogVisible = true">
-                我也要打赏
-              </el-button>
-            </span>
-          </div>
-        </template>
 
-        <el-table
-          :data="rewardTableData"
-          style="width: 100%"
-          :table-layout="'true'"
-          max-height="200px"
-        >
-          <el-table-column label="昵称">
-            <template #default="scope">
-              <el-popover effect="light" trigger="hover" placement="top" width="auto">
-                <template #default>
-                  <div>{{ scope.row.note }}</div>
-                </template>
-                <template #reference>
-                  {{ scope.row.name }}
-                </template>
-              </el-popover>
-            </template>
-          </el-table-column>
+      <div class="right_card">
+        <RewardList>  </RewardList>
+      </div>
 
-          <el-table-column label="金额">
-            <template #default="scope">
-              <span>￥ &nbsp {{ scope.row.count }}</span>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-card>
+
+
     </el-col>
   </el-row>
 
@@ -486,184 +409,33 @@ function submitUserRewardMessage() {
       </el-col>
 
       <el-col :span="6" class="right" v-if="isShowRightBox">
-        <el-card style="max-width: 480px" class="right_card">
-          <template #header>
-            <div class="card-header">
-              <span class="right_title">独家推广</span>
-            </div>
-          </template>
-          <div>
-            <el-carousel
-              :interval="5000"
-              arrow="always"
-              :motion-blur="true"
-              indicator-position="none"
-            >
-              <el-carousel-item v-for="item in 3" :key="item">
-                <h3 text="2xl" justify="center">{{ item }}</h3>
-              </el-carousel-item>
-            </el-carousel>
-          </div>
-        </el-card>
 
-        <el-card style="max-width: 480px" class="right_card">
-          <template #header>
-            <div class="card-header">
-              <span class="right_title">个人介绍</span>
-            </div>
-          </template>
 
-          <div class="card_item">子不语</div>
-          <div class="card_item">全栈开发工程师</div>
-          <div class="card_item">现居广州</div>
-          <div class="card_item">
-            <div class="block">
-              <img
-                clsaa="card_img"
-                src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
-              />
-              <div class="card_img_title">微信</div>
-            </div>
-            <div class="block">
-              <img
-                clsaa="card_img"
-                src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
-              />
-              <div class="card_img_title">支付宝</div>
-            </div>
-          </div>
-        </el-card>
+        <div class="right_card">
+          <Advertising>  </Advertising>
+        </div>
 
-        <el-card style="max-width: 480px" class="right_card">
-          <template #header>
-            <div class="card-header">
-              <span class="right_title">意见反馈</span>
-            </div>
-          </template>
+        <div class="right_card">
+          <MyInfo>  </MyInfo>
+        </div>
+  
+        <div class="right_card">
+          <postSuggestion>  </postSuggestion>
+        </div>
+  
 
-          <el-form
-            :label-position="'top'"
-            label-width="auto"
-            :model="userSuggestion"
-            style="max-width: 600px"
-          >
-            <el-form-item label="联系方式">
-              <el-input
-                v-model="userSuggestion.contact"
-                placeholder="微信 / QQ / 邮箱皆可"
-              />
-            </el-form-item>
-            <el-form-item label="建议反馈">
-              <el-input
-                v-model="userSuggestion.note"
-                type="textarea"
-                placeholder="请输入反馈内容"
-                resize="none"
-              />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="submitUserSuggestion">提交</el-button>
-              <el-button @click="resetUserSuggestion">重置</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+        <div class="right_card">
+          <RewardList>  </RewardList>
+        </div>
+  
 
-        <el-card style="max-width: 480px" class="right_card">
-          <template #header>
-            <div class="card-header">
-              <span class="right_title">打赏列表</span>
-              <span class="right_title right_sub_title">
-                <el-button type="primary" link @click="userRewardDialogVisible = true">
-                  我也要打赏
-                </el-button>
-              </span>
-            </div>
-          </template>
-
-          <el-table
-            :data="rewardTableData"
-            style="width: 100%"
-            :table-layout="'true'"
-            max-height="200px"
-          >
-            <el-table-column label="昵称">
-              <template #default="scope">
-                <el-popover effect="light" trigger="hover" placement="top" width="auto">
-                  <template #default>
-                    <div>{{ scope.row.note }}</div>
-                  </template>
-                  <template #reference>
-                    {{ scope.row.name }}
-                  </template>
-                </el-popover>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="金额">
-              <template #default="scope">
-                <span>￥ &nbsp {{ scope.row.count }}</span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-card>
       </el-col>
     </el-row>
   </div>
 
-  <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
-    <div class="card_item">
-      <div class="block">
-        <img
-          clsaa="card_img"
-          src="@/assets/image/reward_code_wechat.jpg"
-        />
-        <div class="card_img_title">微信</div>
-      </div>
-      <div class="block">
-        <img
-          clsaa="card_img"
-          src="@/assets/image/reward_code_alipay.jpg"
-        />
-        <div class="card_img_title">支付宝</div>
-      </div>
-    </div>
 
-    <el-form
-      :label-position="'top'"
-      label-width="auto"
-      :model="userRewardMessage"
-      style="max-width: 600px"
-    >
-      <el-form-item label="您的昵称">
-        <el-input
-          v-model="userRewardMessage.name"
-          placeholder="少侠，留下你的昵称呗"
-          :value="username"
-        />
-      </el-form-item>
-      <el-form-item label="您的留言">
-        <el-input
-          v-model="userRewardMessage.note"
-          type="textarea"
-          placeholder="期待与少侠交流"
-          resize="none"
-        />
-      </el-form-item>
-      <el-form-item label="您的联系方式">
-        <el-input
-          v-model="userRewardMessage.contact"
-          placeholder="少侠，留下你的联系方式呗"
-        />
-      </el-form-item>
-    </el-form>
 
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="resetUserRewardMessage">取消</el-button>
-        <el-button type="primary" @click="submitUserRewardMessage"> 确定 </el-button>
-      </div>
-    </template>
-  </el-dialog>
+  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
 </template>
 
 <style scoped>

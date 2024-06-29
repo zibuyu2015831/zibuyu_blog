@@ -1,5 +1,19 @@
 <script setup>
+import useDeviceInfo from "@/stores/deviceInfo";
+
+import { storeToRefs } from "pinia";
 import { ref, onMounted, createApp, h } from "vue";
+
+import MenuButton from "@/content/MenuButton.vue";
+import RewardList from "@/content/RewardList.vue";
+import Advertising from "@/content/Advertising.vue";
+
+const deviceInfoStore = useDeviceInfo();
+const {
+  isShowHeaderNavigate,
+  isShowHeaderAndFooterComponent,
+  isShowBottomMenu,
+} = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
@@ -30,16 +44,6 @@ onMounted(() => {
 });
 
 // // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
-
-
-const htmlString = `
-    <div>
-      <el-image style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg" alt="图片加载失败" />
-    </div>
-  `;
-
-const htmlContent = `
-  <img style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg" alt="图片加载失败">`;
 
 onMounted(() => {
   const imageVNode = h(ElImage, {
@@ -85,15 +89,31 @@ onMounted(() => {
     buttonApp.mount(buttonContainer);
   }
 });
+
+const nav = [
+  { url: "/home", content: "主页" },
+  { url: "/home", content: "主页" },
+  { url: "/home", content: "主页" },
+];
 </script>
 
 <template>
-  <h2 class="box">about界面<span class="iconfont icon-shengyin_shiti"></span></h2>
-  <div class="typewriter">
-    <span>{{ displayText }}</span><span v-if="isTyping">|</span>
+  <Header v-if="isShowHeaderAndFooterComponent"></Header>
+  <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
+  <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
+
+  <h2 class="box">about界面</h2>
+
+  <MenuButton :iconSize="35"></MenuButton>
+<Advertising >  </Advertising>
+  <div>
+    <div class="typewriter">
+      <span>{{ displayText }}</span
+      ><span v-if="isTyping">|</span>
+    </div>
   </div>
-  <div class="box">{{ htmlContent }}</div>
-  <div class="container" ref="container"></div>
+
+  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
 </template>
 
 <style scoped>
@@ -111,14 +131,10 @@ onMounted(() => {
 
 /* ↑ 代码块 ↑ */
 
-
-
 .typewriter {
   font-family: monospace;
   white-space: pre;
   overflow: hidden;
   display: inline-block;
 }
-
-
 </style>

@@ -6,7 +6,15 @@
   const deviceInfoStore = useDeviceInfo()
 
 
-  const {screenHeight,screenWidth} = storeToRefs(deviceInfoStore)
+  const {
+    isShowHeaderNavigate,
+  isShowHeaderAndFooterComponent,
+  isShowBottomMenu,
+
+
+    screenHeight,
+    screenWidth
+  } = storeToRefs(deviceInfoStore)
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
   
 

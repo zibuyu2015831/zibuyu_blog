@@ -25,9 +25,18 @@ const useDeviceInfo = defineStore('deviceInfo', {
         userScreenHeight: ref(0), // 屏幕视口高度
         scrollTop: ref(0),  // 屏幕向下滚动数
 
+        // elementPlus的弹出框必须挂载在全局，这个值设置打赏弹出框的显示
+        isShowReawrdDialog: ref(false),
+        userRewardInfo: ref({
+            name:'',
+            note:'',
+            contact:'',
+        }),
+
+
         // 以下是一些常量
 
-        not_need_header_and_footer: ['/english_chat','/test'],  // 不需要头部和脚部组件的路径
+        not_need_header_and_footer: ['/english_chat', '/test'],  // 不需要头部和脚部组件的路径
         theme_list: ['light', 'dark'], // 主题列表，新添加的主题需要在这里注册，否则不生效
         theme_store_key: 'webTheme',  // 向$store存储主题时的key，一般不用改
         ScreenWidthLimit: 880,// 屏幕宽度限制，小于此限制，顶部导航改为底部导航
@@ -36,11 +45,11 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
     getters: {
 
-        screenHeight(state){
+        screenHeight(state) {
             return `${state.userScreenHeight}px`
         },
 
-        screenWidth(state){
+        screenWidth(state) {
             return `${state.userScreenWidth}px`
         },
 
