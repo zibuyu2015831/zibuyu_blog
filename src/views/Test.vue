@@ -8,9 +8,9 @@
 
   const {
     isShowHeaderNavigate,
-  isShowHeaderAndFooterComponent,
   isShowBottomMenu,
-
+  isShowHeaderComponent,
+  isShowFooterComponent,
 
     screenHeight,
     screenWidth

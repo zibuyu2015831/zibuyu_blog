@@ -11,51 +11,12 @@ import { storeToRefs } from "pinia";
 const deviceInfoStore = useDeviceInfo(); // 执行函数，拿到Store
 const userInfoStore = useUserInfo(); // 执行函数，拿到Store
 
-const { TextColor, webTheme } = storeToRefs(deviceInfoStore); // 读取状态
+const { TextColor } = storeToRefs(deviceInfoStore); // 读取状态
 const { username, isLogin } = storeToRefs(userInfoStore); // 读取状态
 
 // // // // // ↑ 状态管理 ↑ // // // // //
 
-// // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
-
-const registerDialogVisible = ref(false); // 注册跳出框
-
-const registerInfo = reactive({
-  username: "",
-  password: "",
-  registerCode: "",
-});
-
-function cancelRegister() {
-  registerDialogVisible.value = false;
-}
-
-function commitRegister() {
-  registerDialogVisible.value = false;
-}
-
-function register_now() {
-  loginDialogVisible.value = false;
-  registerDialogVisible.value = true;
-}
-
-// // // // // // // // // // ↑ 注册功能 ↑ // // // // // // // // // //
-
 // // // // // // // // // // ↓ 登录功能 ↓ // // // // // // // // // //
-
-const loginDialogVisible = ref(false); // 登录跳出框
-
-const loginInfo = reactive({
-  username: "",
-  password: "",
-});
-
-// 取消登录
-function cancelLogin() {
-  loginDialogVisible.value = false;
-  loginInfo.username = "";
-  loginInfo.password = "";
-}
 
 // 退出登录
 function resetLogin() {
@@ -68,55 +29,6 @@ function resetLogin() {
     message: "您已经退出登录~",
     type: "info",
   });
-}
-
-// 消息提示：登录成功
-function loginSuccess() {
-  ElMessage({
-    message: "登录成功！",
-    type: "success",
-  });
-}
-
-// 消息提示：登录失败
-function loginfailed() {
-  ElMessage({
-    message: "登录失败，请检查用户名或密码！",
-    type: "error",
-  });
-}
-
-function commitLogin() {
-  loginDialogVisible.value = false;
-
-  //  模拟登录时写入token
-  const user_token = "123456";
-
-  if (user_token) {
-    //  将登录状态写入状态管理
-    sessionStorage.setItem("login_token", user_token);
-    userInfoStore.userToken = user_token;
-    userInfoStore.username = loginInfo.username;
-    userInfoStore.isLogin = true;
-
-    console.log("useUserInfo.isLogin ", userInfoStore.isLogin);
-    console.log("useUserInfo.username ", userInfoStore.username);
-    console.log("useUserInfo.userToken ", userInfoStore.userToken);
-
-    loginInfo.username = "";
-    loginInfo.password = "";
-
-    // 消息提示：登录成功
-    loginSuccess();
-  } else {
-    // 消息提示：登录失败
-    loginfailed();
-  }
-}
-
-function login_now() {
-  loginDialogVisible.value = true;
-  registerDialogVisible.value = false;
 }
 
 // // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
@@ -137,7 +49,6 @@ const handleCommand = (command) => {
     class="nav_container"
     :class="{ nav_background: deviceInfoStore.isShowNavBackground }"
   >
-  
     <el-col span="12" class="nav_left">
       <router-link to="/home" class="text_logo">
         <span class="text">思维兵工厂</span>
@@ -187,7 +98,7 @@ const handleCommand = (command) => {
           round
           size="large"
           class="login_button button"
-          @click="loginDialogVisible = true"
+          @click="deviceInfoStore.isShowLoginDialog = true"
         >
           登录
         </el-button>
@@ -197,7 +108,7 @@ const handleCommand = (command) => {
           round
           size="large"
           class="register_button button"
-          @click="registerDialogVisible = true"
+          @click="deviceInfoStore.isShowRegisterDialog = true"
         >
           注册
         </el-button>
@@ -231,89 +142,6 @@ const handleCommand = (command) => {
         </el-dropdown>
       </div>
     </el-col>
-
-    <el-dialog v-model="loginDialogVisible" width="500">
-      <el-form
-        :label-position="'top'"
-        label-width="auto"
-        :model="loginInfo"
-        style="max-width: 600px"
-      >
-        <el-form-item label="用户名" :required="true">
-          <el-input v-model="loginInfo.username" />
-        </el-form-item>
-        <el-form-item label="密码" :required="true">
-          <el-input v-model="loginInfo.password" type="password" />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog_footer">
-          <span>
-            <el-button type="warning" class="register_now" @click="register_now">
-              没有账号？立刻注册
-            </el-button>
-          </span>
-
-          <span>
-            <el-button @click="cancelLogin">取消</el-button>
-            <el-button type="primary" @click="commitLogin"> 登录 </el-button>
-          </span>
-        </div>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="registerDialogVisible" width="500">
-      <el-form
-        :label-position="'top'"
-        label-width="auto"
-        :model="loginInfo"
-        style="max-width: 600px"
-      >
-        <el-form-item label="用户名" :required="true">
-          <el-input v-model="registerInfo.username" />
-        </el-form-item>
-
-        <el-form-item label="密码" :required="true">
-          <el-input v-model="registerInfo.password" type="password" />
-        </el-form-item>
-
-        <el-form-item label="再次输入密码" :required="true">
-          <el-input v-model="registerInfo.password" type="password" />
-        </el-form-item>
-
-        <el-form-item label="邀请码" :required="true">
-          <el-input
-            v-model="registerInfo.registerCode"
-            placeholder="关注公众号【思维兵工厂】，回复“邀请码”"
-          />
-        </el-form-item>
-
-        <div class="card_item">
-          <div class="block">
-            <img
-              clsaa="card_img"
-              src="https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg"
-            />
-            <div class="card_img_title">扫码关注，获取邀请码</div>
-          </div>
-        </div>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog_footer">
-          <span>
-            <el-button type="warning" class="login_now" @click="login_now">
-              已有账号？前往登录
-            </el-button>
-          </span>
-          <span>
-            <el-button @click="cancelRegister">取消</el-button>
-            <el-button type="primary" @click="commitRegister"> 注册 </el-button>
-          </span>
-        </div>
-      </template>
-    </el-dialog>
   </el-row>
 </template>
 
@@ -332,26 +160,6 @@ const handleCommand = (command) => {
 }
 
 /* ↑ 导航栏右侧 ↑ */
-
-.dialog_footer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.card_item {
-  margin: 5px 30px;
-  text-align: center;
-}
-
-.card_item img {
-  display: inline-block;
-  width: 100px;
-  height: 100px;
-}
-
-.card_item .card_img_title {
-  margin-top: 10px;
-}
 
 .nav_container {
   top: 0;

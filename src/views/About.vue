@@ -5,13 +5,12 @@ import { storeToRefs } from "pinia";
 import { ref, onMounted, createApp, h } from "vue";
 
 import MenuButton from "@/content/MenuButton.vue";
-import RewardList from "@/content/RewardList.vue";
-import Advertising from "@/content/Advertising.vue";
 
 const deviceInfoStore = useDeviceInfo();
 const {
+  isShowHeaderComponent,
+  isShowFooterComponent,
   isShowHeaderNavigate,
-  isShowHeaderAndFooterComponent,
   isShowBottomMenu,
 } = storeToRefs(deviceInfoStore);
 
@@ -95,17 +94,30 @@ const nav = [
   { url: "/home", content: "主页" },
   { url: "/home", content: "主页" },
 ];
+
+
+const handleReward= ()=>{
+  deviceInfoStore.isShowReawrdDialog=true
+}
 </script>
 
 <template>
-  <Header v-if="isShowHeaderAndFooterComponent"></Header>
+  <Header v-if="isShowHeaderComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
   <h2 class="box">about界面</h2>
 
+
+  <div @click="handleReward">打赏界面</div>
+  <div @click="deviceInfoStore.isShowLoginDialog=true">登陆界面</div>
+  <div @click="deviceInfoStore.isShowRegisterDialog=true">注册界面</div>
+
+
+
   <MenuButton :iconSize="35"></MenuButton>
-<Advertising >  </Advertising>
+
+
   <div>
     <div class="typewriter">
       <span>{{ displayText }}</span
@@ -113,7 +125,7 @@ const nav = [
     </div>
   </div>
 
-  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
+  <Footer v-if="isShowFooterComponent"></Footer>
 </template>
 
 <style scoped>

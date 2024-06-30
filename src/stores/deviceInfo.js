@@ -25,14 +25,20 @@ const useDeviceInfo = defineStore('deviceInfo', {
         userScreenHeight: ref(0), // 屏幕视口高度
         scrollTop: ref(0),  // 屏幕向下滚动数
 
-        // elementPlus的弹出框必须挂载在全局，这个值设置打赏弹出框的显示
+        // elementPlus的弹出框必须挂载在全局
+
+        //打赏弹出框
         isShowReawrdDialog: ref(false),
         userRewardInfo: ref({
-            name:'',
-            note:'',
-            contact:'',
+            name: '',
+            note: '',
+            contact: '',
         }),
 
+        //登陆弹出框
+        isShowLoginDialog: ref(false),
+        //注册弹出框
+        isShowRegisterDialog: ref(false),
 
         // 以下是一些常量
 
@@ -67,10 +73,24 @@ const useDeviceInfo = defineStore('deviceInfo', {
             return state.theme_list.includes(state.theme) ? state.theme : 'light';
         },
 
-
         // 是否显示header组件
-        isShowHeaderAndFooterComponent(state) {
+        isShowHeaderComponent(state) {
             return !state.not_need_header_and_footer.includes(state.currentPath);
+        },
+
+        // 是否显示footer组件
+        isShowFooterComponent(state) {
+
+            if (state.not_need_header_and_footer.includes(state.currentPath)) {
+                return false
+            } else {
+                if (state.userScreenWidth < state.ScreenWidthLimit) {
+                    return false
+
+                } else {
+                    return true
+                }
+            }
         },
 
         // 动态计算首图高度

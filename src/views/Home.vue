@@ -23,9 +23,9 @@ const userInfoStore = useUserInfo();
 // 读取状态
 const {
   isShowHeaderNavigate,
-  isShowHeaderAndFooterComponent,
   isShowBottomMenu,
-
+  isShowHeaderComponent,
+  isShowFooterComponent,
   isShowRightBox,
   isPaginationmall,
   isShowArticleImageInSmallScreen,
@@ -168,7 +168,7 @@ function submitUserRewardMessage() {
 <template>
 
   <Header
-    v-if="isShowHeaderAndFooterComponent"
+    v-if="isShowHeaderComponent"
   ></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
@@ -435,7 +435,7 @@ function submitUserRewardMessage() {
 
 
 
-  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
+  <Footer v-if="isShowFooterComponent"></Footer>
 </template>
 
 <style scoped>

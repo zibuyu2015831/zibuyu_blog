@@ -17,9 +17,9 @@ const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 
 const {
   isShowHeaderNavigate,
-  isShowHeaderAndFooterComponent,
   isShowBottomMenu,
-
+  isShowHeaderComponent,
+  isShowFooterComponent,
 
   isArticleRightBlockFixed,
   isArticleShowRightBox,
@@ -201,9 +201,7 @@ function textOnFocus() {
 </script>
 
 <template>
-  <Header
-    v-if="isShowHeaderAndFooterComponent"
-  ></Header>
+  <Header v-if="isShowHeaderComponent" ></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
@@ -343,7 +341,7 @@ function textOnFocus() {
     </div>
   </div>
 
-  <Footer v-if="isShowHeaderAndFooterComponent"></Footer>
+  <Footer v-if="isShowFooterComponent"></Footer>
 
 </template>
 
