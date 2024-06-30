@@ -137,6 +137,7 @@ const handleCommand = (command) => {
     class="nav_container"
     :class="{ nav_background: deviceInfoStore.isShowNavBackground }"
   >
+  
     <el-col span="12" class="nav_left">
       <router-link to="/home" class="text_logo">
         <span class="text">思维兵工厂</span>

@@ -84,7 +84,7 @@ const rewardTableData = [
 
       <el-table-column label="金额">
         <template #default="scope">
-          <span>￥ &nbsp; {{ scope.row.count }}</span>
+          <span> &yen;&nbsp; {{ scope.row.count }}</span>
         </template>
       </el-table-column>
     </el-table>

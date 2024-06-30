@@ -601,7 +601,7 @@ function submitUserRewardMessage() {
 }
 
 .el-carousel__item.news_deactivate {
-  opacity: 0.5;
+  opacity: 0.3;
   border-radius: 20px;
   font-size: clamp(8px, 3.8vw, 18px); /* 设置字体大小的最小值、自适应值和最大值 */
 
