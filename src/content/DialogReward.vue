@@ -34,7 +34,7 @@ function submitUserRewardMessage() {
   <el-dialog
     v-model="deviceInfoStore.isShowReawrdDialog"
     title="谢谢您的喜欢~"
-    width="500"
+    :width="deviceInfoStore.dialogWidth"  
     :lock-scroll="false"
   >
     <div class="card_item">
@@ -52,7 +52,7 @@ function submitUserRewardMessage() {
       :label-position="'top'"
       label-width="auto"
       :model="deviceInfoStore.userRewardInfo"
-      style="max-width: 600px"
+      style="max-width: 500px"
     >
       <el-form-item label="您的昵称">
         <el-input

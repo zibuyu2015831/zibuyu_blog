@@ -1,10 +1,11 @@
 <script setup>
 import { ref, defineProps } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo";
-
+import useUserInfo from "@/stores/userInfo";
 // // // // // // // // // // ↓ 读取状态 ↓ // // // // // // // // // //
 
 const deviceInfoStore = useDeviceInfo();
+const userInfoStore = useUserInfo();
 
 // 切换主题颜色
 function changeTheme(theme) {
@@ -60,9 +61,6 @@ const iconSize = props.iconSize || 16;
 // 下拉框是否出现
 const drawer = ref(false);
 
-// 打赏提示框是否出现
-const userRewardDialogVisible = ref(false);
-
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
 </script>
 
@@ -84,7 +82,12 @@ const userRewardDialogVisible = ref(false);
         <div class="menu">
           <div class="menu_item">
             <span class="icon-user iconfont"></span>
-            <span>个人中心</span>
+            <span v-if="userInfoStore.isLogin">个人中心</span>
+            <span
+              v-if="!userInfoStore.isLogin"
+              @click="deviceInfoStore.isShowLoginDialog = true"
+              >登录账号</span
+            >
           </div>
 
           <div class="menu_item">
@@ -94,7 +97,7 @@ const userRewardDialogVisible = ref(false);
             </router-link>
           </div>
 
-          <div class="menu_item" @click="userRewardDialogVisible = true">
+          <div class="menu_item" @click="deviceInfoStore.isShowReawrdDialog = true">
             <span class="icon-link iconfont"></span>
 
             <span>打赏作者</span>
@@ -120,19 +123,6 @@ const userRewardDialogVisible = ref(false);
             <span>浅色主题</span>
           </div>
         </div>
-
-        <el-dialog v-model="userRewardDialogVisible" title="谢谢您的喜欢~" width="500">
-          <div class="card_item">
-            <div class="block">
-              <img clsaa="card_img" src="@/assets/image/reward_code_wechat.jpg" />
-              <div class="card_img_title">微信</div>
-            </div>
-            <div class="block">
-              <img clsaa="card_img" src="@/assets/image/reward_code_alipay.jpg" />
-              <div class="card_img_title">支付宝</div>
-            </div>
-          </div>
-        </el-dialog>
       </div>
     </template>
   </el-drawer>

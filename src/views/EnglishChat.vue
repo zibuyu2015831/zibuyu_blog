@@ -1,4 +1,6 @@
 <script setup>
+
+import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
 import { ref, onMounted, computed, reactive, onBeforeUnmount } from "vue";
@@ -9,28 +11,24 @@ import MenuButton from "@/content/MenuButton.vue";
 
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 交互信息的按钮功能 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
-const copyText = async (textToCopy) => {
-  try {
-    await navigator.clipboard.writeText(textToCopy);
-    ElMessage({
-      message: "复制成功",
-      type: "success",
-    });
-    console.log("");
-  } catch (err) {
-    ElMessage.error("复制失败");
-  }
-};
+const deviceInfoStore = useDeviceInfo();
+const userInfoStore = useUserInfo();
 
-// // // // // // // // // // ↑ 交互信息的按钮功能 ↑ // // // // // // // // // //
+const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoStore);
+
+// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
+
+
 
 // // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
+
 const messageMarginBottom = ref(12);
+
 // // // // // // // // // // ↑ 关于CSS布局的常量 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 文字按钮的出现与隐藏 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 消息下方的按钮 ↓ // // // // // // // // // //
 
 // 显示按钮
 function show_button(event) {
@@ -62,15 +60,23 @@ function hiddenText(text_id) {
   chatHistory.value.data[text_id].isHidden = true;
 }
 
-// // // // // // // // // // ↑ 文字按钮的出现与隐藏 ↑ // // // // // // // // // //
+// 复制文本
+const copyText = async (textToCopy) => {
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    ElMessage({
+      message: "复制成功",
+      type: "success",
+    });
+    console.log("");
+  } catch (err) {
+    ElMessage.error("复制失败");
+  }
+};
 
-// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
+// // // // // // // // // // ↑ 消息下方的按钮 ↑ // // // // // // // // // //
 
-const deviceInfoStore = useDeviceInfo();
 
-const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoStore);
-
-// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
 // 切换主题颜色
 function changeTheme(theme) {
@@ -95,6 +101,7 @@ const botSetting = reactive({
   answerExample: false, // 是否给出回答示例
   collectWord: false, // 是否自动收集重难点单词
   hiddenWord: false, // 是否自动收集重难点单词
+  autoAudio: false, // 是否自动收集重难点单词
 });
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
@@ -157,9 +164,6 @@ function resetChatAreaHeight() {
 }
 
 function resetChatAreaWidth() {
-  console.log("chatAreaRef.value.offsetWidth ", chatAreaRef.value.offsetWidth);
-  console.log("chatAreaRef.value.clientWidth ", chatAreaRef.value.clientWidth);
-  console.log("chatAreaRef.value.scrollWidth ", chatAreaRef.value.scrollWidth);
 
   // 确定输入区域的宽度
   inputAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
@@ -271,7 +275,8 @@ const chatHistory = ref({
         <div class="content">
           <div class="bottom_item">
             <span class="icon-user iconfont"></span>
-            <span>个人中心</span>
+            <span v-if="userInfoStore.isLogin">个人中心</span>
+            <span v-if="!userInfoStore.isLogin" @click="deviceInfoStore.isShowLoginDialog = true">登录账号</span>
           </div>
 
           <div class="bottom_item">
@@ -315,7 +320,7 @@ const chatHistory = ref({
         <div class="title_area" ref="titleAreaRef">
           <div class="right_icon" v-if="!isEnglishWebShowLeft">
             <span>
-              <MenuButton :iconSize="30" :navs="navs"></MenuButton>
+              <MenuButton :iconSize="30" ></MenuButton>
             </span>
           </div>
 

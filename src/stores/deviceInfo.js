@@ -59,6 +59,17 @@ const useDeviceInfo = defineStore('deviceInfo', {
             return `${state.userScreenWidth}px`
         },
 
+        // 页面弹窗宽度，当屏幕宽度小于500时占据全部宽度，最大500
+        dialogWidth(state){
+            if (state.userScreenWidth<500){
+                console.log(`${state.userScreenWidth}px`)
+                return state.userScreenWidth
+            }else{
+                console.log('500px')
+                return 500
+            }
+        },
+
         isEnglishButtonSmall(state) {
             return state.userScreenWidth <= 500;
         },

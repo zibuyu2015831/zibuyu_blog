@@ -37,7 +37,11 @@ function login_now() {
 </script>
 
 <template>
-  <el-dialog v-model="deviceInfoStore.isShowRegisterDialog" width="500" :lock-scroll="false">
+  <el-dialog
+    v-model="deviceInfoStore.isShowRegisterDialog"
+    :width="deviceInfoStore.dialogWidth"
+    :lock-scroll="false"
+  >
     <el-form
       :label-position="'top'"
       label-width="auto"
