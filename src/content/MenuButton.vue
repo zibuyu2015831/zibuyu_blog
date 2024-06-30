@@ -24,7 +24,7 @@ const props = defineProps({
 
   size: {
     type: String,
-    default: "50%",
+    default: "60%",
   },
 
   iconSize: {
@@ -34,7 +34,7 @@ const props = defineProps({
 
   direction: {
     type: String,
-    default: "ttb",
+    default: "ltr",
   },
 });
 
@@ -123,6 +123,17 @@ const drawer = ref(false);
             <span>浅色主题</span>
           </div>
         </div>
+
+        <div>
+          <el-divider />
+
+          <div >
+            <div class="intro">
+              这是一个公益项目，没有收费；但出于运行压力的考虑，有聊天次数限制；有建议可以在 <span style="color: rgb(226, 144, 144);">【打赏】</span> 界面里留言~
+            </div>
+            <div class="author">(子不语)</div>
+          </div>
+        </div>
       </div>
     </template>
   </el-drawer>
@@ -131,11 +142,32 @@ const drawer = ref(false);
 <style scoped>
 /* ↓ 菜单项目样式 ↓ */
 
+.nav{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.intro{
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.author{
+  font-size: 12px;
+  line-height: 24px;
+  margin-top: 5px;
+}
+
+
 .menu {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
+
 
 .menu_item {
   width: 50vw;

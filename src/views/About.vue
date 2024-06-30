@@ -99,6 +99,12 @@ const nav = [
 const handleReward= ()=>{
   deviceInfoStore.isShowReawrdDialog=true
 }
+
+const options  = ref([
+  '口语陪练',
+  '作文批改',
+  '百科问答',
+])
 </script>
 
 <template>
@@ -109,15 +115,14 @@ const handleReward= ()=>{
   <h2 class="box">about界面</h2>
 
 
-  <div @click="handleReward">打赏界面</div>
-  <div @click="deviceInfoStore.isShowLoginDialog=true">登陆界面</div>
-  <div @click="deviceInfoStore.isShowRegisterDialog=true">注册界面</div>
+  <div>
 
 
 
-  <MenuButton :iconSize="35"></MenuButton>
-
-
+  </div>
+<br>
+<br>
+<br>
   <div>
     <div class="typewriter">
       <span>{{ displayText }}</span
@@ -130,10 +135,24 @@ const handleReward= ()=>{
 
 <style scoped>
 /* ↓ 代码块 ↓ */
-
-.example {
-  color: red;
+.title_select{
+  background-color: red;
+  border-radius: 15px;
 }
+
+.el-select__selection{
+  background-color: red;
+}
+
+ .dropdown {
+  cursor: pointer;
+  color: black;
+  display: flex;
+  align-items: center;
+}
+
+
+
 
 .box {
   height: 100px;

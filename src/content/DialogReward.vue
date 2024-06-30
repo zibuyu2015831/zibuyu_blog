@@ -36,6 +36,7 @@ function submitUserRewardMessage() {
     title="谢谢您的喜欢~"
     :width="deviceInfoStore.dialogWidth"  
     :lock-scroll="false"
+    :center="true"
   >
     <div class="card_item">
       <div class="block">

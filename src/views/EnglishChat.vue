@@ -1,5 +1,4 @@
 <script setup>
-
 import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
@@ -19,8 +18,6 @@ const userInfoStore = useUserInfo();
 const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-
-
 
 // // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
 
@@ -75,8 +72,6 @@ const copyText = async (textToCopy) => {
 };
 
 // // // // // // // // // // ↑ 消息下方的按钮 ↑ // // // // // // // // // //
-
-
 
 // 切换主题颜色
 function changeTheme(theme) {
@@ -164,7 +159,6 @@ function resetChatAreaHeight() {
 }
 
 function resetChatAreaWidth() {
-
   // 确定输入区域的宽度
   inputAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
 
@@ -254,6 +248,14 @@ const chatHistory = ref({
 });
 
 // // // // // // // // // // ↑ 聊天记录获取 ↑ // // // // // // // // // //
+
+const CurrentConmand = ref("口语陪练");
+
+const functionCommand = ref(["口语陪练", "作文批改", "百科问答"]);
+
+const changeCommand = (command) => {
+  CurrentConmand.value = command;
+};
 </script>
 
 <template>
@@ -262,12 +264,20 @@ const chatHistory = ref({
       <div class="top"><span class="text">思维兵工厂</span></div>
 
       <div class="middle">
-        <div class="content">
-          <div class="split_line"></div>
+        <div class="split_line"></div>
 
-          <div class="function_item">口语陪练</div>
-          <div class="function_item">作文批改</div>
-          <div class="function_item">百科问答</div>
+        <div class="content">
+          <div
+            class="function_item"
+            :class="{
+              function_item_active: command === CurrentConmand,
+              function_item_unactive: command !== CurrentConmand,
+            }"
+            v-for="command in functionCommand"
+            @click="changeCommand(command)"
+          >
+            {{ command }}
+          </div>
         </div>
       </div>
 
@@ -276,7 +286,11 @@ const chatHistory = ref({
           <div class="bottom_item">
             <span class="icon-user iconfont"></span>
             <span v-if="userInfoStore.isLogin">个人中心</span>
-            <span v-if="!userInfoStore.isLogin" @click="deviceInfoStore.isShowLoginDialog = true">登录账号</span>
+            <span
+              v-if="!userInfoStore.isLogin"
+              @click="deviceInfoStore.isShowLoginDialog = true"
+              >登录账号</span
+            >
           </div>
 
           <div class="bottom_item">
@@ -320,12 +334,35 @@ const chatHistory = ref({
         <div class="title_area" ref="titleAreaRef">
           <div class="right_icon" v-if="!isEnglishWebShowLeft">
             <span>
-              <MenuButton :iconSize="30" ></MenuButton>
+              <MenuButton :iconSize="30"></MenuButton>
             </span>
           </div>
 
           <div class="title" ref="chatTitleRef">
-            <span>我是标题</span>
+            <span class="center_title" v-if="isEnglishWebShowLeft">
+              <span>{{ CurrentConmand }}</span>
+            </span>
+
+            <el-dropdown v-if="!isEnglishWebShowLeft">
+              <span>
+                <span class="dropdown_title">{{ CurrentConmand }}</span>
+                <span class="iconfont icon-down_b title_drawdown_icon"></span>
+              </span>
+
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    :disabled="command === CurrentConmand"
+                    v-for="command in functionCommand"
+                    @click="changeCommand(command)"
+                    trigger="click"
+                    divided
+                  >
+                    <span class="dropdown_title_item">{{ command }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </div>
 
@@ -687,9 +724,10 @@ const chatHistory = ref({
 .left .middle .content {
   display: inline-block;
   width: 100%;
+  overflow-y: auto;
 }
 
-.left .middle .content .split_line {
+.middle .split_line {
   display: inline-block;
   width: 90%;
   border-bottom: 1px solid var(--english_left_spilit_line);
@@ -702,7 +740,15 @@ const chatHistory = ref({
   line-height: 50px;
   margin: 12px 10px;
   border-radius: 10px;
-  background-color: var(--english_left_funtion_item);
+}
+
+.function_item_active {
+  border: 3px solid var(--english_left_funtion_item_hover);
+  background-color: var(--english_left_funtion_item_active);
+}
+
+.function_item_unactive {
+  background-color: var(--english_left_funtion_item_unactive);
 }
 
 .left .middle .content .function_item:hover {
@@ -776,18 +822,42 @@ const chatHistory = ref({
   color: var(--english_top_menu_icon);
 }
 
+.center_title {
+  border-radius: 15px;
+  padding: 10px 20px;
+}
+
+.center_title_activate {
+  background-color: var(--english_right_title_activate);
+}
+
 .chat_area .title_area .title {
   font-size: 22px;
   height: calc(v-bind(titleHeight) * 1px);
   vertical-align: bottom;
   text-align: center;
   display: inline-block;
-
   width: 85%;
 }
 
 .chat_area .title_area .title span {
   line-height: calc(v-bind(titleHeight) * 1px);
+}
+
+.title_drawdown_icon {
+  margin-left: 8px;
+  font-size: 20px;
+}
+
+.dropdown_title {
+  font-size: 22px;
+  height: calc(v-bind(titleHeight) * 1px);
+}
+
+.dropdown_title_item {
+  padding: 5px;
+  border-radius: 15px;
+  font-size: 18px;
 }
 
 .chat_area .message_area {
@@ -862,7 +932,7 @@ const chatHistory = ref({
 .chat_area .input_area {
   position: fixed;
   bottom: calc(v-bind(inputBottom) * 1px);
-  z-index: 999;
+  z-index: 2;
 
   width: 40vw;
   height: 72px;

@@ -13,6 +13,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-down:before {
+  content: "\e661";
+}
+
+.icon-down1:before {
+  content: "\e697";
+}
+
+.icon-down2:before {
+  content: "\e662";
+}
+
+.icon-down3:before {
+  content: "\e665";
+}
+
+.icon-down4:before {
+  content: "\e851";
+}
+
+.icon-down_b:before {
+  content: "\e698";
+}
+
+.icon-down5:before {
+  content: "\e666";
+}
+
+.icon-down6:before {
+  content: "\e667";
+}
+
+.icon-Down:before {
+  content: "\e668";
+}
+
 .icon-a-Cloudydayshot:before {
   content: "\e91a";
 }
