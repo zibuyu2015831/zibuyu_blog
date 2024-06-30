@@ -4,7 +4,7 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
 import { ref, onMounted, createApp, h } from "vue";
 
-import MenuButton from "@/content/MenuButton.vue";
+import EnglishSpokenCoach from "@/components/EnglishSpokenCoach.vue";
 
 const deviceInfoStore = useDeviceInfo();
 const {
@@ -115,11 +115,6 @@ const options  = ref([
   <h2 class="box">about界面</h2>
 
 
-  <div>
-
-
-
-  </div>
 <br>
 <br>
 <br>

@@ -18,7 +18,7 @@ const { homeImageHeight } = storeToRefs(deviceInfo); // 读取状态
 
 // // // // // // // // // // ↓ 首页标语-打字机效果 ↓ // // // // // // // // // //
 
-const header_slogen = "你好，欢迎来到我的博客";
+const header_slogen = "自然选择号，前进四！！！";
 const displayText = ref("");
 const typingIndex = ref(0);
 const isTyping = ref(true); // 用于控制光标闪烁
@@ -40,7 +40,7 @@ const typeText = () => {
       typingIndex.value = 0;
       isTyping.value = false;
       typeText();
-    }, 3000); // 全部文本显示完后的停留时间（毫秒）
+    }, 5000); // 全部文本显示完后的停留时间（毫秒）
   }
 };
 
