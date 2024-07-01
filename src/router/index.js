@@ -29,9 +29,9 @@ const router = createRouter({
       component: () => import('@/views/Article.vue')
     },
     {
-      path: '/english_chat',
-      name: 'english_chat',
-      component: () => import('@/views/EnglishChat.vue')
+      path: '/ai_english',
+      name: 'ai_english',
+      component: () => import('@/views/AiEnglish.vue')
     },
     {
       path: '/web_site',

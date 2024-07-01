@@ -1,11 +1,9 @@
 <script setup>
 import { ref, reactive } from "vue";
-import { ElMessage } from "element-plus";
 
-import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
 
-const userInfoStore = useUserInfo();
+
 const deviceInfoStore = useDeviceInfo();
 
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //

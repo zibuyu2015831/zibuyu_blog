@@ -1,14 +1,12 @@
-
-
 html.dark {
   /* 自定义深色背景颜色 */
---door:#514c4c;
+  --door: #514c4c;
 
-  --header_background:#514c4c;
-  --header_font:#d0e3d3;
-  --header_slogen_font:#e2b2c0;
+  --header_background: #514c4c;
+  --header_font: #d0e3d3;
+  --header_slogen_font: #e2b2c0;
 
-  --home_background:#0B161C;
+  --home_background: #0B161C;
 
   --footer_background: #514c4c;
 
@@ -16,48 +14,38 @@ html.dark {
   --news_deactivate_background: var(--news_activate_background);
   --news_content: #a93920;
 
-  --small_screen_menu_bg:var(--header_background);
-  --small_screen_menu_font:#86a7e5;
-  --small_screen_menu_font_activate:#8b081c;
-  
+  --small_screen_menu_bg: var(--header_background);
+  --small_screen_menu_font: #86a7e5;
+  --small_screen_menu_font_activate: #8b081c;
 
-  --markdown_article_title:white;
-  --markdown_article_body_deactivated:#0B161C;
-  --markdown_article_body_activated:#192c35;
+  --markdown_article_title: white;
+  --markdown_article_body_deactivated: #0B161C;
+  --markdown_article_body_activated: #192c35;
 
-  --english_page_bg:#212121;
-  --english_left_bg:#171717;
-  --english_left_spilit_line:rgba(255, 255, 255,0.3);
-  --english_left_funtion_item:#3C3C3C;
+  --english_page_bg: #212121;
+  --english_left_bg: #171717;
+  --english_left_spilit_line: rgba(255, 255, 255, 0.3);
+  --english_left_funtion_item_active: #40406a;
+  --english_left_funtion_item_unactive: #3C3C3C;
+  --english_left_funtion_item_hover: #0A7AFF;
+  --english_right_bg: #212121;
+  --english_right_title_activate: #484545;
+  --english_reacte_content_ai_bg: #282828;
+  --english_reacte_content_user_bg: #053A7A;
+  --english_input_area_bg: #262626;
+  --english_input_area_border: #38383A;
+  --english_input_area_border_focus: #0A7AFF;
+  --english_input_area_tip: #4D4D4D;
+  --english_scrollbar_bg: var(--english_right_bg);
+  --english_scrollbar: #3C3C3C;
+  --english_top_menu_icon: #FFFFFF;
+  --english_audio_icon: rgb(154, 200, 214);
+  --english_left_menu_fold_icon: rgb(30, 183, 230);
+  --english_left_menu_split_line: white;
 
-  --english_left_funtion_item_active:#40406a;
-  --english_left_funtion_item_unactive:#3C3C3C;
+  --menu_button_activate_bg: #6f4848;
 
-  --english_left_funtion_item_hover:#0A7AFF;
-  --english_right_bg:#212121;
-  
-  --english_right_title_activate:#484545;
-
-  --english_reacte_content_ai_bg:#282828;
-  --english_reacte_content_user_bg:#053A7A;
-  --english_input_area_bg:#262626;
-  --english_input_area_border:#38383A;
-  --english_input_area_border_focus:#0A7AFF;
-  --english_input_area_tip:#4D4D4D;
-  --english_scrollbar_bg:var(--english_right_bg);
-  --english_scrollbar:#3C3C3C;
-  --english_top_menu_icon:#FFFFFF;
-  --english_audio_icon:rgb(154, 200, 214);
-  --menu_button_activate_bg:#6f4848;
-
-  
-  --menu_button_activate_bg:#989cea;
-
-
-
-
-
-  --watermarkColor:white;
+  --watermarkColor: white;
   --el-bg-color: rgb(44, 37, 39);
 
 

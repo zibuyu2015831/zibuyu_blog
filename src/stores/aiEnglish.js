@@ -5,18 +5,18 @@ import { ref } from 'vue'
 
 
 // defineStore第一个参数为name，也称为id，是必传参数。唯一标识Store
-const useEnglishChat = defineStore('englishChat', {
+const useAiEnglish = defineStore('aiEnglish', {
     state: () => ({
-        currentConmand: ref('口语陪练'),
+        currentConmand: ref('口语助手'),
         commands:ref({
 
-          "口语陪练":{
+          "口语助手":{
             'url':'/english_coach'
           },
-          "作文批改":{
+          "记忆助手":{
             'url':'/article_checker'
           },
-          "百科问答":{
+          "通用助手":{
             'url':'/know_everything'
           },
           
@@ -29,4 +29,4 @@ const useEnglishChat = defineStore('englishChat', {
 
 })
 
-export default useEnglishChat
+export default useAiEnglish

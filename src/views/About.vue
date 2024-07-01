@@ -4,7 +4,7 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import { storeToRefs } from "pinia";
 import { ref, onMounted, createApp, h } from "vue";
 
-import EnglishSpokenCoach from "@/components/EnglishSpokenCoach.vue";
+import InputBar from "@/content/InputBar.vue";
 
 const deviceInfoStore = useDeviceInfo();
 const {
@@ -105,6 +105,10 @@ const options  = ref([
   '作文批改',
   '百科问答',
 ])
+
+const handler = (content)=>{
+  console.log('用户输入的是：',content)
+}
 </script>
 
 <template>
@@ -114,6 +118,10 @@ const options  = ref([
 
   <h2 class="box">about界面</h2>
 
+  <div >
+    <InputBar :handle-submit="handler">  </InputBar>
+
+  </div>
 
 <br>
 <br>

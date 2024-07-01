@@ -62,7 +62,7 @@ const handleCommand = (command) => {
         <el-text type="danger" size="large" tag="b">关于</el-text>
       </router-link>
 
-      <router-link to="/english_chat">
+      <router-link to="/ai_english">
         <el-text type="danger" size="large" tag="b">英语自习室</el-text>
       </router-link>
 

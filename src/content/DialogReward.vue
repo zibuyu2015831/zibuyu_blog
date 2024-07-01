@@ -1,5 +1,6 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
+
 // 执行函数，拿到Store
 const deviceInfoStore = useDeviceInfo();
 

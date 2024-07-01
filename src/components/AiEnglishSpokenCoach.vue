@@ -1,28 +1,34 @@
 <script setup>
-import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
-import useEnglishChat from "@/stores/englishChat";
+import useAiEnglish from "@/stores/aiEnglish";
 
 import { storeToRefs } from "pinia";
-import { ref, onMounted, computed, reactive, onBeforeUnmount } from "vue";
+import { ref, computed, reactive } from "vue";
 import { ElMessage } from "element-plus";
 
+import InputBar from "@/content/InputBar.vue";
 import MenuButton from "@/content/MenuButton.vue";
+
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
-const englishChatStore = useEnglishChat();
+
+const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
 
-const { isEnglishWebShowLeft, isEnglishButtonSmall } = storeToRefs(deviceInfoStore);
+const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
 
 const messageMarginBottom = ref(12);
+
+const titleHeight = computed(() => {
+  return 55;
+});
 
 // // // // // // // // // // ↑ 关于CSS布局的常量 ↑ // // // // // // // // // //
 
@@ -66,7 +72,6 @@ const copyText = async (textToCopy) => {
       message: "复制成功",
       type: "success",
     });
-    console.log("");
   } catch (err) {
     ElMessage.error("复制失败");
   }
@@ -96,111 +101,6 @@ const botSetting = reactive({
 });
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 响应式布局 ↓ // // // // // // // // // //
-
-const inputBottom = 25; // 输入区域距离底部的位置（单位px）
-
-const titleHeight = computed(() => {
-  return 55;
-});
-
-const chatAreaRef = ref(null); // 聊天区域
-
-const titleAreaRef = ref(null); // 标题行区域
-const messageAreaRef = ref(null); // 消息栏区域
-const inputAreaRef = ref(null); // 输入区域区域
-
-const textareaRef = ref(null); // 文本输入框区域
-const chatTitleRef = ref(null); // 标题行
-
-// 文本输入框自动调整行数
-const handlerHeight = () => {
-  if (textareaRef.value) {
-    // Reset height to auto to get the correct scroll height
-    textareaRef.value.style.height = "auto";
-    let height = textareaRef.value.scrollHeight;
-
-    // Set max height
-    if (height > 100) {
-      height = 100;
-    }
-    textareaRef.value.style.height = `${height}px`;
-
-    inputAreaRef.value.style.height = `${height + 20}px`;
-
-    resetChatAreaSize();
-  }
-};
-
-function resetChatAreaSize() {
-  resetChatAreaHeight();
-  resetChatAreaWidth();
-}
-
-function resetChatAreaHeight() {
-  if (inputAreaRef.value && titleAreaRef.value) {
-    let inputHeight = inputAreaRef.value.offsetHeight;
-
-    const height =
-      deviceInfoStore.userScreenHeight -
-      inputHeight -
-      titleHeight.value -
-      inputBottom -
-      30;
-
-    // 确定中间聊天框的高度
-    messageAreaRef.value.style.height = `${height}px`;
-  }
-}
-
-function resetChatAreaWidth() {
-  // 确定输入区域的宽度
-  inputAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
-
-  // 确定标题区域的宽度
-  titleAreaRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
-
-  // 确定标题区域中，标题部分的宽度
-  if (isEnglishWebShowLeft.value) {
-    chatTitleRef.value.style.width = `${chatAreaRef.value.offsetWidth}px`;
-  } else {
-    chatTitleRef.value.style.width = `${chatAreaRef.value.offsetWidth - 45}px`;
-  }
-}
-
-onMounted(() => {
-  resetChatAreaSize();
-});
-
-const buttonSize = computed(() => {
-  return isEnglishButtonSmall.value ? "default" : "large";
-});
-
-// 挂载组件时添加屏幕尺寸变化监听函数
-onMounted(() => {
-  window.addEventListener("resize", resetChatAreaSize, { passive: true });
-});
-
-// 卸载组件时移除屏幕尺寸变化监听函数
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", resetChatAreaSize, { passive: true });
-});
-
-// 边框颜色
-const borderColor = ref("#333ce1");
-
-// 聚焦时加重边框颜色
-function heavierBorder() {
-  borderColor.value = "#333ce1";
-}
-
-// 失去聚焦时减轻边框颜色
-function lighterBorder() {
-  borderColor.value = "#989cea";
-}
-
-// // // // // // // // // // ↑ 响应式布局 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 聊天记录获取 ↓ // // // // // // // // // //
 
@@ -240,41 +140,80 @@ const chatHistory = ref({
       role: "user",
       isHidden: false,
     },
+    7: {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    8: {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    9: {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    10: {
+      content:
+        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    11: {
+      content:
+        "ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容ai发送的内容",
+      role: "ai",
+      isHidden: true,
+    },
+    12: {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
   },
 });
 
 // // // // // // // // // // ↑ 聊天记录获取 ↑ // // // // // // // // // //
 
+// 切换功能菜单
 const changeCommand = (command) => {
-  englishChatStore.currentConmand = command;
+  aiEnglishStore.currentConmand = command;
+};
+
+// 处理用户输入
+const handleInput = (content) => {
+  resetChatAreaSize();
+  console.log("用户输入的是：", content);
 };
 </script>
 
 <template>
-  <div class="chat_area" ref="chatAreaRef">
-    <div class="title_area" ref="titleAreaRef">
+  <div class="chat_area">
+    <div class="title_area">
       <div class="right_icon" v-if="!isEnglishWebShowLeft">
         <span>
           <MenuButton :iconSize="30"></MenuButton>
         </span>
       </div>
 
-      <div class="title" ref="chatTitleRef">
+      <div class="title">
         <span class="center_title" v-if="isEnglishWebShowLeft">
-          <span>{{ englishChatStore.currentConmand }}</span>
+          <span>{{ aiEnglishStore.currentConmand }}</span>
         </span>
 
         <el-dropdown v-if="!isEnglishWebShowLeft">
           <span>
-            <span class="dropdown_title">{{ englishChatStore.currentConmand }}</span>
+            <span class="dropdown_title">{{ aiEnglishStore.currentConmand }}</span>
             <span class="iconfont icon-down_b title_drawdown_icon"></span>
           </span>
 
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item
-                :disabled="key === englishChatStore.currentConmand"
-                v-for="(value, key) in englishChatStore.commands"
+                :disabled="key === aiEnglishStore.currentConmand"
+                v-for="(value, key) in aiEnglishStore.commands"
                 @click="changeCommand(key)"
                 trigger="click"
                 divided
@@ -287,7 +226,7 @@ const changeCommand = (command) => {
       </div>
     </div>
 
-    <div class="message_area" ref="messageAreaRef">
+    <div class="message_area">
       <div
         class="message_parent clear-fix"
         v-for="(item, index) in chatHistory.data"
@@ -345,10 +284,7 @@ const changeCommand = (command) => {
               content="遮盖"
               placement="bottom-start"
             >
-              <span
-                @click="hiddenText(index)"
-                class="icon-a-juxing2221 iconfont"
-              ></span>
+              <span @click="hiddenText(index)" class="icon-a-juxing2221 iconfont"></span>
             </el-tooltip>
 
             <el-tooltip
@@ -408,22 +344,9 @@ const changeCommand = (command) => {
       </div>
     </div>
 
-    <div class="input_area" ref="inputAreaRef">
-      <form action="" class="input_form">
-        <textarea
-          rows="1"
-          ref="textareaRef"
-          @input="handlerHeight"
-          placeholder="请输入问题"
-          autofocus
-          @focus="heavierBorder"
-          @blur="lighterBorder"
-        ></textarea>
-        <span class="iconfont icon-voice audio"></span>
-        <el-button type="success" round class="submit_buttom" :size="buttonSize"
-          >发 送</el-button
-        >
-      </form>
+    <div class="input_area">
+      <InputBar :handle-submit="handleInput"> </InputBar>
+
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
     </div>
 
@@ -574,13 +497,19 @@ const changeCommand = (command) => {
   height: 100%;
   max-width: 900px;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat_area .title_area {
   height: calc(v-bind(titleHeight) * 1px);
-  position: fixed;
-  top: 0;
+
   z-index: 999;
+
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  display: flex;
 }
 
 .chat_area .title_area .right_icon {
@@ -589,8 +518,9 @@ const changeCommand = (command) => {
 
   display: inline-block;
   height: calc(v-bind(titleHeight) * 1px);
-  width: 45px;
-  color: black;
+
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .chat_area .title_area .right_icon span {
@@ -606,17 +536,14 @@ const changeCommand = (command) => {
   padding: 10px 20px;
 }
 
-.center_title_activate {
-  background-color: var(--english_right_title_activate);
-}
-
 .chat_area .title_area .title {
   font-size: 22px;
   height: calc(v-bind(titleHeight) * 1px);
   vertical-align: bottom;
   text-align: center;
   display: inline-block;
-  width: 85%;
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 .chat_area .title_area .title span {
@@ -640,11 +567,11 @@ const changeCommand = (command) => {
 }
 
 .chat_area .message_area {
-  position: relative;
-  top: calc(v-bind(titleHeight) * 1px);
-
   overflow-y: auto; /* 根据内容溢出自动显示滚动条 */
   margin: 0;
+
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 .react_content_ai {
@@ -709,13 +636,14 @@ const changeCommand = (command) => {
 }
 
 .chat_area .input_area {
-  position: fixed;
-  bottom: calc(v-bind(inputBottom) * 1px);
   z-index: 2;
+  padding-top: 15px;
+  width: 100%;
 
-  width: 40vw;
-  height: 72px;
   text-align: center;
+
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .react_content_button span {
@@ -743,50 +671,6 @@ const changeCommand = (command) => {
   padding: 0;
   line-height: 20px;
   margin-top: 5px;
-}
-
-.chat_area .input_area .input_form {
-  text-align: center;
-
-  position: relative;
-  margin: 0 auto;
-  width: 90%;
-
-  display: flex;
-  justify-content: center;
-  border-radius: 25px;
-  background-color: var(--english_input_area_bg);
-  border: 2px solid v-bind(borderColor);
-}
-
-/* 重置表单元素的默认样式 */
-.chat_area .input_area .input_form textarea {
-  margin: 0;
-  padding: 12px 15px;
-  background: none;
-  outline: none;
-  font-family: inherit;
-  font-size: inherit;
-  border: none;
-  line-height: 28px;
-  min-width: 52px;
-  font-size: clamp(16px, 2vh, 22px);
-  width: 85%;
-  resize: none;
-  vertical-align: bottom;
-  display: inline-block;
-}
-
-.chat_area .input_area .input_form .submit_buttom {
-  margin: auto 10px;
-  vertical-align: bottom;
-}
-.chat_area .input_area .input_form .audio {
-  vertical-align: bottom;
-  cursor: pointer;
-  font-size: 28px;
-  margin: auto;
-  color: var(--english_audio_icon);
 }
 
 /* ↑ 右侧布局 ↑ */

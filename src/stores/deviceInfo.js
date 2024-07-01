@@ -25,6 +25,10 @@ const useDeviceInfo = defineStore('deviceInfo', {
         userScreenHeight: ref(0), // 屏幕视口高度
         scrollTop: ref(0),  // 屏幕向下滚动数
 
+        isEnglishFoldMenu: ref(false), // AI英语界面是否折叠左侧菜单
+        englishInputAreaHeight: ref(0), 
+        
+
         // elementPlus的弹出框必须挂载在全局
 
         //打赏弹出框
@@ -74,6 +78,7 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
         // 当用户向下滑动时，阅读界面的右侧板块固定在视口
         isEnglishWebShowLeft(state) {
+            console.log('屏幕宽度:', state.userScreenWidth)
             return state.userScreenWidth > 900;
         },
 

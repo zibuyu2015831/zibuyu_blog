@@ -1,5 +1,4 @@
 <script setup>
-import { defineProps } from "vue";
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 const props = defineProps({

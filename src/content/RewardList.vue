@@ -1,5 +1,4 @@
 <script setup>
-import {defineProps} from 'vue'
 import useDeviceInfo from "@/stores/deviceInfo.js";
 
 // 读取状态

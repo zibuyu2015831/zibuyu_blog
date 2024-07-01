@@ -1,25 +1,26 @@
 <script setup>
 import { ref } from "vue";
 
-import useEnglishChat from "@/stores/englishChat";
+import useAiEnglish from "@/stores/aiEnglish";
 import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
+
 import { storeToRefs } from "pinia";
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
-
+const foldMenuWidth = 40;
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
-const englishChatStore = useEnglishChat();
+const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
 const userInfoStore = useUserInfo();
 
 const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-  
+
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
 // 切换主题颜色
@@ -27,34 +28,31 @@ function changeTheme(theme) {
   deviceInfoStore.theme = theme;
 }
 
+// 切换菜单命令
 const changeCommand = (command) => {
-  console.log(command)
-  englishChatStore.currentConmand = command;
+  aiEnglishStore.currentConmand = command;
 };
 
 // // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
-  
 </script>
 
 <template>
-  <div class="left" v-if="isEnglishWebShowLeft">
-    <div class="top"><span class="text">思维兵工厂</span></div>
+  <div class="unFold" v-if="!deviceInfoStore.isEnglishFoldMenu">
+    <div class="top">
+      <span class="text">思维兵工厂</span>
+    </div>
 
     <div class="middle">
-      <div class="split_line"></div>
-
-      <div class="content">
-        <div
-          class="function_item"
-          :class="{
-            function_item_active: key === englishChatStore.currentConmand,
-            function_item_unactive: key !== englishChatStore.currentConmand,
-          }"
-          v-for="value,key in englishChatStore.commands"
-          @click="changeCommand(key)"
-        >
-          {{ key }}
-        </div>
+      <div
+        class="function_item"
+        :class="{
+          function_item_active: key === aiEnglishStore.currentConmand,
+          function_item_unactive: key !== aiEnglishStore.currentConmand,
+        }"
+        v-for="(value, key) in aiEnglishStore.commands"
+        @click="changeCommand(key)"
+      >
+        {{ key }}
       </div>
     </div>
 
@@ -103,34 +101,84 @@ const changeCommand = (command) => {
           <span>浅色主题</span>
         </div>
       </div>
+      <div class="bottom_icon">
+        <span
+          class="iconfont icon-jiantou"
+          @click="deviceInfoStore.isEnglishFoldMenu = true"
+        ></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="Fold" v-if="deviceInfoStore.isEnglishFoldMenu">
+    <div class="fole_bottom_icon">
+      <span
+        class="iconfont icon-jiantou"
+        @click="deviceInfoStore.isEnglishFoldMenu = false"
+      ></span>
     </div>
   </div>
 </template>
 
 <style scoped>
-  
-/* ↓ 代码块 ↓ */ 
+/* ↓ 整体布局 ↓ */
 
-.left {
+.Fold {
+  width: calc(v-bind(foldMenuWidth) * 1px);
+  height: 100%;
+  background-color: var(--english_left_bg);
+  position: relative;
+}
+
+.Fold .fole_bottom_icon {
+  position: absolute;
+  bottom: 20px;
+  left: calc(v-bind(foldMenuWidth/6) * 1px);
+  transform: rotate(180deg);
+  cursor: pointer;
+}
+
+.fole_bottom_icon spam {
+  margin: 0 auto;
+}
+
+.fole_bottom_icon span:hover {
+  color: var(--english_left_menu_fold_icon);
+}
+
+.unFold {
   width: 280px;
   height: 100%;
   background-color: var(--english_left_bg);
   display: flex;
   flex-direction: column;
-  vertical-align: top;
 }
 
-.left .top {
+/* ↑ 整体布局 ↑ */
+
+/* ↓ 顶部样式 ↓ */
+
+.top {
   width: 100%;
   height: 6vh;
-  min-height: calc(v-bind(titleHeight) * 1px);
+  min-height: 60px;
   font-size: clamp(28px, 3vh, 38px);
   text-align: center;
   margin-top: 12px;
   filter: contrast(30);
+  position: relative;
 }
 
-.left .top .text {
+.unFold .top::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 7%;
+  width: 80%;
+  border-bottom: 1px solid var(--english_left_menu_split_line);
+}
+
+.top .text {
   line-height: 6vh;
   animation: showup 3s forwards;
 }
@@ -147,39 +195,30 @@ const changeCommand = (command) => {
   }
 }
 
-.left .top span {
-  line-height: calc(v-bind(titleHeight) * 1px);
-}
+/* ↑ 顶部样式 ↑ */
 
-.left .middle {
+/* ↓ 中间样式 ↓ */
+
+.middle {
   width: 100%;
   height: 72vh;
-  text-align: center;
-}
 
-.left .middle .content {
+  text-align: center;
   display: inline-block;
-  width: 100%;
   overflow-y: auto;
 }
 
-.middle .split_line {
-  display: inline-block;
-  width: 90%;
-  border-bottom: 1px solid var(--english_left_spilit_line);
-}
-
-.left .middle .content .function_item {
+.middle .function_item {
   font-size: 22px;
   width: 90%;
   height: 50px;
   line-height: 50px;
-  margin: 12px 10px;
+  margin: 16px 10px;
   border-radius: 10px;
 }
 
 .function_item_active {
-  border: 3px solid var(--english_left_funtion_item_hover);
+  outline: 3px solid var(--english_left_funtion_item_hover);
   background-color: var(--english_left_funtion_item_active);
 }
 
@@ -187,35 +226,54 @@ const changeCommand = (command) => {
   background-color: var(--english_left_funtion_item_unactive);
 }
 
-.left .middle .content .function_item:hover {
-  border: 3px solid var(--english_left_funtion_item_hover);
+.middle .function_item:hover {
+  outline: 3px solid var(--english_left_funtion_item_hover);
 }
 
-.left .bottom {
+/* ↑ 中间样式 ↑ */
+
+/* ↓ 底部样式 ↓ */
+
+.bottom {
   width: 100%;
   height: 25vh;
   min-height: 200px;
-  bottom: 0;
+  position: relative;
 }
 
-.left .bottom .content {
+.bottom .content {
   margin-top: 20px;
   margin-left: 30px;
-  display: inline-block;
   text-align: left;
+  display: flex;
+  flex-direction: column;
 }
 
-.left .bottom .content .bottom_item {
-  margin: 18px 0;
+.bottom .content .bottom_item {
+  margin: 8px 0;
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.left .bottom .content span {
+.bottom .content span {
   margin-right: 15px;
 }
 
-/* ↑ 代码块 ↑ */
-  
+/* ↑ 底部样式 ↑ */
+
+/* ↓ 底部收展按钮 ↓ */
+
+.bottom_icon {
+  position: absolute;
+  right: 30px;
+  bottom: 20px;
+  cursor: pointer;
+}
+
+.bottom_icon span:hover {
+  color: var(--english_left_menu_fold_icon);
+}
+
+/* ↑ 底部收展按钮 ↑ */
 </style>

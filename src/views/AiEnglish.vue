@@ -3,8 +3,8 @@ import useDeviceInfo from "@/stores/deviceInfo";
 
 import { storeToRefs } from "pinia";
 
-import EnglishChatMenu from "@/components/EnglishChatMenu.vue";
-import EnglishSpokenCoach from "@/components/EnglishSpokenCoach.vue";
+import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
+import AiEnglishSpokenCoach from "@/components/AiEnglishSpokenCoach.vue";
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
@@ -22,11 +22,11 @@ const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 <template>
   <div class="page" :style="{ height: deviceInfoStore.userScreenHeight + 'px' }">
     <div class="left" v-if="isEnglishWebShowLeft">
-      <EnglishChatMenu> </EnglishChatMenu>
+      <AiEnglishLeftMenu> </AiEnglishLeftMenu>
     </div>
 
     <div class="right">
-      <EnglishSpokenCoach> </EnglishSpokenCoach>
+      <AiEnglishSpokenCoach> </AiEnglishSpokenCoach>
     </div>
   </div>
 </template>
