@@ -11,16 +11,100 @@ const useAiEnglish = defineStore('aiEnglish', {
         commands:ref({
 
           "口语助手":{
-            'url':'/english_coach'
+            'url':'/spoken_assistant'
           },
           "记忆助手":{
-            'url':'/article_checker'
+            'url':'/memory_assistant'
           },
           "通用助手":{
-            'url':'/know_everything'
+            'url':'/common_assistant'
           },
           
-        })
+        }),
+        user_messages:ref({
+          hasPrevious: true,
+
+          data: [
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content: "用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content: "用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content: "用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content:
+                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content: "用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content:
+                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            },
+            {
+              content:
+                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+              role: "user",
+              isHidden: false,
+            },
+            {
+              content: "ai发送的内容",
+              role: "assistant",
+              isHidden: false,
+            }
+          ],
+        }),
     }),
 
     getters: {

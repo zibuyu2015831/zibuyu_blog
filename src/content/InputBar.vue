@@ -14,7 +14,12 @@ const props = defineProps({
 
   buttonSize: {
     type: String,
-    defalut:'default'
+    default: "default",
+  },
+
+  canSendMessage: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -44,17 +49,14 @@ const handlerHeight = (e) => {
   textarea.style.height = "auto";
   let height = textarea.scrollHeight;
 
-
   // Set max height
   if (height > 200) {
     height = 200;
   }
 
-  deviceInfoStore.englishInputAreaHeight = height
-
+  deviceInfoStore.englishInputAreaHeight = height;
 
   textarea.style.height = `${height}px`;
-
 };
 
 // 处理键盘事件
@@ -62,7 +64,7 @@ const handleKeyDown = (e) => {
   if (e.key === "Enter" && !e.ctrlKey) {
     e.preventDefault(); // 阻止默认的换行行为
     props.handleSubmit(inputContent.value); // 提交表单
-    inputContent.value = ''
+    inputContent.value = "";
   } else if (e.key === "Enter" && e.ctrlKey) {
     // 阻止默认的换行行为
     e.preventDefault();
@@ -93,14 +95,18 @@ const handleKeyDown = (e) => {
 
     <div class="button">
       <span class="iconfont icon-voice audio_button"></span>
+      <span class="iconfont icon-tingzhi1 audio_button" v-if="!props.canSendMessage"></span>
+
       <el-button
         type="success"
         round
         class="submit_button"
         :size="isEnglishButtonSmall ? 'default' : 'large'"
         @click="handleSubmit(inputContent)"
-        >发 送</el-button
+        v-if="props.canSendMessage"
       >
+        发 送
+      </el-button>
     </div>
   </form>
 </template>

@@ -1,4 +1,5 @@
 <script setup>
+import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
 
 // 执行函数，拿到Store
@@ -16,9 +17,7 @@ function resetUserRewardMessage() {
 
 function submitUserRewardMessage() {
   deviceInfoStore.isShowReawrdDialog = false;
-  username.value = deviceInfoStore.userRewardInfo.name;
 
-  console.log(username.value);
   console.log(deviceInfoStore.userRewardInfo.note);
   console.log(deviceInfoStore.userRewardInfo.contact);
   console.log("submit!");
@@ -26,6 +25,11 @@ function submitUserRewardMessage() {
   deviceInfoStore.userRewardInfo.name = "";
   deviceInfoStore.userRewardInfo.note = "";
   deviceInfoStore.userRewardInfo.contact = "";
+
+  ElMessage({
+    message: "留言成功",
+    type: "success",
+  });
 }
 
 // // // // // // ↑ 打赏弹出框 ↑ // // // // // //
@@ -35,7 +39,7 @@ function submitUserRewardMessage() {
   <el-dialog
     v-model="deviceInfoStore.isShowReawrdDialog"
     title="谢谢您的喜欢~"
-    :width="deviceInfoStore.dialogWidth"  
+    :width="deviceInfoStore.dialogWidth"
     :lock-scroll="false"
     :center="true"
   >

@@ -1,10 +1,11 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
-
+import useAiEnglish from "@/stores/aiEnglish";
 import { storeToRefs } from "pinia";
 
 import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
 import AiEnglishSpokenCoach from "@/components/AiEnglishSpokenCoach.vue";
+import AiEnglishCommonAssistant from "@/components/AiEnglishCommonAssistant.vue";
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
@@ -13,6 +14,7 @@ import AiEnglishSpokenCoach from "@/components/AiEnglishSpokenCoach.vue";
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
 const deviceInfoStore = useDeviceInfo();
+const aiEnglishStore = useAiEnglish();
 
 const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 
@@ -26,7 +28,8 @@ const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
     </div>
 
     <div class="right">
-      <AiEnglishSpokenCoach> </AiEnglishSpokenCoach>
+      <AiEnglishSpokenCoach v-if="aiEnglishStore.currentConmand=='口语助手'"> </AiEnglishSpokenCoach>
+      <AiEnglishCommonAssistant v-if="aiEnglishStore.currentConmand=='通用助手'"> </AiEnglishCommonAssistant>
     </div>
   </div>
 </template>
@@ -42,6 +45,10 @@ const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 /* ↑ 整体布局 ↑ */
 
 /* ↓ 右侧布局 ↓ */
+
+.left{
+  flex-grow: 0;
+}
 
 .right {
   flex-grow: 1;

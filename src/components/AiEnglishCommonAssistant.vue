@@ -3,7 +3,7 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 
 import { storeToRefs } from "pinia";
-import { ref, computed, reactive, nextTick, onMounted } from "vue";
+import { ref, computed, reactive, nextTick,onMounted} from "vue";
 import { ElMessage } from "element-plus";
 
 import InputBar from "@/content/InputBar.vue";
@@ -12,17 +12,7 @@ import { Marked } from "marked";
 import hljs from "highlight.js";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
-
-// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
-
-const aiEnglishStore = useAiEnglish();
-const deviceInfoStore = useDeviceInfo();
-
-const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
-
-// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ markdown文本渲染 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
 const marked = new Marked();
 
@@ -36,7 +26,16 @@ marked.use(
   })
 );
 
-// // // // // // // // // // ↑ markdown文本渲染 ↑ // // // // // // // // // //
+// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
+
+const aiEnglishStore = useAiEnglish();
+const deviceInfoStore = useDeviceInfo();
+
+const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
+
+// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
 
@@ -73,15 +72,14 @@ function hide_button(event) {
 // 显示文本
 function showText(event, text_id) {
   if (event.target.classList.contains("hidden_text")) {
-    aiEnglishStore.user_messages.value.data[text_id].isHidden = false;
+    chatHistory.value.data[text_id].isHidden = false;
     event.target.classList.remove("hidden_text");
   }
 }
 
 // 隐藏文本
 function hiddenText(event, text_id) {
-  aiEnglishStore.user_messages.value.data[text_id].isHidden = !aiEnglishStore
-    .user_messages.value.data[text_id].isHidden;
+  chatHistory.value.data[text_id].isHidden = !chatHistory.value.data[text_id].isHidden;
 }
 
 // 复制文本
@@ -122,9 +120,94 @@ const botSetting = reactive({
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 消息交互 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 聊天记录获取 ↓ // // // // // // // // // //
 
-const canSendMessage = ref(true);
+const chatHistory = ref({
+  hasPrevious: true,
+
+  data: [
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content:
+        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content: "用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content:
+        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+    {
+      content: "ai发送的内容",
+      role: "ai",
+      isHidden: false,
+    },
+    {
+      content:
+        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+      role: "user",
+      isHidden: false,
+    },
+  ],
+});
+
+// // // // // // // // // // ↑ 聊天记录获取 ↑ // // // // // // // // // //
+
+// 切换功能菜单
+const changeCommand = (command) => {
+  aiEnglishStore.currentConmand = command;
+};
 
 // const url = "/api/conversation/";
 const url = "https://api.freegpt.art/v1/chat/completions";
@@ -134,61 +217,46 @@ const headers = {
   Authorization: "Bearer sk-VFtuc5lBPaGIcGwX291bD2578e8e4b838fAd50B267B4A126",
 };
 
-// 将消息加入队列
-function addMessage(role, content) {
-  aiEnglishStore.user_messages.data.push({
-    content: content,
-    role: role,
-    isHidden: false,
-  });
-}
-
 // 处理用户输入
 const handleInput = async (content) => {
+  // 将消息加入队列
+  chatHistory.value.data.push({
+    content: content,
+    role: "user",
+    isHidden: false,
+  });
 
-  if (!content || !canSendMessage) {
-    return;
-  }
-
-  // 将用户发送到消息加入队列
-  addMessage("user", content);
+  chatHistory.value.data.push({
+    content: "",
+    role: "ai",
+    isHidden: false,
+  });
 
   await nextTick();
   // 将聊天框拉到最下面
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
 
   try {
-    canSendMessage = false;
-
-    await nextTick();
-
-    conversation();
+    conversation(content);
   } catch {
-    const lastData =
-      aiEnglishStore.user_messages.data[aiEnglishStore.user_messages.data.length - 1];
-
-    if (lastData.role == "assistant") {
-      lastData.content = "AI回复获取失败0.0";
-    } else {
-      addMessage("assistant", "AI回复获取失败0.0");
-    }
-  } finally {
-    canSendMessage  = true;
-
+    const lastData = chatHistory.value.data[chatHistory.value.data.length - 1];
+    lastData.content = "AI回复获取失败0.0";
   }
 };
 
-async function conversation() {
-  addMessage("assistant", "");
-
-  const lastData =
-    aiEnglishStore.user_messages.data[aiEnglishStore.user_messages.data.length - 1];
+async function conversation(question) {
+  const lastData = chatHistory.value.data[chatHistory.value.data.length - 1];
 
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
-      messages: aiEnglishStore.user_messages.data.slice(0, -1),
+      messages: [
+        {
+          role: "user",
+          content: question,
+        },
+      ],
       model: "gpt-3.5-turbo",
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -200,9 +268,6 @@ async function conversation() {
 
   if (!response.ok) {
     lastData.content = "AI回复获取失败0.0";
-
-    // 将滚动条拉到最后
-    await nextTick();
     messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
   }
 
@@ -252,19 +317,12 @@ async function conversation() {
   }
 }
 
-onMounted(async () => {
+onMounted(async ()=>{
   await nextTick();
   if (messageAreaRef.value) {
     messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
   }
-});
-
-// // // // // // // // // // ↑ 消息交互 ↑ // // // // // // // // // //
-
-// 切换功能菜单
-const changeCommand = (command) => {
-  aiEnglishStore.currentConmand = command;
-};
+})
 </script>
 
 <template>
@@ -307,13 +365,13 @@ const changeCommand = (command) => {
     <div class="message_area" ref="messageAreaRef">
       <div
         class="message_parent clear-fix"
-        v-for="(item, index) in aiEnglishStore.user_messages.data"
+        v-for="(item, index) in chatHistory.data"
         :key="index"
       >
         <div
           :class="{
             react_content_user: item.role === 'user',
-            react_content_ai: item.role === 'assistant',
+            react_content_ai: item.role === 'ai',
           }"
           @mouseleave="hide_button"
         >
@@ -322,13 +380,13 @@ const changeCommand = (command) => {
             <div :id="index" class="content">
               <div
                 v-html="item.content"
-                :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
+                :class="{ hidden_text: item.role === 'ai' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>
             </div>
           </div>
 
-          <div class="react_content_button" v-if="item.role === 'assistant'">
+          <div class="react_content_button" v-if="item.role === 'ai'">
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -427,8 +485,7 @@ const changeCommand = (command) => {
     </div>
 
     <div class="input_area">
-      <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage ">
-      </InputBar>
+      <InputBar :handle-submit="handleInput"> </InputBar>
 
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
     </div>
@@ -806,4 +863,5 @@ const changeCommand = (command) => {
 }
 
 /* ↑ 滚动条设置 ↑ */
+
 </style>
