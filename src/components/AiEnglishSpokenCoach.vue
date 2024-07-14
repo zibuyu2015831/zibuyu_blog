@@ -73,15 +73,15 @@ function hide_button(event) {
 // 显示文本
 function showText(event, text_id) {
   if (event.target.classList.contains("hidden_text")) {
-    aiEnglishStore.user_messages.value.data[text_id].isHidden = false;
+    aiEnglishStore.english_messages.data[text_id].isHidden = false;
     event.target.classList.remove("hidden_text");
   }
 }
 
 // 隐藏文本
 function hiddenText(event, text_id) {
-  aiEnglishStore.user_messages.value.data[text_id].isHidden = !aiEnglishStore
-    .user_messages.value.data[text_id].isHidden;
+  aiEnglishStore.english_messages.data[text_id].isHidden = !aiEnglishStore
+    .english_messages.data[text_id].isHidden;
 }
 
 // 复制文本
@@ -105,7 +105,7 @@ const copyText = async (textToCopy) => {
 const botSettingVisible = ref(false);
 
 function showSetting(role) {
-  if (role === "ai") {
+  if (role === "assistant") {
     botSettingVisible.value = true;
   }
 }
@@ -136,7 +136,7 @@ const headers = {
 
 // 将消息加入队列
 function addMessage(role, content) {
-  aiEnglishStore.user_messages.data.push({
+  aiEnglishStore.english_messages.data.push({
     content: content,
     role: role,
     isHidden: false,
@@ -145,8 +145,7 @@ function addMessage(role, content) {
 
 // 处理用户输入
 const handleInput = async (content) => {
-
-  if (!content || !canSendMessage) {
+  if (!content || !canSendMessage.value) {
     return;
   }
 
@@ -158,14 +157,16 @@ const handleInput = async (content) => {
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
 
   try {
-    canSendMessage = false;
+    canSendMessage.value = false;
 
     await nextTick();
 
-    conversation();
+    await conversation();
   } catch {
     const lastData =
-      aiEnglishStore.user_messages.data[aiEnglishStore.user_messages.data.length - 1];
+      aiEnglishStore.english_messages.data[
+        aiEnglishStore.english_messages.data.length - 1
+      ];
 
     if (lastData.role == "assistant") {
       lastData.content = "AI回复获取失败0.0";
@@ -173,8 +174,7 @@ const handleInput = async (content) => {
       addMessage("assistant", "AI回复获取失败0.0");
     }
   } finally {
-    canSendMessage  = true;
-
+    canSendMessage.value = true;
   }
 };
 
@@ -182,13 +182,13 @@ async function conversation() {
   addMessage("assistant", "");
 
   const lastData =
-    aiEnglishStore.user_messages.data[aiEnglishStore.user_messages.data.length - 1];
+    aiEnglishStore.english_messages.data[aiEnglishStore.english_messages.data.length - 1];
 
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
-      messages: aiEnglishStore.user_messages.data.slice(0, -1),
+      messages: aiEnglishStore.english_messages.data.slice(0, -1),
       model: "gpt-3.5-turbo",
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -307,7 +307,7 @@ const changeCommand = (command) => {
     <div class="message_area" ref="messageAreaRef">
       <div
         class="message_parent clear-fix"
-        v-for="(item, index) in aiEnglishStore.user_messages.data"
+        v-for="(item, index) in aiEnglishStore.english_messages.data"
         :key="index"
       >
         <div
@@ -427,7 +427,7 @@ const changeCommand = (command) => {
     </div>
 
     <div class="input_area">
-      <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage ">
+      <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage">
       </InputBar>
 
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
@@ -771,6 +771,12 @@ const changeCommand = (command) => {
   font-size: 17px;
   display: flex;
   flex-direction: column;
+
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 Q25,20 50,10 Q75,0 100,10 Z" fill="skyblue"/></svg>');
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 100% 20px; /* 调整SVG的高度 */
+  padding-bottom: 20px; /* 确保内容不会被背景图像遮挡 */
 }
 
 .setting_item {

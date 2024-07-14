@@ -218,7 +218,7 @@ const changeCommand = (command) => {
 }
 
 .function_item_active {
-  outline: 3px solid var(--english_left_funtion_item_hover);
+  outline: 2px solid var(--english_left_funtion_item_hover);
   background-color: var(--english_left_funtion_item_active);
 }
 
@@ -227,7 +227,7 @@ const changeCommand = (command) => {
 }
 
 .middle .function_item:hover {
-  outline: 3px solid var(--english_left_funtion_item_hover);
+  outline: 2px solid var(--english_left_funtion_item_hover);
 }
 
 /* ↑ 中间样式 ↑ */

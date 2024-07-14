@@ -6,110 +6,209 @@ import { ref } from 'vue'
 
 // defineStore第一个参数为name，也称为id，是必传参数。唯一标识Store
 const useAiEnglish = defineStore('aiEnglish', {
-    state: () => ({
-        currentConmand: ref('口语助手'),
-        commands:ref({
+  state: () => ({
+    // 当前选中的功能菜单
+    currentConmand: ref('口语助手'),
 
-          "口语助手":{
-            'url':'/spoken_assistant'
-          },
-          "记忆助手":{
-            'url':'/memory_assistant'
-          },
-          "通用助手":{
-            'url':'/common_assistant'
-          },
-          
-        }),
-        user_messages:ref({
-          hasPrevious: true,
+    // 右侧功能菜单
+    commands: ref({
 
-          data: [
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content: "用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content: "用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content: "用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content:
-                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content: "用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content:
-                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            },
-            {
-              content:
-                "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-              role: "user",
-              isHidden: false,
-            },
-            {
-              content: "ai发送的内容",
-              role: "assistant",
-              isHidden: false,
-            }
-          ],
-        }),
+      "口语助手": {
+        'url': '/spoken_assistant'
+      },
+      "记忆助手": {
+        'url': '/memory_assistant'
+      },
+      "通用助手": {
+        'url': '/common_assistant'
+      },
+
     }),
 
-    getters: {
+    // 英语口语聊天记录
+    english_messages: ref({
+      hasPrevious: true,
 
-    }
+      data: [
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        }
+      ],
+    }),
+
+    // 通用助手聊天记录
+    assistant_messages: ref({
+      hasPrevious: true,
+
+      data: [
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content: "用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "通用助手-ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        },
+        {
+          content:
+            "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
+          role: "user",
+          isHidden: false,
+        },
+        {
+          content: "ai发送的内容",
+          role: "assistant",
+          isHidden: false,
+        }
+      ],
+    }),
+
+    // 通用助手自定义代理
+    customized_url: ref(''),
+
+    // 通用助手自定义key
+    customized_key: ref('')
+
+
+  }),
+
+  getters: {
+
+  }
 
 })
 

@@ -3,7 +3,7 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 
 import { storeToRefs } from "pinia";
-import { ref, computed, reactive, nextTick,onMounted} from "vue";
+import { ref, computed, reactive, nextTick, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 
 import InputBar from "@/content/InputBar.vue";
@@ -12,7 +12,17 @@ import { Marked } from "marked";
 import hljs from "highlight.js";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
-// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
+
+const aiEnglishStore = useAiEnglish();
+const deviceInfoStore = useDeviceInfo();
+
+const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
+
+// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ markdown文本渲染 ↓ // // // // // // // // // //
 
 const marked = new Marked();
 
@@ -26,16 +36,7 @@ marked.use(
   })
 );
 
-// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
-
-const aiEnglishStore = useAiEnglish();
-const deviceInfoStore = useDeviceInfo();
-
-const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
-
-// // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
+// // // // // // // // // // ↑ markdown文本渲染 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
 
@@ -72,14 +73,15 @@ function hide_button(event) {
 // 显示文本
 function showText(event, text_id) {
   if (event.target.classList.contains("hidden_text")) {
-    chatHistory.value.data[text_id].isHidden = false;
+    aiEnglishStore.assistant_messages.data[text_id].isHidden = false;
     event.target.classList.remove("hidden_text");
   }
 }
 
 // 隐藏文本
 function hiddenText(event, text_id) {
-  chatHistory.value.data[text_id].isHidden = !chatHistory.value.data[text_id].isHidden;
+  aiEnglishStore.assistant_messages.data[text_id].isHidden = !aiEnglishStore
+    .assistant_messages.data[text_id].isHidden;
 }
 
 // 复制文本
@@ -99,115 +101,142 @@ const copyText = async (textToCopy) => {
 
 // // // // // // // // // // ↓ 配置弹出框 ↓ // // // // // // // // // //
 
-// 配置弹出框
+// 控制配置弹出框的出现
 const botSettingVisible = ref(false);
 
+// 弹出框的配置元素
+const setting_items = ref(null);
+const settingUrlParentEL = ref(null);
+
 function showSetting(role) {
-  if (role === "ai") {
+  if (role === "assistant") {
     botSettingVisible.value = true;
   }
 }
 
 const botSetting = reactive({
-  translate: false, // 是否开启翻译（用户发送中文时，给出英文表达）
-  grammarCheck: false, // 是否开启语法检测（用户发送英文时，给出语法检测）
-  voiceEvaluate: false, // 是否开启语音评测
-  answerExample: false, // 是否给出回答示例
-  collectWord: false, // 是否自动收集重难点单词
-  hiddenWord: false, // 是否自动收集重难点单词
-  autoAudio: false, // 是否自动收集重难点单词
+  open: false, // 开启自定义的接口
+  url: "", // 自定义接口地址
+  key: "", // 接口密钥
+  model: "", // 模型名称
+  temperature: 50, // 温度，控制回复的随机性
+  top_p: 50, // 控制回复的随机性
+  max_tokens: 2048, // 最大输出tokens
+  with_history: true, // 是否携带历史会话
+  history_count: 10,
 });
+
+// 控制页面显示范围 0~1
+const formatTooltip = (val) => {
+  return val / 100;
+};
+
+function cancelSetting() {
+  botSettingVisible.value = false;
+}
+
+function commitSetting() {
+  if (!botSetting.open) {
+    botSettingVisible.value = false;
+    ElMessage({
+      message: "使用默认模型进行AI交互",
+      type: "warning",
+    });
+    return;
+  } else {
+    const isUrlOK = isValidUrl(botSetting.url);
+    const isMaxTokensOk = isPositiveInteger(botSetting.max_tokens);
+    const isHistoryCountOK = isPositiveInteger(botSetting.history_count);
+
+    if (isUrlOK && isMaxTokensOk && isHistoryCountOK) {
+      botSettingVisible.value = false;
+
+      if (botSetting.temperature == 0) {
+        botSetting.temperature = 0.1;
+
+        ElMessage({
+          message: "temperature不能为0，修正为0.1",
+          type: "warning",
+        });
+      }
+
+      if (botSetting.top_p == 0) {
+        botSetting.top_p = 0.1;
+
+        ElMessage({
+          message: "top_p不能为0，修正为0.1",
+          type: "warning",
+        });
+      }
+
+      ElMessage({
+        message: "配置保存成功",
+        type: "success",
+      });
+    } else {
+      if (!isUrlOK && !botSetting.url) {
+        settingUrlParentEL.value.classList.add("wrong_input");
+        ElMessage.error("接口地址为必填项！");
+      } else {
+        ElMessage.error("配置信息不正确，请修改错误项~");
+      }
+    }
+  }
+}
+
+// 判断字符串是否为url
+function isValidUrl(str) {
+  try {
+    new URL(str);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// 判断字符串是否为正整数
+function isPositiveInteger(str) {
+  const positiveIntegerPattern = /^\d+$/;
+  return positiveIntegerPattern.test(str);
+}
+
+function remove_wrong(event) {
+  const parentElement = event.target.closest(".setting_right");
+  if (parentElement && parentElement.classList.contains("wrong_input")) {
+    parentElement.classList.remove("wrong_input");
+  }
+}
+
+function checkUrl(event) {
+  const checkResult = isValidUrl(botSetting.url);
+
+  if (!checkResult) {
+    ElMessage.error("接口地址格式不正确！");
+
+    const parentElement = event.target.closest(".setting_right");
+    if (parentElement) {
+      parentElement.classList.add("wrong_input");
+    }
+  }
+}
+
+function checkInt(event, msg, num) {
+  const checkResult = isPositiveInteger(num);
+
+  if (!checkResult) {
+    ElMessage.error(msg);
+    const parentElement = event.target.closest(".setting_right");
+    if (parentElement) {
+      parentElement.classList.add("wrong_input");
+    }
+  }
+}
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 聊天记录获取 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 消息交互 ↓ // // // // // // // // // //
 
-const chatHistory = ref({
-  hasPrevious: true,
-
-  data: [
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content:
-        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content: "用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content:
-        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-    {
-      content: "ai发送的内容",
-      role: "ai",
-      isHidden: false,
-    },
-    {
-      content:
-        "用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容用户发送的内容",
-      role: "user",
-      isHidden: false,
-    },
-  ],
-});
-
-// // // // // // // // // // ↑ 聊天记录获取 ↑ // // // // // // // // // //
-
-// 切换功能菜单
-const changeCommand = (command) => {
-  aiEnglishStore.currentConmand = command;
-};
+const canSendMessage = ref(true);
 
 // const url = "/api/conversation/";
 const url = "https://api.freegpt.art/v1/chat/completions";
@@ -217,46 +246,63 @@ const headers = {
   Authorization: "Bearer sk-VFtuc5lBPaGIcGwX291bD2578e8e4b838fAd50B267B4A126",
 };
 
+// 将消息加入队列
+function addMessage(role, content) {
+  aiEnglishStore.assistant_messages.data.push({
+    content: content,
+    role: role,
+    isHidden: false,
+  });
+}
+
 // 处理用户输入
 const handleInput = async (content) => {
-  // 将消息加入队列
-  chatHistory.value.data.push({
-    content: content,
-    role: "user",
-    isHidden: false,
-  });
+  if (!content || !canSendMessage.value) {
+    return;
+  }
 
-  chatHistory.value.data.push({
-    content: "",
-    role: "ai",
-    isHidden: false,
-  });
+  // 将用户发送到消息加入队列
+  addMessage("user", content);
 
   await nextTick();
   // 将聊天框拉到最下面
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
 
   try {
-    conversation(content);
+    canSendMessage.value = false;
+
+    await nextTick();
+
+    await conversation();
   } catch {
-    const lastData = chatHistory.value.data[chatHistory.value.data.length - 1];
-    lastData.content = "AI回复获取失败0.0";
+    const lastData =
+      aiEnglishStore.assistant_messages.data[
+        aiEnglishStore.assistant_messages.data.length - 1
+      ];
+
+    if (lastData.role == "assistant") {
+      lastData.content = "AI回复获取失败0.0";
+    } else {
+      addMessage("assistant", "AI回复获取失败0.0");
+    }
+  } finally {
+    canSendMessage.value = true;
   }
 };
 
-async function conversation(question) {
-  const lastData = chatHistory.value.data[chatHistory.value.data.length - 1];
+async function conversation() {
+  addMessage("assistant", "");
+
+  const lastData =
+    aiEnglishStore.assistant_messages.data[
+      aiEnglishStore.assistant_messages.data.length - 1
+    ];
 
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
-      messages: [
-        {
-          role: "user",
-          content: question,
-        },
-      ],
+      messages: aiEnglishStore.assistant_messages.data.slice(0, -1),
       model: "gpt-3.5-turbo",
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -268,6 +314,9 @@ async function conversation(question) {
 
   if (!response.ok) {
     lastData.content = "AI回复获取失败0.0";
+
+    // 将滚动条拉到最后
+    await nextTick();
     messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
   }
 
@@ -317,12 +366,19 @@ async function conversation(question) {
   }
 }
 
-onMounted(async ()=>{
+onMounted(async () => {
   await nextTick();
   if (messageAreaRef.value) {
     messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
   }
-})
+});
+
+// // // // // // // // // // ↑ 消息交互 ↑ // // // // // // // // // //
+
+// 切换功能菜单
+const changeCommand = (command) => {
+  aiEnglishStore.currentConmand = command;
+};
 </script>
 
 <template>
@@ -365,13 +421,13 @@ onMounted(async ()=>{
     <div class="message_area" ref="messageAreaRef">
       <div
         class="message_parent clear-fix"
-        v-for="(item, index) in chatHistory.data"
+        v-for="(item, index) in aiEnglishStore.assistant_messages.data"
         :key="index"
       >
         <div
           :class="{
             react_content_user: item.role === 'user',
-            react_content_ai: item.role === 'ai',
+            react_content_ai: item.role === 'assistant',
           }"
           @mouseleave="hide_button"
         >
@@ -380,13 +436,13 @@ onMounted(async ()=>{
             <div :id="index" class="content">
               <div
                 v-html="item.content"
-                :class="{ hidden_text: item.role === 'ai' && item.isHidden }"
+                :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>
             </div>
           </div>
 
-          <div class="react_content_button" v-if="item.role === 'ai'">
+          <div class="react_content_button" v-if="item.role === 'assistant'">
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -485,146 +541,175 @@ onMounted(async ()=>{
     </div>
 
     <div class="input_area">
-      <InputBar :handle-submit="handleInput"> </InputBar>
+      <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage">
+      </InputBar>
 
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="功能开关" width="350" center>
-      <div class="setting_items">
+    <el-dialog v-model="botSettingVisible" title="设置菜单" width="650" center>
+      <div class="setting_items" ref="setting_items">
         <div class="setting_item">
-          <span class="setting_item_text">是否开启语法检测：</span>
+          <div class="setting_left">
+            <div class="setting_title">是否使用自定义接口</div>
+            <div class="setting_desc">默认使用讯飞星火lite模型</div>
+          </div>
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="当输入英文时，将同时进行检测语法"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.grammarCheck"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
-            />
-          </el-tooltip>
+          <div class="setting_right">
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="自定义代理接口"
+              placement="right-start"
+            >
+              <el-switch
+                v-model="botSetting.open"
+                inline-prompt
+                active-text="是"
+                inactive-text="否"
+                size="large"
+              />
+            </el-tooltip>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否开启中文翻译：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="当输入中文时，将同时给出对应的英文表达"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.translate"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">接口地址&#40;url&#41;</div>
+            <div class="setting_desc">填入自定义的Openai代理接口</div>
+          </div>
+          <div class="setting_right" ref="settingUrlParentEL">
+            <el-input
+              v-model="botSetting.url"
+              clearable
+              :disabled="!botSetting.open"
+              placeholder="示例: https://xxx/v1/chat/completions"
+              @focus="remove_wrong"
+              @blur="checkUrl"
             />
-          </el-tooltip>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否开启语音评测：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="当输入英文语音时，将同时给出语音评测分数"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.voiceEvaluate"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">接口密钥&#40;key&#41;</div>
+            <div class="setting_desc">填入自定义的接口密钥</div>
+          </div>
+          <div class="setting_right">
+            <el-input
+              v-model="botSetting.key"
+              placeholder="本站不会存储你的密钥"
+              type="password"
+              show-password
+              :disabled="!botSetting.open"
+              clearable
             />
-          </el-tooltip>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否开启回答提示：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="将同时输出回答提示，防止没有交流思路"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.answerExample"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">模型名称&#40;model&#41;</div>
+            <div class="setting_desc">填入自定义的模型名称</div>
+          </div>
+          <div class="setting_right">
+            <el-input
+              v-model="botSetting.model"
+              :disabled="!botSetting.open"
+              placeholder="示例: gpt-3.5-turbo"
+              clearable
             />
-          </el-tooltip>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否自动收集单词：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="将自动收集交流过程的重难点单词，方便导出"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.collectWord"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
-            />
-          </el-tooltip>
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">随机性&#40;temperature&#41;</div>
+            <div class="setting_desc">数值越大，回复的随机性越高</div>
+          </div>
+          <div class="setting_right">
+            <div class="slider-demo-block">
+              <el-slider
+                v-model="botSetting.temperature"
+                :format-tooltip="formatTooltip"
+                :step="10"
+                :disabled="!botSetting.open"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否自动模糊文本：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="开启后将模糊文本，专注练习听力"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.hiddenWord"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
-            />
-          </el-tooltip>
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">核采样&#40;top_p&#41;</div>
+            <div class="setting_desc">与随机性类似;</div>
+            <div class="setting_desc">建议核采样、随机性仅修改一个</div>
+          </div>
+          <div class="setting_right">
+            <div class="slider-demo-block">
+              <el-slider
+                v-model="botSetting.top_p"
+                :format-tooltip="formatTooltip"
+                :step="10"
+                :disabled="!botSetting.open"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="setting_item">
-          <span class="setting_item_text">是否自动播放语音：</span>
+        <el-divider />
 
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="开启后将自动播放语音"
-            placement="right-start"
-          >
-            <el-switch
-              v-model="botSetting.autoAudio"
-              inline-prompt
-              active-text="是"
-              inactive-text="否"
-              size="large"
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">单次回复限制&#40;max_tokens&#41;</div>
+            <div class="setting_desc">限制单次交互所用的最大tokens</div>
+          </div>
+          <div class="setting_right">
+            <el-input
+              v-model="botSetting.max_tokens"
+              :disabled="!botSetting.open"
+              placeholder="需要填入整数"
+              @focus="remove_wrong"
+              @blur="checkInt($event, 'max_tokens 必须为正整数', botSetting.max_tokens)"
             />
-          </el-tooltip>
+          </div>
+        </div>
+
+        <el-divider />
+
+        <div class="setting_item">
+          <div class="setting_left">
+            <div class="setting_title">附带历史消息数</div>
+            <div class="setting_desc">此值为0时表示不携带历史</div>
+          </div>
+          <div class="setting_right">
+            <el-input
+              v-model="botSetting.history_count"
+              :disabled="!botSetting.open"
+              placeholder="需要填入整数"
+              @focus="remove_wrong"
+              @blur="checkInt($event, '历史消息数必须为正整数', botSetting.history_count)"
+            />
+          </div>
         </div>
       </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelSetting">取消</el-button>
+          <el-button type="primary" @click="commitSetting"> 确定 </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -825,17 +910,40 @@ onMounted(async ()=>{
 /* ↓ 弹出框样式 ↓ */
 
 .setting_items {
-  font-size: 17px;
+  max-height: 60vh;
+  overflow-y: auto;
+
   display: flex;
   flex-direction: column;
+  border: 1px solid black;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .setting_item {
-  margin: 5px auto;
+  margin: 0 auto;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
 }
 
-.setting_item_text {
-  margin-right: 15px;
+.setting_right {
+  width: 50%;
+}
+
+.wrong_input {
+  border: 1px solid red;
+}
+
+.setting_title {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.setting_desc {
+  margin-top: 5px;
+  font-size: 12px;
+  font-style: italic;
 }
 
 /* ↑ 弹出框样式 ↑ */
@@ -864,4 +972,17 @@ onMounted(async ()=>{
 
 /* ↑ 滚动条设置 ↑ */
 
+.slider-demo-block {
+  max-width: 300px;
+  display: flex;
+  align-items: center;
+}
+.slider-demo-block .el-slider {
+  margin-top: 0;
+  margin-left: 12px;
+}
+
+.el-divider--horizontal {
+  margin: 14px auto;
+}
 </style>
