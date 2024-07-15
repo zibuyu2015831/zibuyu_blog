@@ -49,6 +49,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, '')
       },
+      '/xunfei': {
+        target: 'https://spark-api-open.xf-yun.com',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/xunfei/, '')
+      },
     },
   },
   // publicPath:'./'

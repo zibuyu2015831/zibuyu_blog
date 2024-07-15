@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4603441 */
-  src: url('@/assets/font/iconfont.woff2') format('woff2'),
-       url('@/assets/font/iconfont.woff') format('woff'),
-       url('@/assets/font/iconfont.ttf') format('truetype');
+  src: url('@/assets/font/iconfont.woff2?t=1720973315706') format('woff2'),
+       url('@/assets/font/iconfont.woff?t=1720973315706') format('woff'),
+       url('@/assets/font/iconfont.ttf?t=1720973315706') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,54 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-bianji2:before {
+  content: "\e673";
+}
+
+.icon-bianji3:before {
+  content: "\e67e";
+}
+
+.icon-bianji4:before {
+  content: "\e699";
+}
+
+.icon-bianji5:before {
+  content: "\e69a";
+}
+
+.icon-jia1:before {
+  content: "\e669";
+}
+
+.icon-jia2:before {
+  content: "\e66a";
+}
+
+.icon-jian:before {
+  content: "\e66c";
+}
+
+.icon-jianhao:before {
+  content: "\eaf6";
+}
+
+.icon-jia3:before {
+  content: "\e670";
+}
+
+.icon-jian_sekuai:before {
+  content: "\ed21";
+}
+
+.icon-jian1:before {
+  content: "\e671";
+}
+
+.icon-jia4:before {
+  content: "\e672";
 }
 
 .icon-down:before {

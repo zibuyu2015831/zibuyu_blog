@@ -197,18 +197,92 @@ const useAiEnglish = defineStore('aiEnglish', {
       ],
     }),
 
-    // 通用助手自定义代理
-    customized_url: ref(''),
+    // 通用助手自定义代理列表
+    customized_infos: ref([
+      {
+        name: "默认配置", // 配置名称
+        url: "", // 自定义接口地址
+        key: "", // 接口密钥
+        model: "", // 模型名称
+        temperature: 50, // 温度，控制回复的随机性
+        top_p: 50, // 控制回复的随机性
+        max_tokens: 2048, // 最大输出tokens
+        history_count: 10,
+      },
 
-    // 通用助手自定义key
-    customized_key: ref('')
-
-
+    ]),
+    currentSettingIndex: ref(0),
+    useCustomizedInfo: ref(false)
   }),
 
   getters: {
+    requestUrl() {
 
-  }
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].url
+      } else {
+        return "/xunfei/v1/chat/completions"
+      }
+    },
+
+    requestKey() {
+      if (this.useCustomizedInfo) {
+        return `Bearer ${this.customized_infos[this.currentSettingIndex].key}`
+      } else {
+        return "Bearer xxxxxxx"
+      }
+    },
+
+    requestModel() {
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].model
+      } else {
+        return "generalv"
+      }
+    },
+
+    requestTemperature() {
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].temperature / 100
+      } else {
+        return 0.5
+      }
+    },
+
+    requestTop_p() {
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].top_p / 100
+      } else {
+        return 0.5
+      }
+    },
+
+    requestMax_tokens() {
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].max_tokens
+      } else {
+        return 2048
+      }
+    },
+
+
+    requestHistoryCount() {
+      if (this.useCustomizedInfo) {
+        return this.customized_infos[this.currentSettingIndex].history_count*2+1
+      } else {
+        return 10
+      }
+    },
+
+  },
+
+  actions: {
+    removeCustomizedInfoByIndex(index) {
+      if (index >= 0 && index < this.customized_infos.length) {
+        this.customized_infos.splice(index, 1);
+      }
+    },
+  },
 
 })
 

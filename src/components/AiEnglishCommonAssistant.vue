@@ -3,13 +3,13 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 
 import { storeToRefs } from "pinia";
-import { ref, computed, reactive, nextTick, onMounted } from "vue";
+import { ref, computed, nextTick, onMounted, watch } from "vue";
 import { ElMessage } from "element-plus";
 
-import InputBar from "@/content/InputBar.vue";
-import MenuButton from "@/content/MenuButton.vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
+import InputBar from "@/content/InputBar.vue";
+import MenuButton from "@/content/MenuButton.vue";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
 
@@ -19,6 +19,15 @@ const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
 
 const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
+const {
+  requestUrl,
+  requestKey,
+  requestModel,
+  requestTemperature,
+  requestTop_p,
+  requestMax_tokens,
+  requestHistoryCount,
+} = storeToRefs(aiEnglishStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
@@ -38,8 +47,9 @@ marked.use(
 
 // // // // // // // // // // ↑ markdown文本渲染 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 关于CSS布局的常量 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 全局相关 ↓ // // // // // // // // // //
 
+// 聊天消息区域
 const messageAreaRef = ref(null);
 
 // 聊天框中，消息的下间距
@@ -50,11 +60,83 @@ const titleHeight = computed(() => {
   return 55;
 });
 
-// // // // // // // // // // ↑ 关于CSS布局的常量 ↑ // // // // // // // // // //
+// 处理用户自定义信息（从localStorage中获取或写入）
+function handleCustomizedInfos(action) {
+  const itemKey = "customized_infos";
+
+  if (action == "store") {
+    // 序列化 customized_infos并且将序列化后的数据存入 localStorage
+    const serializedCustomizedInfos = JSON.stringify(aiEnglishStore.customized_infos);
+    localStorage.setItem(itemKey, serializedCustomizedInfos);
+  } else if (action == "get") {
+    const info = localStorage.getItem(itemKey);
+
+    if (!info) {
+      return;
+    }
+
+    try {
+      const parsedInfo = JSON.parse(info);
+
+      const requiredKeys = [
+        "name", // 配置名称
+        "url",
+        "key",
+        "model",
+        "temperature",
+        "top_p",
+        "max_tokens",
+        "history_count",
+      ];
+
+      const validateCustomizedInfo = (info) => {
+        if (!Array.isArray(info)) {
+          return false;
+        }
+
+        for (const item of info) {
+          if (typeof item !== "object" || item === null) {
+            return false;
+          }
+
+          for (const key of requiredKeys) {
+            if (!(key in item)) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      };
+
+      if (validateCustomizedInfo(parsedInfo)) {
+        aiEnglishStore.customized_infos = parsedInfo;
+      }
+    } catch (error) {
+      console.error("Failed to parse customized_info:", error);
+    }
+  } else if (action == "delete") {
+    localStorage.removeItem(itemKey);
+  }
+}
+
+onMounted(async () => {
+  await nextTick();
+
+  if (messageAreaRef.value) {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  }
+
+  // 从本地存储中获取自定义配置信息
+  handleCustomizedInfos("get");
+  downloadCurrentSetting();
+});
+
+// // // // // // // // // // ↑ 全局相关 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 消息下方的按钮 ↓ // // // // // // // // // //
 
-// 显示按钮
+// 显示按钮（鼠标移入时）
 function show_button(event) {
   const buttonElement = event.target.nextElementSibling;
   if (buttonElement && buttonElement.classList.contains("react_content_button")) {
@@ -62,7 +144,7 @@ function show_button(event) {
   }
 }
 
-// 隐藏按钮
+// 隐藏按钮（鼠标移出时）
 function hide_button(event) {
   const buttonElement = event.target.querySelector(".react_content_button");
   if (buttonElement && buttonElement.classList.contains("react_content_button")) {
@@ -114,29 +196,13 @@ function showSetting(role) {
   }
 }
 
-const botSetting = reactive({
-  open: false, // 开启自定义的接口
-  url: "", // 自定义接口地址
-  key: "", // 接口密钥
-  model: "", // 模型名称
-  temperature: 50, // 温度，控制回复的随机性
-  top_p: 50, // 控制回复的随机性
-  max_tokens: 2048, // 最大输出tokens
-  with_history: true, // 是否携带历史会话
-  history_count: 10,
-});
-
 // 控制页面显示范围 0~1
-const formatTooltip = (val) => {
+function formatTooltip(val) {
   return val / 100;
-};
-
-function cancelSetting() {
-  botSettingVisible.value = false;
 }
 
 function commitSetting() {
-  if (!botSetting.open) {
+  if (!aiEnglishStore.useCustomizedInfo) {
     botSettingVisible.value = false;
     ElMessage({
       message: "使用默认模型进行AI交互",
@@ -144,60 +210,83 @@ function commitSetting() {
     });
     return;
   } else {
-    const isUrlOK = isValidUrl(botSetting.url);
-    const isMaxTokensOk = isPositiveInteger(botSetting.max_tokens);
-    const isHistoryCountOK = isPositiveInteger(botSetting.history_count);
+    const isUrlOK = isValidUrl(
+      aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url
+    );
+    const isMaxTokensOk = isPositiveInteger(
+      aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].max_tokens
+    );
+    const isHistoryCountOK = isPositiveInteger(
+      aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].history_count
+    );
 
     if (isUrlOK && isMaxTokensOk && isHistoryCountOK) {
       botSettingVisible.value = false;
 
-      if (botSetting.temperature == 0) {
-        botSetting.temperature = 0.1;
+      if (
+        aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].temperature ==
+        0
+      ) {
+        aiEnglishStore.customized_infos[
+          aiEnglishStore.currentSettingIndex
+        ].temperature = 0.1;
 
         ElMessage({
-          message: "temperature不能为0，修正为0.1",
+          message: "temperature不能为0, 修正为0.1",
           type: "warning",
         });
       }
 
-      if (botSetting.top_p == 0) {
-        botSetting.top_p = 0.1;
+      if (
+        aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p == 0
+      ) {
+        aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p = 0.1;
 
         ElMessage({
-          message: "top_p不能为0，修正为0.1",
+          message: "top_p不能为0, 修正为0.1",
           type: "warning",
         });
       }
+
+      handleCustomizedInfos("store");
 
       ElMessage({
         message: "配置保存成功",
         type: "success",
       });
     } else {
-      if (!isUrlOK && !botSetting.url) {
+      if (
+        !isUrlOK &&
+        !aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url
+      ) {
         settingUrlParentEL.value.classList.add("wrong_input");
         ElMessage.error("接口地址为必填项！");
       } else {
-        ElMessage.error("配置信息不正确，请修改错误项~");
+        ElMessage.error("配置信息不正确, 请修改错误项~");
       }
     }
   }
 }
 
-// 判断字符串是否为url
-function isValidUrl(str) {
-  try {
-    new URL(str);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
+function deleteCustomizedInfos() {
+  handleCustomizedInfos("delete");
+  aiEnglishStore.customized_infos = [
+    {
+      name: "默认配置", // 配置名称
+      url: "", // 自定义接口地址
+      key: "", // 接口密钥
+      model: "", // 模型名称
+      temperature: 50, // 温度，控制回复的随机性
+      top_p: 50, // 控制回复的随机性
+      max_tokens: 2048, // 最大输出tokens
+      history_count: 10,
+    },
+  ];
 
-// 判断字符串是否为正整数
-function isPositiveInteger(str) {
-  const positiveIntegerPattern = /^\d+$/;
-  return positiveIntegerPattern.test(str);
+  setTimeout(() => {
+    aiEnglishStore.currentSettingIndex = 0;
+    downloadCurrentSetting();
+  }, 0);
 }
 
 function remove_wrong(event) {
@@ -208,7 +297,9 @@ function remove_wrong(event) {
 }
 
 function checkUrl(event) {
-  const checkResult = isValidUrl(botSetting.url);
+  const checkResult = isValidUrl(
+    aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url
+  );
 
   if (!checkResult) {
     ElMessage.error("接口地址格式不正确！");
@@ -232,19 +323,149 @@ function checkInt(event, msg, num) {
   }
 }
 
+// 功能函数：判断字符串是否为url
+function isValidUrl(str) {
+  try {
+    new URL(str);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// 功能函数：判断字符串是否为正整数
+function isPositiveInteger(str) {
+  const positiveIntegerPattern = /^\d+$/;
+  return positiveIntegerPattern.test(str);
+}
+
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 显示配置 ↓ // // // // // // // // // //
+
+const currentUrl = ref("");
+const currentKey = ref("");
+const currentModel = ref("");
+const currentTemperature = ref("");
+const currentTop_p = ref("");
+const currentMaxTokens = ref("");
+const currentHistoryCount = ref("");
+
+watch(currentUrl, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url = newVal;
+});
+
+watch(currentKey, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].key = newVal;
+});
+
+watch(currentModel, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].model = newVal;
+});
+
+watch(currentTemperature, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[
+    aiEnglishStore.currentSettingIndex
+  ].temperature = newVal;
+});
+
+watch(currentTop_p, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p = newVal;
+});
+
+watch(currentMaxTokens, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].max_tokens = newVal;
+});
+
+watch(currentHistoryCount, (newVal, oldVal) => {
+  aiEnglishStore.customized_infos[
+    aiEnglishStore.currentSettingIndex
+  ].history_count = newVal;
+});
+
+// // // // // // // // // // ↑ 显示配置 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 添加新配置 ↓ // // // // // // // // // //
+
+const newSettingName = ref(""); // 新配置名称
+const isAddNewSetting = ref(false);
+
+const ConfirmNewSetting = () => {
+  aiEnglishStore.customized_infos.push({
+    name: newSettingName.value || `配置${aiEnglishStore.customized_infos.length + 1}`, // 配置名称
+    url: "", // 自定义接口地址
+    key: "", // 接口密钥
+    model: "", // 模型名称
+    temperature: 50, // 温度，控制回复的随机性
+    top_p: 50, // 控制回复的随机性
+    max_tokens: 2048, // 最大输出tokens
+    history_count: 10,
+  });
+
+  aiEnglishStore.currentSettingIndex = aiEnglishStore.customized_infos.length - 1;
+  newSettingName.value = "";
+  isAddNewSetting.value = false;
+
+  downloadCurrentSetting();
+  handleCustomizedInfos("store");
+};
+
+const clearNewSetting = () => {
+  newSettingName.value = "";
+  isAddNewSetting.value = false;
+};
+
+const downloadCurrentSetting = () => {
+  try {
+    const setting = aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex];
+
+    currentUrl.value = setting.url;
+    currentKey.value = setting.key;
+    currentModel.value = setting.model;
+    currentTemperature.value = setting.temperature;
+    currentTop_p.value = setting.top_p;
+    currentMaxTokens.value = setting.max_tokens;
+    currentHistoryCount.value = setting.history_count;
+  } catch {
+    return;
+  }
+};
+
+const deleteSettingItem = (index) => {
+  // 根据index下标删除对应的元素
+  aiEnglishStore.removeCustomizedInfoByIndex(index);
+
+  // 如果不将aiEnglishStore.currentSettingIndex的变化放在setTimeout里，则页面不会变化
+  // 使用 setTimeout 确保 Vue 检测到数据变化并更新 DOM
+  setTimeout(() => {
+    aiEnglishStore.currentSettingIndex = Math.max(index - 1, 0);
+  }, 0);
+
+  // 页面重新加载数据
+  downloadCurrentSetting();
+
+  if (aiEnglishStore.customized_infos.length == 0) {
+    aiEnglishStore.customized_infos.push({
+      name: "默认配置", // 配置名称
+      url: "", // 自定义接口地址
+      key: "", // 接口密钥
+      model: "", // 模型名称
+      temperature: 50, // 温度，控制回复的随机性
+      top_p: 50, // 控制回复的随机性
+      max_tokens: 2048, // 最大输出tokens
+      history_count: 10,
+    });
+  }
+
+  // 序列化 customized_infos并且将序列化后的数据存入 localStorage
+  handleCustomizedInfos("store");
+};
+
+// // // // // // // // // // ↑ 添加新配置 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 消息交互 ↓ // // // // // // // // // //
 
 const canSendMessage = ref(true);
-
-// const url = "/api/conversation/";
-const url = "https://api.freegpt.art/v1/chat/completions";
-
-const headers = {
-  "Content-Type": "application/json",
-  Authorization: "Bearer sk-VFtuc5lBPaGIcGwX291bD2578e8e4b838fAd50B267B4A126",
-};
 
 // 将消息加入队列
 function addMessage(role, content) {
@@ -270,7 +491,6 @@ const handleInput = async (content) => {
 
   try {
     canSendMessage.value = false;
-
     await nextTick();
 
     await conversation();
@@ -287,10 +507,29 @@ const handleInput = async (content) => {
     }
   } finally {
     canSendMessage.value = true;
+    await nextTick();
   }
 };
 
+// 确保给定数字是奇数
+function ensureOdd(num) {
+  // 判断数字是否是奇数
+  if (num % 2 === 0) {
+    // 如果是偶数，加1使其变成奇数
+    return num + 1;
+  } else {
+    // 如果是奇数，直接返回
+    return num;
+  }
+}
+
+// 发送AI交互请求
 async function conversation() {
+  // 携带历史会话
+  const history = aiEnglishStore.assistant_messages.data.slice(
+    -ensureOdd(requestHistoryCount.value)
+  );
+
   addMessage("assistant", "");
 
   const lastData =
@@ -298,16 +537,21 @@ async function conversation() {
       aiEnglishStore.assistant_messages.data.length - 1
     ];
 
-  const response = await fetch(url, {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: requestKey.value,
+  };
+
+  const response = await fetch(requestUrl.value, {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
-      messages: aiEnglishStore.assistant_messages.data.slice(0, -1),
-      model: "gpt-3.5-turbo",
+      messages: history,
+      model: requestModel.value,
       frequency_penalty: 0,
       presence_penalty: 0,
-      top_p: 1,
-      temperature: 0.5,
+      top_p: requestTop_p.value,
+      temperature: requestTemperature.value,
       stream: true,
     }),
   });
@@ -333,10 +577,6 @@ async function conversation() {
     }
 
     const chunkString = decoder.decode(value, { stream: true });
-
-    // reserveText += chunkString;
-    // lastData.content = marked.parse(reserveText);
-    // messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight+200;
 
     const lines = chunkString.split("\n").filter((line) => line.trim() !== "");
 
@@ -365,13 +605,6 @@ async function conversation() {
     }
   }
 }
-
-onMounted(async () => {
-  await nextTick();
-  if (messageAreaRef.value) {
-    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
-  }
-});
 
 // // // // // // // // // // ↑ 消息交互 ↑ // // // // // // // // // //
 
@@ -560,16 +793,72 @@ const changeCommand = (command) => {
               class="box-item"
               effect="dark"
               content="自定义代理接口"
-              placement="right-start"
+              placement="top-start"
+              style="float: left"
             >
               <el-switch
-                v-model="botSetting.open"
+                v-model="aiEnglishStore.useCustomizedInfo"
                 inline-prompt
                 active-text="是"
                 inactive-text="否"
                 size="large"
               />
             </el-tooltip>
+
+            <el-select
+              v-model="aiEnglishStore.currentSettingIndex"
+              placeholder="Select"
+              style="width: 70%; float: right; margin-top: 5px"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
+              @change="downloadCurrentSetting"
+            >
+              <el-option
+                v-for="(item, index) in aiEnglishStore.customized_infos"
+                :key="index"
+                :label="item.name || '配置 ' + (index + 1)"
+                :value="index"
+              >
+                <div class="setting_item">
+                  <span class="setting_title">{{
+                    item.name || "配置 " + (index + 1)
+                  }}</span>
+
+                  <span
+                    class="iconfont icon-jian_sekuai setting_icon"
+                    @click="deleteSettingItem(index)"
+                  ></span>
+                </div>
+              </el-option>
+
+              <template #footer>
+                <el-button
+                  v-if="!isAddNewSetting"
+                  text
+                  size="small"
+                  @click="isAddNewSetting = true"
+                >
+                  添加新配置
+                </el-button>
+                <template v-else>
+                  <div class="new_setting">
+                    <el-input
+                      v-model="newSettingName"
+                      class="option-input"
+                      placeholder="输入配置名称"
+                      size="small"
+                      autofocus
+                    />
+
+                    <div>
+                      <el-button type="primary" size="small" @click="ConfirmNewSetting">
+                        确定
+                      </el-button>
+                      <el-button size="small" @click="clearNewSetting">取消</el-button>
+                    </div>
+                  </div>
+                </template>
+              </template>
+            </el-select>
           </div>
         </div>
 
@@ -582,9 +871,9 @@ const changeCommand = (command) => {
           </div>
           <div class="setting_right" ref="settingUrlParentEL">
             <el-input
-              v-model="botSetting.url"
+              v-model="currentUrl"
               clearable
-              :disabled="!botSetting.open"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
               placeholder="示例: https://xxx/v1/chat/completions"
               @focus="remove_wrong"
               @blur="checkUrl"
@@ -601,11 +890,11 @@ const changeCommand = (command) => {
           </div>
           <div class="setting_right">
             <el-input
-              v-model="botSetting.key"
+              v-model="currentKey"
               placeholder="本站不会存储你的密钥"
               type="password"
               show-password
-              :disabled="!botSetting.open"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
               clearable
             />
           </div>
@@ -620,8 +909,8 @@ const changeCommand = (command) => {
           </div>
           <div class="setting_right">
             <el-input
-              v-model="botSetting.model"
-              :disabled="!botSetting.open"
+              v-model="currentModel"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
               placeholder="示例: gpt-3.5-turbo"
               clearable
             />
@@ -638,10 +927,10 @@ const changeCommand = (command) => {
           <div class="setting_right">
             <div class="slider-demo-block">
               <el-slider
-                v-model="botSetting.temperature"
+                v-model="currentTemperature"
                 :format-tooltip="formatTooltip"
                 :step="10"
-                :disabled="!botSetting.open"
+                :disabled="!aiEnglishStore.useCustomizedInfo"
               />
             </div>
           </div>
@@ -658,10 +947,10 @@ const changeCommand = (command) => {
           <div class="setting_right">
             <div class="slider-demo-block">
               <el-slider
-                v-model="botSetting.top_p"
+                v-model="currentTop_p"
                 :format-tooltip="formatTooltip"
                 :step="10"
-                :disabled="!botSetting.open"
+                :disabled="!aiEnglishStore.useCustomizedInfo"
               />
             </div>
           </div>
@@ -676,11 +965,18 @@ const changeCommand = (command) => {
           </div>
           <div class="setting_right">
             <el-input
-              v-model="botSetting.max_tokens"
-              :disabled="!botSetting.open"
-              placeholder="需要填入整数"
+              v-model="currentMaxTokens"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
+              placeholder="需填入正整数"
               @focus="remove_wrong"
-              @blur="checkInt($event, 'max_tokens 必须为正整数', botSetting.max_tokens)"
+              @blur="
+                checkInt(
+                  $event,
+                  'max_tokens 必须为正整数',
+                  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex]
+                    .max_tokens
+                )
+              "
             />
           </div>
         </div>
@@ -694,11 +990,18 @@ const changeCommand = (command) => {
           </div>
           <div class="setting_right">
             <el-input
-              v-model="botSetting.history_count"
-              :disabled="!botSetting.open"
-              placeholder="需要填入整数"
+              v-model="currentHistoryCount"
+              :disabled="!aiEnglishStore.useCustomizedInfo"
+              placeholder="需填入正整数"
               @focus="remove_wrong"
-              @blur="checkInt($event, '历史消息数必须为正整数', botSetting.history_count)"
+              @blur="
+                checkInt(
+                  $event,
+                  '历史消息数必须为正整数',
+                  aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex]
+                    .history_count
+                )
+              "
             />
           </div>
         </div>
@@ -706,8 +1009,10 @@ const changeCommand = (command) => {
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="cancelSetting">取消</el-button>
-          <el-button type="primary" @click="commitSetting"> 确定 </el-button>
+          <el-button type="primary" @click="commitSetting"> 确定配置并退出 </el-button>
+          <el-button type="danger" @click="deleteCustomizedInfos">
+            删除全部配置
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -910,14 +1215,16 @@ const changeCommand = (command) => {
 /* ↓ 弹出框样式 ↓ */
 
 .setting_items {
-  max-height: 60vh;
-  overflow-y: auto;
-
   display: flex;
   flex-direction: column;
-  border: 1px solid black;
-  border-radius: 12px;
+
+  max-height: 65vh;
+  overflow-y: auto;
+
   padding: 20px;
+  margin: 0 10px;
+  border-radius: 12px;
+  border: 1px solid black;
 }
 
 .setting_item {
@@ -984,5 +1291,26 @@ const changeCommand = (command) => {
 
 .el-divider--horizontal {
   margin: 14px auto;
+}
+
+.option-input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.setting_item {
+  display: flex;
+}
+
+.setting_item .setting_title {
+  flex-grow: 1;
+}
+
+.setting_item .setting_icon {
+  flex-grow: 0;
+}
+
+.icon-bianji4 {
+  margin-left: 10px;
 }
 </style>
