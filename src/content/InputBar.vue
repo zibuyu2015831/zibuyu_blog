@@ -90,7 +90,7 @@ const handleKeyDown = (e) => {
     <textarea
       rows="1"
       @input="handlerHeight"
-      placeholder="Enter发送；Ctrl+Enter换行"
+      placeholder="Enter发送; Ctrl+Enter换行"
       autofocus
       @focus="heavierBorder"
       @blur="lighterBorder"

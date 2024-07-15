@@ -115,9 +115,9 @@ function draw() {
   }
 }
 
-// onMounted(() => {
-//   setInterval(draw, 100); // 每50ms调用一次draw函数
-// });
+onMounted(() => {
+  setInterval(draw, 100); // 每50ms调用一次draw函数
+});
 
 </script>
 

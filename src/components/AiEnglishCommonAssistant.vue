@@ -137,6 +137,9 @@ onMounted(async () => {
   downloadCurrentSetting();
 });
 
+function renew_conversation() {
+  aiEnglishStore.assistant_messages.data = [];
+}
 // // // // // // // // // // ↑ 全局相关 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 消息下方的按钮 ↓ // // // // // // // // // //
@@ -187,7 +190,14 @@ const copyText = async (textToCopy) => {
 
 // // // // // // // // // // ↑ 消息下方的按钮 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 配置弹出框 ↓ // // // // // // // // // //
+// // // // // // // // // // ↓ 用户配置弹出框 ↓ // // // // // // // // // //
+
+// 控制配置弹出框的出现
+const userSettingVisible = ref(false);
+
+// // // // // // // // // // ↑ 用户配置弹出框 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ AI配置弹出框 ↓ // // // // // // // // // //
 
 // 控制配置弹出框的出现
 const botSettingVisible = ref(false);
@@ -199,6 +209,8 @@ const settingUrlParentEL = ref(null);
 function showSetting(role) {
   if (role === "assistant") {
     botSettingVisible.value = true;
+  }else{
+    userSettingVisible.value = true;
   }
 }
 
@@ -345,7 +357,7 @@ function isPositiveInteger(str) {
   return positiveIntegerPattern.test(str);
 }
 
-// // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
+// // // // // // // // // // ↑ AI配置弹出框 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 显示配置 ↓ // // // // // // // // // //
 
@@ -370,12 +382,20 @@ watch(currentModel, (newVal, oldVal) => {
 });
 
 watch(currentTemperature, (newVal, oldVal) => {
+  if (newVal == 0) {
+    newVal = 0.1;
+  }
+
   aiEnglishStore.customized_infos[
     aiEnglishStore.currentSettingIndex
   ].temperature = newVal;
 });
 
 watch(currentTop_p, (newVal, oldVal) => {
+  if (newVal == 0) {
+    newVal = 0.1;
+  }
+
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p = newVal;
 });
 
@@ -549,7 +569,7 @@ async function conversation() {
   );
 
   addMessage("assistant", "");
-  
+
   await nextTick();
   // 将聊天框拉到最下面
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
@@ -670,6 +690,7 @@ async function conversation() {
 
     <div class="message_area" ref="messageAreaRef">
       <div
+        v-if="aiEnglishStore.assistant_messages.data.length !== 0"
         class="message_parent clear-fix"
         v-for="(item, index) in aiEnglishStore.assistant_messages.data"
         :key="index"
@@ -787,17 +808,31 @@ async function conversation() {
           </div>
         </div>
       </div>
-      <div class="final_message clear-fix"></div>
+
+      <div v-else>
+        <div class="react_content_ai">
+          <div class="avatar" @click="showSetting('assistant')"></div>
+          <div>
+            <div class="content">
+              <div>你好，有什么可以帮你的吗?</div>
+            </div>
+          </div>
+        </div>
+        <div class="final_message clear-fix"></div>
+      </div>
     </div>
 
     <div class="input_area">
+      <span class="new_message icon-message iconfont" @click="renew_conversation"
+        >&nbsp;&nbsp;开启新话题</span
+      >
       <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage">
       </InputBar>
 
       <div class="tip">交互内容由AI生成, 请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="设置菜单" width="650" top="50px" center>
+    <el-dialog v-model="botSettingVisible" title="AI设置" width="650" top="50px" center>
       <div class="setting_items" ref="setting_items">
         <div class="setting_item">
           <div class="setting_left">
@@ -1033,6 +1068,12 @@ async function conversation() {
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="userSettingVisible" width="650" top="50px" center>
+      <template #header> 用户设置 </template>
+      <template #footer> 功能待开发~ 0.0 </template>
+      
+    </el-dialog>
   </div>
 </template>
 
@@ -1180,6 +1221,8 @@ async function conversation() {
   top: 12px;
   background-size: contain;
   background-image: url("@/assets/image/user_avatar.png");
+  cursor: pointer;
+
 }
 
 /* final_message用于调整窗口 */
@@ -1198,6 +1241,23 @@ async function conversation() {
   text-align: center;
   flex-grow: 0;
   flex-shrink: 0;
+}
+
+.new_message {
+  position: relative;
+  top: -20px;
+  font-size: 15px;
+  border: 1px solid var(--english_page_bg);
+  border-radius: 15px;
+  padding: 8px 15px;
+  background-color: var(--english_page_bg);
+  transition: color 0.3s ease, border 0.3s ease; /* 添加过渡效果 */
+  cursor: pointer;
+}
+
+.new_message:hover {
+  color: #007aff;
+  border: 1px solid #007aff;
 }
 
 .react_content_button span {
