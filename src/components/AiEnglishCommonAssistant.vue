@@ -120,6 +120,11 @@ function handleCustomizedInfos(action) {
   }
 }
 
+// 切换功能菜单
+const changeCommand = (command) => {
+  aiEnglishStore.currentConmand = command;
+};
+
 onMounted(async () => {
   await nextTick();
 
@@ -173,6 +178,7 @@ const copyText = async (textToCopy) => {
     ElMessage({
       message: "复制成功",
       type: "success",
+      offset: 700,
     });
   } catch (err) {
     ElMessage.error("复制失败");
@@ -439,10 +445,8 @@ const deleteSettingItem = (index) => {
   // 使用 setTimeout 确保 Vue 检测到数据变化并更新 DOM
   setTimeout(() => {
     aiEnglishStore.currentSettingIndex = Math.max(index - 1, 0);
+    downloadCurrentSetting(); // 页面重新加载数据
   }, 0);
-
-  // 页面重新加载数据
-  downloadCurrentSetting();
 
   if (aiEnglishStore.customized_infos.length == 0) {
     aiEnglishStore.customized_infos.push({
@@ -478,7 +482,21 @@ function addMessage(role, content) {
 
 // 处理用户输入
 const handleInput = async (content) => {
-  if (!content || !canSendMessage.value) {
+  if (!content) {
+    ElMessage.error("内容为空");
+    return;
+  }
+
+  if (!canSendMessage.value) {
+    ElMessage.error("AI正在回复, 请稍等~");
+    return;
+  }
+
+  if (!requestUrl.value || requestKey.value.length === 7) {
+    ElMessage.error({
+      message: "代理地址或密钥为空！",
+      duration: 5000, // 设置停留时间，单位为毫秒，这里设置为5秒
+    });
     return;
   }
 
@@ -531,6 +549,10 @@ async function conversation() {
   );
 
   addMessage("assistant", "");
+  
+  await nextTick();
+  // 将聊天框拉到最下面
+  messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
 
   const lastData =
     aiEnglishStore.assistant_messages.data[
@@ -607,11 +629,6 @@ async function conversation() {
 }
 
 // // // // // // // // // // ↑ 消息交互 ↑ // // // // // // // // // //
-
-// 切换功能菜单
-const changeCommand = (command) => {
-  aiEnglishStore.currentConmand = command;
-};
 </script>
 
 <template>
@@ -777,10 +794,10 @@ const changeCommand = (command) => {
       <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage">
       </InputBar>
 
-      <div class="tip">交互内容由AI生成，请注意鉴别</div>
+      <div class="tip">交互内容由AI生成, 请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="设置菜单" width="650" center>
+    <el-dialog v-model="botSettingVisible" title="设置菜单" width="650" top="50px" center>
       <div class="setting_items" ref="setting_items">
         <div class="setting_item">
           <div class="setting_left">

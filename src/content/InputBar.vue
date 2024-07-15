@@ -59,6 +59,11 @@ const handlerHeight = (e) => {
   textarea.style.height = `${height}px`;
 };
 
+function Submit(){
+  props.handleSubmit(inputContent.value); // 提交表单
+  inputContent.value = ''
+} 
+
 // 处理键盘事件
 const handleKeyDown = (e) => {
   if (e.key === "Enter" && !e.ctrlKey) {
@@ -102,7 +107,7 @@ const handleKeyDown = (e) => {
         round
         class="submit_button"
         :size="isEnglishButtonSmall ? 'default' : 'large'"
-        @click="handleSubmit(inputContent)"
+        @click="Submit"
         v-if="props.canSendMessage"
       >
         发 送
