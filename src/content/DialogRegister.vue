@@ -1,8 +1,7 @@
 <script setup>
 import { ref, reactive } from "vue";
-
+import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
-
 
 const deviceInfoStore = useDeviceInfo();
 
@@ -12,18 +11,115 @@ const registerInfo = reactive({
   username: "",
   password: "",
   again_password: "",
-  registerCode: "",
+  inviteCode: "",
 });
+
+function base64Encode(str) {
+  // 将字符串转换为UTF-8编码的二进制数据
+  const utf8Bytes = encodeURIComponent(str).replace(
+    /%([0-9A-F]{2})/g,
+    function (match, p1) {
+      return String.fromCharCode("0x" + p1);
+    }
+  );
+  // 使用btoa进行Base64编码
+  return btoa(utf8Bytes);
+}
 
 function cancelRegister() {
   deviceInfoStore.isShowRegisterDialog = false;
 }
 
 function commitRegister() {
-  deviceInfoStore.isShowRegisterDialog = false;
-  console.log(registerInfo.username);
-  console.log(registerInfo.password);
-  console.log(registerInfo.registerCode);
+  if (!registerInfo.username || !registerInfo.password || !registerInfo.inviteCode) {
+    ElMessage({
+      message: "请填写所有字段！",
+      type: "error",
+    });
+    return;
+  }
+
+  if (registerInfo.inviteCode.length !== 32) {
+    ElMessage({
+      message: "【邀请码】格式错误，请检查",
+      type: "error",
+    });
+    return;
+  }
+
+  if (registerInfo.password !== registerInfo.again_password) {
+    ElMessage({
+      message: "两次密码输入不一致，请检查",
+      type: "error",
+    });
+    return;
+  }
+
+  const splitChar = registerInfo.inviteCode.substring(2, 12);
+  const encodedUsername = base64Encode(registerInfo.username);
+  const encodedPassword = base64Encode(registerInfo.password);
+  const data = `${encodedUsername}${splitChar}${encodedPassword}`;
+
+  const headers = {
+    "Content-Type": "application/json",
+    "User-Agent": navigator.userAgent, // 自动获取 User-Agent
+    Origin: window.location.origin, // 自动获取 Origin
+    Referer: document.referrer, // 自动获取 Referer
+  };
+
+  const response = fetch("/api/account/register/", {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify({
+      data: data,
+      invite_code: registerInfo.inviteCode,
+    }),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Network response was not ok " + res.statusText);
+      }
+      return res.json(); // 响应应该是 JSON 格式的
+    })
+    .then((data) => {
+      const code = data.code;
+
+      if (code === 0) {
+        ElMessage({
+          message: "注册成功",
+          type: "success",
+        });
+        deviceInfoStore.isShowRegisterDialog = false;
+
+        registerInfo.username = ''
+        registerInfo.password = ''
+        registerInfo.again_password = ''
+        registerInfo.inviteCode = ''
+        
+      } else if (code === 2004) {
+        ElMessage({
+          message: "邀请码错误",
+          type: "error",
+        });
+      } else if (code === 2005) {
+        ElMessage({
+          message: "该邀请码已经被注册过了！",
+          type: "warning",
+        });
+      } else {
+        ElMessage({
+          message: "未知错误，注册失败",
+          type: "error",
+        });
+      }
+    })
+    .catch((error) => {
+      ElMessage({
+        message: "未知错误，注册失败",
+        type: "error",
+      });
+      console.error("There was a problem with the fetch operation:", error);
+    });
 }
 
 function login_now() {
@@ -43,7 +139,7 @@ function login_now() {
     <el-form
       :label-position="'top'"
       label-width="auto"
-      :model="loginInfo"
+      :model="registerInfo"
       style="max-width: 500px"
     >
       <el-form-item label="用户名" :required="true">
@@ -68,7 +164,7 @@ function login_now() {
 
       <el-form-item label="邀请码" :required="true">
         <el-input
-          v-model="registerInfo.registerCode"
+          v-model="registerInfo.inviteCode"
           placeholder="关注公众号【思维兵工厂】，回复“邀请码”"
         />
       </el-form-item>

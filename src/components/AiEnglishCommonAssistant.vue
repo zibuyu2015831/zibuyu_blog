@@ -174,6 +174,11 @@ function hiddenText(event, text_id) {
     .assistant_messages.data[text_id].isHidden;
 }
 
+function renew_answer(event, text_id) {
+  aiEnglishStore.removeAssistantMessagesByIndex(text_id);
+  handleConversation();
+}
+
 // 复制文本
 const copyText = async (textToCopy) => {
   try {
@@ -209,7 +214,7 @@ const settingUrlParentEL = ref(null);
 function showSetting(role) {
   if (role === "assistant") {
     botSettingVisible.value = true;
-  }else{
+  } else {
     userSettingVisible.value = true;
   }
 }
@@ -526,7 +531,10 @@ const handleInput = async (content) => {
   await nextTick();
   // 将聊天框拉到最下面
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  handleConversation();
+};
 
+const handleConversation = async () => {
   try {
     canSendMessage.value = false;
     await nextTick();
@@ -728,17 +736,12 @@ async function conversation() {
               effect="dark"
               content="刷新"
               placement="bottom-start"
+              v-if="index==aiEnglishStore.assistant_messages.data.length-1"
             >
-              <span class="icon-refresh iconfont"></span>
-            </el-tooltip>
-
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="示例"
-              placement="bottom-start"
-            >
-              <span class="icon-message iconfont"></span>
+              <span
+                class="icon-refresh iconfont"
+                @click="renew_answer($event, index)"
+              ></span>
             </el-tooltip>
 
             <el-tooltip
@@ -779,24 +782,6 @@ async function conversation() {
             <el-tooltip
               class="box-item"
               effect="dark"
-              content="语法"
-              placement="bottom-start"
-            >
-              <span class="icon-message iconfont"></span>
-            </el-tooltip>
-
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="评分"
-              placement="bottom-start"
-            >
-              <span class="icon-information-o iconfont"></span>
-            </el-tooltip>
-
-            <el-tooltip
-              class="box-item"
-              effect="dark"
               content="复制"
               placement="bottom-start"
             >
@@ -820,6 +805,8 @@ async function conversation() {
         </div>
         <div class="final_message clear-fix"></div>
       </div>
+      <div class="final_message clear-fix"></div>
+      <!-- 对话结束 -->
     </div>
 
     <div class="input_area">
@@ -832,7 +819,7 @@ async function conversation() {
       <div class="tip">交互内容由AI生成, 请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="AI设置" width="650" top="50px" center>
+    <el-dialog v-model="botSettingVisible" width="650" top="50px" center>
       <div class="setting_items" ref="setting_items">
         <div class="setting_item">
           <div class="setting_left">
@@ -1070,9 +1057,7 @@ async function conversation() {
     </el-dialog>
 
     <el-dialog v-model="userSettingVisible" width="650" top="50px" center>
-      <template #header> 用户设置 </template>
-      <template #footer> 功能待开发~ 0.0 </template>
-      
+      <div>功能待开发~ 0.0</div>
     </el-dialog>
   </div>
 </template>
@@ -1222,7 +1207,6 @@ async function conversation() {
   background-size: contain;
   background-image: url("@/assets/image/user_avatar.png");
   cursor: pointer;
-
 }
 
 /* final_message用于调整窗口 */

@@ -84,6 +84,11 @@ function hiddenText(event, text_id) {
     .english_messages.data[text_id].isHidden;
 }
 
+function renew_answer(event, text_id) {
+  aiEnglishStore.removeEnglishMessagesByIndex(text_id);
+  handleConversation();
+}
+
 // 复制文本
 const copyText = async (textToCopy) => {
   try {
@@ -145,7 +150,13 @@ function addMessage(role, content) {
 
 // 处理用户输入
 const handleInput = async (content) => {
-  if (!content || !canSendMessage.value) {
+  if (!content) {
+    ElMessage.error("内容为空");
+    return;
+  }
+
+  if (!canSendMessage.value) {
+    ElMessage.error("AI正在回复, 请稍等~");
     return;
   }
 
@@ -156,16 +167,19 @@ const handleInput = async (content) => {
   // 将聊天框拉到最下面
   messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
 
+  handleConversation();
+};
+
+const handleConversation = async () => {
   try {
     canSendMessage.value = false;
-
     await nextTick();
 
     await conversation();
   } catch {
     const lastData =
-      aiEnglishStore.english_messages.data[
-        aiEnglishStore.english_messages.data.length - 1
+      aiEnglishStore.assistant_messages.data[
+        aiEnglishStore.assistant_messages.data.length - 1
       ];
 
     if (lastData.role == "assistant") {
@@ -175,6 +189,7 @@ const handleInput = async (content) => {
     }
   } finally {
     canSendMessage.value = true;
+    await nextTick();
   }
 };
 
@@ -343,8 +358,12 @@ const changeCommand = (command) => {
               effect="dark"
               content="刷新"
               placement="bottom-start"
+              v-if="index == aiEnglishStore.english_messages.data.length - 1"
             >
-              <span class="icon-refresh iconfont"></span>
+              <span
+                class="icon-refresh iconfont"
+                @click="renew_answer($event, index)"
+              ></span>
             </el-tooltip>
 
             <el-tooltip
