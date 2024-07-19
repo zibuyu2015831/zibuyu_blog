@@ -33,37 +33,141 @@ function loginSuccess() {
 }
 
 // 消息提示：登录失败
-function loginfailed() {
+function loginfailed(msg) {
   ElMessage({
-    message: "登录失败，请检查用户名或密码！",
+    message: msg,
     type: "error",
   });
 }
 
-function commitLogin() {
-  //  模拟登录时写入token
-  const user_token = "123456";
+function base64Encode(str) {
+  // 将字符串转换为UTF-8编码的二进制数据
+  const utf8Bytes = encodeURIComponent(str).replace(
+    /%([0-9A-F]{2})/g,
+    function (match, p1) {
+      return String.fromCharCode("0x" + p1);
+    }
+  );
+  // 使用btoa进行Base64编码
+  return btoa(utf8Bytes);
+}
 
-  if (user_token) {
-    //  将登录状态写入状态管理
-    sessionStorage.setItem("login_token", user_token);
-    userInfoStore.userToken = user_token;
-    userInfoStore.username = loginInfo.username;
-    userInfoStore.isLogin = true;
+function generateRandomString(length) {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const numericCharacters = "0123456789";
+  let randomString = "";
 
-    console.log("useUserInfo.isLogin ", userInfoStore.isLogin);
-    console.log("useUserInfo.username ", userInfoStore.username);
-    console.log("useUserInfo.userToken ", userInfoStore.userToken);
-
-    loginInfo.username = "";
-    loginInfo.password = "";
-
-    // 消息提示：登录成功
-    loginSuccess();
-  } else {
-    // 消息提示：登录失败
-    loginfailed();
+  for (let i = 0; i < length - 1; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
   }
+
+  // 确保最后一位是数字
+  const randomNumericIndex = Math.floor(Math.random() * numericCharacters.length);
+  randomString += numericCharacters.charAt(randomNumericIndex);
+
+  return randomString;
+}
+
+function isDigitOdd(randomString) {
+  // 获取字符串的最后一位
+  const lastChar = randomString.charAt(randomString.length - 1);
+
+  // 将最后一位转换为数字类型
+  const lastDigit = parseInt(lastChar, 10);
+
+  // 判断数字是奇数还是偶数
+  if (isNaN(lastDigit)) {
+    return true;
+  } else if (lastDigit % 2 === 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function commitLogin() {
+  if (!loginInfo.username) {
+    ElMessage({
+      message: "请填写用户名！",
+      type: "error",
+    });
+    return;
+  }
+
+  if (!loginInfo.password) {
+    ElMessage({
+      message: "请填写登录密码！",
+      type: "error",
+    });
+    return;
+  }
+
+  const splitChar = generateRandomString(10);
+  const encodedUsername = base64Encode(loginInfo.username);
+  const encodedPassword = base64Encode(loginInfo.password);
+
+  const user_data = ref("");
+  const check_result = isDigitOdd(splitChar);
+
+  if (check_result) {
+    user_data.value = `${encodedUsername}${splitChar}${encodedPassword}`;
+  } else {
+    user_data.value = `${encodedPassword}${splitChar}${encodedUsername}`;
+  }
+
+  const headers = {
+    "Content-Type": "application/json",
+    "User-Agent": navigator.userAgent, // 自动获取 User-Agent
+    Origin: window.location.origin, // 自动获取 Origin
+    Referer: document.referrer, // 自动获取 Referer
+  };
+
+  const response = fetch("/api/account/login/", {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify({
+      data: user_data.value,
+      login_code: splitChar,
+    }),
+  })
+    .then((res) => {
+
+      if (!res.ok) {
+        throw new Error("Network response was not ok " + res.statusText);
+      }
+      return res.json(); // 响应应该是 JSON 格式的
+    })
+    .then((data) => {
+      const code = data.code;
+
+      if (code === 0) {
+        // 消息提示：登录成功
+        loginSuccess();
+
+        userInfoStore.userToken = data.token;
+        userInfoStore.username = data.username;
+        userInfoStore.isLogin = true;
+
+        loginInfo.username = "";
+        loginInfo.password = "";
+
+        localStorage.setItem('token',data.token)
+      } else if (code == 2004) {
+        // 消息提示：登录失败
+        loginfailed("登录失败，请检查用户名或密码！");
+      } else {
+        // 消息提示：登录失败
+        loginfailed("其他错误，登录失败！");
+      }
+    })
+    .catch((error) => {
+      ElMessage({
+        message: "未知错误，登录失败",
+        type: "error",
+      });
+      console.error("There was a problem with the login fetch operation:", error);
+    });
 }
 
 function register_now() {
@@ -71,11 +175,20 @@ function register_now() {
   deviceInfoStore.isShowRegisterDialog = true;
 }
 
+function forget_pwd() {
+  deviceInfoStore.isShowLoginDialog = false;
+  deviceInfoStore.isShowResetPasswordDialog = true;
+}
+
 // // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 </script>
 
 <template>
-  <el-dialog v-model="deviceInfoStore.isShowLoginDialog" :width="deviceInfoStore.dialogWidth" :lock-scroll="false">
+  <el-dialog
+    v-model="deviceInfoStore.isShowLoginDialog"
+    :width="deviceInfoStore.dialogWidth"
+    :lock-scroll="false"
+  >
     <el-form
       :label-position="'top'"
       label-width="auto"
@@ -83,10 +196,10 @@ function register_now() {
       style="max-width: 500px"
     >
       <el-form-item label="用户名" :required="true">
-        <el-input v-model="loginInfo.username" />
+        <el-input v-model="loginInfo.username" autofocus placeholder="忘记用户名？可在公众号【思维兵工厂】，发送【用户名】获取"/>
       </el-form-item>
       <el-form-item label="密码" :required="true">
-        <el-input v-model="loginInfo.password" type="password" />
+        <el-input v-model="loginInfo.password" type="password" show-password/>
       </el-form-item>
     </el-form>
 
@@ -94,7 +207,10 @@ function register_now() {
       <div class="dialog_footer">
         <span>
           <el-button type="warning" class="register_now" @click="register_now">
-            没有账号？立刻注册
+            注册
+          </el-button>
+          <el-button type="danger" class="login_now" @click="forget_pwd">
+            忘记密码
           </el-button>
         </span>
 

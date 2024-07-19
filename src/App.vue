@@ -9,8 +9,12 @@ import { onMounted, onBeforeUnmount, ref, onBeforeMount, computed } from "vue";
 import DialogLogin from "@/content/DialogLogin.vue";
 import DialogReward from "@/content/DialogReward.vue";
 import DialogRegister from "@/content/DialogRegister.vue";
+import ResetPassword from "@/content/ResetPassword.vue";
 
 // // // // // // // ↓ 状态管理 ↓ // // // // // // //
+
+const userInfoStore = useUserInfo();
+userInfoStore.loadTokenFromLocalStorage();
 
 // 执行函数，拿到Store
 const deviceInfoStore = useDeviceInfo();
@@ -134,8 +138,9 @@ const isRouterViewMounted = () => {
   <router-view @vue:mounted="isRouterViewMounted"></router-view>
 
   <DialogReward />
-  <DialogLogin v-if="!useUserInfo.isLogin"  />
-  <DialogRegister v-if="!useUserInfo.isLogin"  />
+  <DialogLogin v-if="!useUserInfo.isLogin" />
+  <DialogRegister v-if="!useUserInfo.isLogin" />
+  <ResetPassword v-if="!useUserInfo.isLogin" />
 </template>
 
 <style scoped>

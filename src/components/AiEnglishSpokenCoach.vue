@@ -1,6 +1,7 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
+import useUserInfo from "@/stores/userInfo";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, reactive, nextTick, onMounted } from "vue";
@@ -17,6 +18,7 @@ import "highlight.js/styles/atom-one-dark-reasonable.css";
 
 const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
+const userInfoStore = useUserInfo();
 
 const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 

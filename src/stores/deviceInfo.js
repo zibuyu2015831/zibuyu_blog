@@ -26,8 +26,8 @@ const useDeviceInfo = defineStore('deviceInfo', {
         scrollTop: ref(0),  // 屏幕向下滚动数
 
         isEnglishFoldMenu: ref(false), // AI英语界面是否折叠左侧菜单
-        englishInputAreaHeight: ref(0), 
-        
+        englishInputAreaHeight: ref(0),
+
 
         // elementPlus的弹出框必须挂载在全局
 
@@ -43,6 +43,8 @@ const useDeviceInfo = defineStore('deviceInfo', {
         isShowLoginDialog: ref(false),
         //注册弹出框
         isShowRegisterDialog: ref(false),
+        //重设密码弹出框
+        isShowResetPasswordDialog: ref(false),
 
         // 以下是一些常量
 
@@ -64,10 +66,10 @@ const useDeviceInfo = defineStore('deviceInfo', {
         },
 
         // 页面弹窗宽度，当屏幕宽度小于500时占据全部宽度，最大500
-        dialogWidth(state){
-            if (state.userScreenWidth<500){
+        dialogWidth(state) {
+            if (state.userScreenWidth < 500) {
                 return state.userScreenWidth
-            }else{
+            } else {
                 return 500
             }
         },

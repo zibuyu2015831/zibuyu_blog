@@ -1,9 +1,7 @@
 <script setup>
 import { ElMessage } from "element-plus";
-import { ref, reactive } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import useUserInfo from "@/stores/userInfo";
-import { setLocalStorageWithExpiration } from "@/utils/uselocalStorage";
 import { storeToRefs } from "pinia";
 
 // // // // // ↓ 状态管理 ↓ // // // // //
@@ -20,10 +18,11 @@ const { username, isLogin } = storeToRefs(userInfoStore); // 读取状态
 
 // 退出登录
 function resetLogin() {
-  // 从localStorage移除token
-  localStorage.removeItem("login_token");
+  // 移除localStorage中的token
+  localStorage.removeItem("token");
   userInfoStore.isLogin = false;
   userInfoStore.username = "";
+  userInfoStore.userToken = ''
 
   ElMessage({
     message: "您已经退出登录~",

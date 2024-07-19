@@ -1,11 +1,7 @@
 <script setup>
-import { ref } from "vue";
-
 import useAiEnglish from "@/stores/aiEnglish";
 import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
-
-import { storeToRefs } from "pinia";
 
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 const foldMenuWidth = 40;
@@ -16,8 +12,6 @@ const foldMenuWidth = 40;
 const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
 const userInfoStore = useUserInfo();
-
-const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 

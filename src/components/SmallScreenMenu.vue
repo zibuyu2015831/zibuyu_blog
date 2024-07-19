@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Search } from "@element-plus/icons-vue";
 import useUserInfo from "@/stores/userInfo";
@@ -84,10 +84,11 @@ function useLightTheme() {
 
 // 退出登录
 function resetLogin() {
-  // 从localStorage移除token
-  localStorage.removeItem("login_token");
+  // 移除localStorage中的token
+  localStorage.removeItem("token");
   userInfoStore.isLogin = false;
   userInfoStore.username = "";
+  userInfoStore.userToken = ''
 
   ElMessage({
     message: "您已经退出登录~",

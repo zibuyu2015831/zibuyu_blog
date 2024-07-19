@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps } from "vue";
+import { ref } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
 // // // // // // // // // // ↓ 读取状态 ↓ // // // // // // // // // //

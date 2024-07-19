@@ -12,11 +12,14 @@ import InputBar from "@/content/InputBar.vue";
 import MenuButton from "@/content/MenuButton.vue";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
+import {remindLogin,remindReLogin} from '@/utils/remindLogin'
+import useUserInfo from "@/stores/userInfo";
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
 const aiEnglishStore = useAiEnglish();
 const deviceInfoStore = useDeviceInfo();
+const userInfoStore = useUserInfo();
 
 const { isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);
 const {
@@ -507,6 +510,17 @@ function addMessage(role, content) {
 
 // 处理用户输入
 const handleInput = async (content) => {
+
+  if (userInfoStore.token==0){
+    remindLogin()
+    return
+  }
+
+  if (userInfoStore.token==-1){
+    remindReLogin()
+    return
+  }
+
   if (!content) {
     ElMessage.error("内容为空");
     return;

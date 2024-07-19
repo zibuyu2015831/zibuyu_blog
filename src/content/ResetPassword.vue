@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
 
@@ -7,11 +7,11 @@ const deviceInfoStore = useDeviceInfo();
 
 // // // // // // // // // // ↓ 注册功能 ↓ // // // // // // // // // //
 
-const registerInfo = reactive({
+const userInfo = reactive({
   username: "",
   password: "",
   again_password: "",
-  inviteCode: "",
+  authenticateCode: "",
 });
 
 function base64Encode(str) {
@@ -26,45 +26,47 @@ function base64Encode(str) {
   return btoa(utf8Bytes);
 }
 
-function cancelRegister() {
-  deviceInfoStore.isShowRegisterDialog = false;
-  registerInfo.username = "";
-  registerInfo.password = "";
-  registerInfo.again_password = "";
-  registerInfo.inviteCode = "";
+function cancelResetPassword() {
+  deviceInfoStore.isShowResetPasswordDialog = false;
+  userInfo.password = "";
+  userInfo.again_password = "";
+  userInfo.authenticateCode = "";
 }
 
-function commitRegister() {
-  if (
-    !registerInfo.username ||
-    !registerInfo.password ||
-    !registerInfo.again_password ||
-    !registerInfo.inviteCode
-  ) {
+function commitResetPassword() {
+  if (!userInfo.password) {
     ElMessage({
-      message: "请填写所有字段！",
+      message: "请填写新的密码！",
       type: "error",
     });
     return;
   }
 
-  if (registerInfo.inviteCode.length !== 32) {
+  if (!userInfo.again_password) {
     ElMessage({
-      message: "【邀请码】格式错误，请检查",
+      message: "请再次输入新的密码！",
       type: "error",
     });
     return;
   }
 
-  if (registerInfo.username.length > 50) {
+  if (!userInfo.authenticateCode) {
     ElMessage({
-      message: "用户名太长了",
+      message: "请填写授权码！",
       type: "error",
     });
     return;
   }
 
-  if (registerInfo.password !== registerInfo.again_password) {
+  if (userInfo.authenticateCode.length !== 32) {
+    ElMessage({
+      message: "【授权码】格式错误，请检查",
+      type: "error",
+    });
+    return;
+  }
+
+  if (userInfo.password !== userInfo.again_password) {
     ElMessage({
       message: "两次密码输入不一致，请检查",
       type: "error",
@@ -72,10 +74,7 @@ function commitRegister() {
     return;
   }
 
-  const splitChar = registerInfo.inviteCode.substring(2, 12);
-  const encodedUsername = base64Encode(registerInfo.username);
-  const encodedPassword = base64Encode(registerInfo.password);
-  const data = `${encodedUsername}${splitChar}${encodedPassword}`;
+  const data = base64Encode(userInfo.password);
 
   const headers = {
     "Content-Type": "application/json",
@@ -84,12 +83,12 @@ function commitRegister() {
     Referer: document.referrer, // 自动获取 Referer
   };
 
-  const response = fetch("/api/account/register/", {
+  const response = fetch("/api/account/reset_pwd/", {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
       data: data,
-      invite_code: registerInfo.inviteCode,
+      authenticate_code: userInfo.authenticateCode,
     }),
   })
     .then((res) => {
@@ -103,35 +102,38 @@ function commitRegister() {
 
       if (code === 0) {
         ElMessage({
-          message: "注册成功",
+          message: "密码重置成功，即将跳转到登陆界面",
           type: "success",
         });
-        deviceInfoStore.isShowRegisterDialog = false;
 
-        registerInfo.username = "";
-        registerInfo.password = "";
-        registerInfo.again_password = "";
-        registerInfo.inviteCode = "";
+        userInfo.password = "";
+        userInfo.again_password = "";
+        userInfo.authenticateCode = "";
+
+        setTimeout(() => {
+          deviceInfoStore.isShowResetPasswordDialog = false;
+          deviceInfoStore.isShowLoginDialog = true;
+        }, 1300);
       } else if (code === 2004) {
         ElMessage({
-          message: "邀请码错误",
+          message: "授权码已失效",
           type: "error",
         });
-      } else if (code === 2005) {
+      } else if (code === 9001) {
         ElMessage({
-          message: "该邀请码已经被注册过了！",
+          message: "该账号尚未注册，请先注册账号",
           type: "warning",
         });
       } else {
         ElMessage({
-          message: "未知错误，注册失败",
+          message: "未知错误，重置密码失败",
           type: "error",
         });
       }
     })
     .catch((error) => {
       ElMessage({
-        message: "未知错误，注册失败",
+        message: "未知错误，重置密码失败",
         type: "error",
       });
       console.error("There was a problem with the register fetch operation:", error);
@@ -140,7 +142,7 @@ function commitRegister() {
 
 function login_now() {
   deviceInfoStore.isShowLoginDialog = true;
-  deviceInfoStore.isShowRegisterDialog = false;
+  deviceInfoStore.isShowResetPasswordDialog = false;
 }
 
 // // // // // // // // // // ↑ 注册功能 ↑ // // // // // // // // // //
@@ -148,40 +150,36 @@ function login_now() {
 
 <template>
   <el-dialog
-    v-model="deviceInfoStore.isShowRegisterDialog"
+    v-model="deviceInfoStore.isShowResetPasswordDialog"
     :width="deviceInfoStore.dialogWidth"
     :lock-scroll="false"
   >
     <el-form
       :label-position="'top'"
       label-width="auto"
-      :model="registerInfo"
+      :model="userInfo"
       style="max-width: 500px"
     >
-      <el-form-item label="用户名" :required="true">
-        <el-input v-model="registerInfo.username" placeholder="请输入用户名" />
-      </el-form-item>
-
-      <el-form-item label="密码" :required="true">
+      <el-form-item label="新密码" :required="true">
         <el-input
-          v-model="registerInfo.password"
+          v-model="userInfo.password"
           type="password"
-          placeholder="请输入密码"
+          placeholder="请输入新的密码"
         />
       </el-form-item>
 
       <el-form-item label="再次输入密码" :required="true">
         <el-input
-          v-model="registerInfo.again_password"
+          v-model="userInfo.again_password"
           type="password"
           placeholder="请再次输入密码"
         />
       </el-form-item>
 
-      <el-form-item label="邀请码" :required="true">
+      <el-form-item label="操作授权码" :required="true">
         <el-input
-          v-model="registerInfo.inviteCode"
-          placeholder="关注公众号【思维兵工厂】，回复“邀请码”"
+          v-model="userInfo.authenticateCode"
+          placeholder="关注公众号【思维兵工厂】，回复“授权码”"
         />
       </el-form-item>
 
@@ -189,7 +187,7 @@ function login_now() {
         <div class="block">
           <img clsaa="card_img" src="@/assets/image/official_wechat.jpg" />
           <div class="card_img_title">
-            扫码关注，获取<span style="color: red">邀请码</span>
+            扫码关注，获取<span style="color: red">授权码</span>
           </div>
         </div>
       </div>
@@ -199,13 +197,13 @@ function login_now() {
       <div class="dialog_footer">
         <span>
           <el-button type="warning" class="login_now" @click="login_now">
-            已有账号？前往登录
+            前往登录
           </el-button>
         </span>
 
         <span>
-          <el-button @click="cancelRegister">取消</el-button>
-          <el-button type="primary" @click="commitRegister"> 注册 </el-button>
+          <el-button @click="cancelResetPassword">取消</el-button>
+          <el-button type="primary" @click="commitResetPassword"> 确定 </el-button>
         </span>
       </div>
     </template>
