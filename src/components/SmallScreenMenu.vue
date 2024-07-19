@@ -5,8 +5,8 @@ import { Search } from "@element-plus/icons-vue";
 import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { ElButton, ElDrawer } from "element-plus";
-
 import { storeToRefs } from "pinia";
+import { logout } from "@/utils/logout";
 
 // // // // // ↓ 状态读取 ↓ // // // // //
 
@@ -80,23 +80,7 @@ function useLightTheme() {
 }
 // // // // // // // // // // ↑ 底部菜单：个人中心 ↑ // // // // // // // // // //
 
-// // // // // // // // // // ↓ 登录功能 ↓ // // // // // // // // // //
 
-// 退出登录
-function resetLogin() {
-  // 移除localStorage中的token
-  localStorage.removeItem("token");
-  userInfoStore.isLogin = false;
-  userInfoStore.username = "";
-  userInfoStore.userToken = ''
-
-  ElMessage({
-    message: "您已经退出登录~",
-    type: "info",
-  });
-}
-
-// // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -166,7 +150,7 @@ function resetLogin() {
           <div class="bottomMenuItem">个人中心</div>
           <div class="bottomMenuItem">我的消息</div>
           <div class="bottomMenuItem">邀请码</div>
-          <div class="bottomMenuItem" @click="resetLogin">退出</div>
+          <div class="bottomMenuItem" @click="logout">退出</div>
         </div>
 
         <div class="bottomMenuItems" v-if="!isLogin">
@@ -269,5 +253,4 @@ function resetLogin() {
 }
 
 /* ↑ 顶部设计 ↑ */
-
 </style>

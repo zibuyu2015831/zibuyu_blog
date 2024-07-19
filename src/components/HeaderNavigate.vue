@@ -1,8 +1,8 @@
 <script setup>
-import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import useUserInfo from "@/stores/userInfo";
 import { storeToRefs } from "pinia";
+import { logout } from "@/utils/logout";
 
 // // // // // ↓ 状态管理 ↓ // // // // //
 
@@ -16,27 +16,13 @@ const { username, isLogin } = storeToRefs(userInfoStore); // 读取状态
 
 // // // // // // // // // // ↓ 登录功能 ↓ // // // // // // // // // //
 
-// 退出登录
-function resetLogin() {
-  // 移除localStorage中的token
-  localStorage.removeItem("token");
-  userInfoStore.isLogin = false;
-  userInfoStore.username = "";
-  userInfoStore.userToken = ''
-
-  ElMessage({
-    message: "您已经退出登录~",
-    type: "info",
-  });
-}
-
 // // // // // // // // // // ↑ 登录功能 ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 登录状态下，顶栏右侧菜单栏的处理 ↓ // // // // // // // // // //
 
-const handleCommand = (command) => {
-  if (command === "restLogin") {
-    resetLogin();
+const handleCommand = async (command) => {
+  if (command === "logout") {
+    await logout();
   }
 };
 
@@ -133,7 +119,7 @@ const handleCommand = (command) => {
                 ><el-icon><Share /></el-icon><span>邀请码</span></el-dropdown-item
               >
 
-              <el-dropdown-item divided command="restLogin"
+              <el-dropdown-item divided command="logout"
                 ><el-icon><Promotion /></el-icon><span>退出登录</span></el-dropdown-item
               >
             </el-dropdown-menu>
