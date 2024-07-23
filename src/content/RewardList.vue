@@ -97,7 +97,7 @@ const rewardTableData = [
 /* ↓ 卡片标题样式 ↓ */
 
 .card:hover {
-  box-shadow: 1px 2px 2px 2px #7a7374;
+  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
   transform: scale(1.02);
   transition: transform 0.3s;
 }

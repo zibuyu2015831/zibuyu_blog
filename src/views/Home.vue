@@ -473,7 +473,7 @@ function submitUserRewardMessage() {
 }
 
 .article_card:hover {
-  box-shadow: 1px 2px 2px 2px #7a7374;
+  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
   transform: scale(1.02);
 }
 
@@ -560,7 +560,7 @@ function submitUserRewardMessage() {
 }
 
 .right_card:hover {
-  box-shadow: 1px 2px 2px 2px #7a7374;
+  box-shadow: 1px 2px 2px 2px #b8b2b3;
   transform: scale(1.02);
 }
 

@@ -86,6 +86,7 @@ function hiddenText(event, text_id) {
     .english_messages.data[text_id].isHidden;
 }
 
+// 刷新回答
 function renew_answer(event, text_id) {
   aiEnglishStore.removeEnglishMessagesByIndex(text_id);
   handleConversation();
@@ -100,7 +101,20 @@ const copyText = async (textToCopy) => {
       type: "success",
     });
   } catch (err) {
-    ElMessage.error("复制失败");
+    try {
+      const tempInput = document.createElement("input");
+      tempInput.value = textToCopy;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      ElMessage({
+        message: "复制成功",
+        type: "success",
+      });
+    } catch (err) {
+      ElMessage.error("复制失败");
+    }
   }
 };
 
@@ -108,9 +122,10 @@ const copyText = async (textToCopy) => {
 
 // // // // // // // // // // ↓ 配置弹出框 ↓ // // // // // // // // // //
 
-// 配置弹出框
+// 弹出框的显示
 const botSettingVisible = ref(false);
 
+// 切换显示状态
 function showSetting(role) {
   if (role === "assistant") {
     botSettingVisible.value = true;
@@ -123,8 +138,8 @@ const botSetting = reactive({
   voiceEvaluate: false, // 是否开启语音评测
   answerExample: false, // 是否给出回答示例
   collectWord: false, // 是否自动收集重难点单词
-  hiddenWord: false, // 是否自动收集重难点单词
-  autoAudio: false, // 是否自动收集重难点单词
+  hiddenWord: false, // 是否隐藏文本
+  autoAudio: false, // 是否自动播放音频
 });
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
@@ -132,14 +147,6 @@ const botSetting = reactive({
 // // // // // // // // // // ↓ 消息交互 ↓ // // // // // // // // // //
 
 const canSendMessage = ref(true);
-
-// const url = "/api/conversation/";
-const url = "https://api.freegpt.art/v1/chat/completions";
-
-const headers = {
-  "Content-Type": "application/json",
-  Authorization: "Bearer sk-VFtuc5lBPaGIcGwX291bD2578e8e4b838fAd50B267B4A126",
-};
 
 // 将消息加入队列
 function addMessage(role, content) {
@@ -165,9 +172,10 @@ const handleInput = async (content) => {
   // 将用户发送到消息加入队列
   addMessage("user", content);
 
-  await nextTick();
   // 将聊天框拉到最下面
-  messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  nextTick(() => {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  });
 
   handleConversation();
 };
@@ -191,27 +199,51 @@ const handleConversation = async () => {
     }
   } finally {
     canSendMessage.value = true;
-    await nextTick();
+    // 将聊天框拉到最下面
+    nextTick(() => {
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    });
   }
 };
 
 async function conversation() {
   addMessage("assistant", "");
 
+  // 用户发送的最后一条消息
+  const userMessage =
+    aiEnglishStore.english_messages.data[aiEnglishStore.english_messages.data.length - 2];
+
+  // AI即将回复的消息
   const lastData =
     aiEnglishStore.english_messages.data[aiEnglishStore.english_messages.data.length - 1];
 
-  const response = await fetch(url, {
+  if (botSetting.hiddenWord) {
+    lastData.isHidden = true;
+  }
+
+  // 将滚动条拉到最后
+  nextTick(() => {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  });
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${userInfoStore.token}`,
+  };
+
+  const response = await fetch("/api/english/english_chat/", {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
-      messages: aiEnglishStore.english_messages.data.slice(0, -1),
-      model: "gpt-3.5-turbo",
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      top_p: 1,
-      temperature: 0.5,
-      stream: true,
+      question: userMessage.content,
+
+      translate: botSetting.translate,
+      grammarCheck: botSetting.grammarCheck,
+      answerExample: botSetting.answerExample,
+
+      voiceEvaluate: botSetting.voiceEvaluate,
+      collectWord: botSetting.collectWord,
+      autoAudio: botSetting.autoAudio,
     }),
   });
 
@@ -219,8 +251,9 @@ async function conversation() {
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
-    await nextTick();
-    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    nextTick(() => {
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    });
   }
 
   const reader = response.body.getReader();
@@ -237,51 +270,49 @@ async function conversation() {
 
     const chunkString = decoder.decode(value, { stream: true });
 
-    // reserveText += chunkString;
-    // lastData.content = marked.parse(reserveText);
-    // messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight+200;
-
     const lines = chunkString.split("\n").filter((line) => line.trim() !== "");
 
-    for (const line of lines) {
-      if (line.startsWith("data:")) {
-        const jsonLine = line.slice(5).trim();
+    for (const jsonLine of lines) {
+      if (jsonLine === "[DONE]") {
+        break;
+      }
 
-        if (jsonLine === "[DONE]") {
-          break;
-        }
+      if (jsonLine) {
+        const jsonData = JSON.parse(jsonLine);
+        const content = jsonData.delta;
 
-        if (jsonLine) {
-          const jsonData = JSON.parse(jsonLine);
+        if (content) {
+          reserveText += content;
+          lastData.content = marked.parse(reserveText);
 
-          const content = jsonData.choices[0].delta.content;
-          if (content) {
-            reserveText += content;
-            lastData.content = marked.parse(reserveText);
-
-            // 将滚动条拉到最后
-            await nextTick();
+          // 将滚动条拉到最后
+          nextTick(() => {
             messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
-          }
+          });
         }
       }
     }
   }
 }
 
-onMounted(async () => {
-  await nextTick();
-  if (messageAreaRef.value) {
-    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
-  }
-});
-
 // // // // // // // // // // ↑ 消息交互 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 全局代码 ↓ // // // // // // // // // //
+
+onMounted(() => {
+  nextTick(() => {
+    if (messageAreaRef.value) {
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    }
+  });
+});
 
 // 切换功能菜单
 const changeCommand = (command) => {
   aiEnglishStore.currentConmand = command;
 };
+
+// // // // // // // // // // ↑ 全局代码 ↑ // // // // // // // // // //
 </script>
 
 <template>

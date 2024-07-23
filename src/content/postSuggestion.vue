@@ -69,7 +69,7 @@ function submitUserSuggestion() {
 </script>
 
 <template>
-  <el-card :style="{ 'max-width': cardWidth }"  class="card">
+  <el-card :style="{ 'max-width': cardWidth }" class="card">
     <template #header>
       <div class="card-header">
         <span class="title">意见反馈</span>
@@ -105,7 +105,7 @@ function submitUserSuggestion() {
 /* ↓ 代码块 ↓ */
 
 .card:hover {
-  box-shadow: 1px 2px 2px 2px #7a7374;
+  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
   transform: scale(1.02);
   transition: transform 0.3s;
 }
@@ -113,11 +113,6 @@ function submitUserSuggestion() {
 .title {
   font-size: 20px;
   font-weight: 800;
-}
-
-.card:hover {
-  box-shadow: 1px 2px 2px 2px #7a7374;
-  transform: scale(1.02);
 }
 
 /* ↑ 代码块 ↑ */

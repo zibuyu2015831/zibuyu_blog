@@ -12,7 +12,7 @@ import InputBar from "@/content/InputBar.vue";
 import MenuButton from "@/content/MenuButton.vue";
 import { markedHighlight } from "marked-highlight";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
-import {remindLogin,remindReLogin} from '@/utils/remindLogin'
+import { remindLogin, remindReLogin } from "@/utils/remindLogin";
 import useUserInfo from "@/stores/userInfo";
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
@@ -189,10 +189,22 @@ const copyText = async (textToCopy) => {
     ElMessage({
       message: "复制成功",
       type: "success",
-      offset: 700,
     });
   } catch (err) {
-    ElMessage.error("复制失败");
+    try {
+      const tempInput = document.createElement("input");
+      tempInput.value = textToCopy;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      ElMessage({
+        message: "复制成功",
+        type: "success",
+      });
+    } catch (err) {
+      ElMessage.error("复制失败");
+    }
   }
 };
 
@@ -510,15 +522,14 @@ function addMessage(role, content) {
 
 // 处理用户输入
 const handleInput = async (content) => {
-
-  if (userInfoStore.token==0){
-    remindLogin()
-    return
+  if (userInfoStore.token == 0) {
+    remindLogin();
+    return;
   }
 
-  if (userInfoStore.token==-1){
-    remindReLogin()
-    return
+  if (userInfoStore.token == -1) {
+    remindReLogin();
+    return;
   }
 
   if (!content) {
@@ -542,9 +553,11 @@ const handleInput = async (content) => {
   // 将用户发送到消息加入队列
   addMessage("user", content);
 
-  await nextTick();
-  // 将聊天框拉到最下面
-  messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  // 将聊天框滚动条拉到最后
+  nextTick(() => {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  });
+
   handleConversation();
 };
 
@@ -553,7 +566,11 @@ const handleConversation = async () => {
     canSendMessage.value = false;
     await nextTick();
 
-    await conversation();
+    if (aiEnglishStore.useCustomizedInfo) {
+      await customizedConversation();
+    } else {
+      await defaultConversation();
+    }
   } catch {
     const lastData =
       aiEnglishStore.assistant_messages.data[
@@ -571,7 +588,7 @@ const handleConversation = async () => {
   }
 };
 
-// 确保给定数字是奇数
+// 功能函数：确保给定数字是奇数
 function ensureOdd(num) {
   // 判断数字是否是奇数
   if (num % 2 === 0) {
@@ -583,8 +600,7 @@ function ensureOdd(num) {
   }
 }
 
-// 发送AI交互请求
-async function conversation() {
+async function defaultConversation() {
   // 携带历史会话
   const history = aiEnglishStore.assistant_messages.data.slice(
     -ensureOdd(requestHistoryCount.value)
@@ -592,9 +608,90 @@ async function conversation() {
 
   addMessage("assistant", "");
 
-  await nextTick();
-  // 将聊天框拉到最下面
-  messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  // 将滚动条拉到最后
+  nextTick(() => {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  });
+
+  const lastData =
+    aiEnglishStore.assistant_messages.data[
+      aiEnglishStore.assistant_messages.data.length - 1
+    ];
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${userInfoStore.token}`,
+  };
+
+  const response = await fetch("/api/english/assistant_chat/", {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify({
+      messages: history,
+    }),
+  });
+
+  if (!response.ok) {
+    lastData.content = "AI回复获取失败0.0";
+
+    // 将滚动条拉到最后
+    nextTick(() => {
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    });
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+
+  let reserveText = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      break;
+    }
+
+    const chunkString = decoder.decode(value, { stream: true });
+
+    const lines = chunkString.split("\n").filter((line) => line.trim() !== "");
+
+    for (const jsonLine of lines) {
+      if (jsonLine === "[DONE]") {
+        break;
+      }
+
+      if (jsonLine) {
+        const jsonData = JSON.parse(jsonLine);
+        const content = jsonData.delta;
+
+        if (content) {
+          reserveText += content;
+          lastData.content = marked.parse(reserveText);
+
+          // 将滚动条拉到最后
+          nextTick(() => {
+            messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+          });
+        }
+      }
+    }
+  }
+}
+
+// 发送AI交互请求
+async function customizedConversation() {
+  // 携带历史会话
+  const history = aiEnglishStore.assistant_messages.data.slice(
+    -ensureOdd(requestHistoryCount.value)
+  );
+
+  addMessage("assistant", "");
+
+  // 将滚动条拉到最后
+  nextTick(() => {
+    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+  });
 
   const lastData =
     aiEnglishStore.assistant_messages.data[
@@ -624,8 +721,9 @@ async function conversation() {
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
-    await nextTick();
-    messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    nextTick(() => {
+      messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+    });
   }
 
   const reader = response.body.getReader();
@@ -661,8 +759,9 @@ async function conversation() {
             lastData.content = marked.parse(reserveText);
 
             // 将滚动条拉到最后
-            await nextTick();
-            messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+            nextTick(() => {
+              messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
+            });
           }
         }
       }
@@ -750,7 +849,7 @@ async function conversation() {
               effect="dark"
               content="刷新"
               placement="bottom-start"
-              v-if="index==aiEnglishStore.assistant_messages.data.length-1"
+              v-if="index == aiEnglishStore.assistant_messages.data.length - 1"
             >
               <span
                 class="icon-refresh iconfont"

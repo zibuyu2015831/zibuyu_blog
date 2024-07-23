@@ -56,5 +56,8 @@ export default defineConfig({
       },
     },
   },
+  define:{
+    'SERVER_URL':JSON.stringify('http://8.138.106.241/'),
+  }
   // publicPath:'./'
 })
