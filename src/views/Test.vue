@@ -4,6 +4,8 @@ import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
 import InputBar from "@/content/InputBar.vue";
+
+
 const deviceInfoStore = useDeviceInfo();
 
 const { screenHeight, screenWidth, isEnglishWebShowLeft } = storeToRefs(deviceInfoStore);

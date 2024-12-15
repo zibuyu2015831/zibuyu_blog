@@ -273,16 +273,25 @@ async function conversation() {
     const lines = chunkString.split("\n").filter((line) => line.trim() !== "");
 
     for (const jsonLine of lines) {
-      if (jsonLine === "[DONE]") {
+      if (!jsonLine) {
+        continue;
+      }
+
+      if (jsonLine === "<<<end>>>") {
         break;
       }
 
-      if (jsonLine) {
-        const jsonData = JSON.parse(jsonLine);
+      if (jsonLine === "<<<error>>>") {
+        break;
+      }
+
+      try {
+        const jsonData = JSON.parse(jsonLine.trim());
         const content = jsonData.delta;
 
         if (content) {
           reserveText += content;
+
           lastData.content = marked.parse(reserveText);
 
           // 将滚动条拉到最后
@@ -290,6 +299,12 @@ async function conversation() {
             messageAreaRef.value.scrollTop = messageAreaRef.value.scrollHeight;
           });
         }
+      } catch (error) {
+        console.log("-----------------");
+        console.log(jsonLine);
+        console.log("-----------------");
+
+        console.error("出错了:", error);
       }
     }
   }

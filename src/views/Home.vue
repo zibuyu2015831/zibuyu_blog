@@ -166,14 +166,9 @@ function submitUserRewardMessage() {
 </script>
 
 <template>
-
-  <Header
-    v-if="isShowHeaderComponent"
-  ></Header>
+  <Header v-if="isShowHeaderComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
-
-
 
   <el-row class="main" justify="center" v-if="isBigScreen">
     <el-col :span="11" class="left">
@@ -280,27 +275,21 @@ function submitUserRewardMessage() {
     </el-col>
 
     <el-col :span="5" :offset="1" class="right">
-
       <div class="right_card">
-        <Advertising>  </Advertising>
-      </div>
-
-
-      <div class="right_card">
-        <MyInfo>  </MyInfo>
+        <Advertising> </Advertising>
       </div>
 
       <div class="right_card">
-        <postSuggestion>  </postSuggestion>
+        <MyInfo> </MyInfo>
       </div>
-
 
       <div class="right_card">
-        <RewardList>  </RewardList>
+        <postSuggestion> </postSuggestion>
       </div>
 
-
-
+      <div class="right_card">
+        <RewardList> </RewardList>
+      </div>
     </el-col>
   </el-row>
 
@@ -409,31 +398,24 @@ function submitUserRewardMessage() {
       </el-col>
 
       <el-col :span="6" class="right" v-if="isShowRightBox">
-
-
         <div class="right_card">
-          <Advertising>  </Advertising>
+          <Advertising> </Advertising>
         </div>
 
         <div class="right_card">
-          <MyInfo>  </MyInfo>
+          <MyInfo> </MyInfo>
         </div>
-  
-        <div class="right_card">
-          <postSuggestion>  </postSuggestion>
-        </div>
-  
 
         <div class="right_card">
-          <RewardList>  </RewardList>
+          <postSuggestion> </postSuggestion>
         </div>
-  
 
+        <div class="right_card">
+          <RewardList> </RewardList>
+        </div>
       </el-col>
     </el-row>
   </div>
-
-
 
   <Footer v-if="isShowFooterComponent"></Footer>
 </template>

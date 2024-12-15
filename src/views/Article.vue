@@ -1,5 +1,5 @@
 <script setup>
-import { ref,  onBeforeMount} from "vue";
+import { ref, onBeforeMount } from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
@@ -156,8 +156,6 @@ setTimeout(() => {
 
 // // // // // ↑ markdown渲染 ↑ // // // // //
 
-
-
 // // // // // ↓ 页面向上、向下跳动按钮 ↓ // // // // //
 
 function backToTop() {
@@ -201,14 +199,12 @@ function textOnFocus() {
 </script>
 
 <template>
-  <Header v-if="isShowHeaderComponent" ></Header>
+  <Header v-if="isShowHeaderComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
-
-
   <el-row class="main" justify="center">
-    <el-col :span="isArticleShowRightBox?11:22" class="left">
+    <el-col :span="isArticleShowRightBox ? 11 : 22" class="left">
       <div class="article_head">
         <el-row justify="center">
           <div class="title"><span>我是标题</span></div>
@@ -342,12 +338,10 @@ function textOnFocus() {
   </div>
 
   <Footer v-if="isShowFooterComponent"></Footer>
-
 </template>
 
 <style scoped>
-
-.main{
+.main {
   background-color: var(--home_background);
 }
 /* 用户评论样式 */
@@ -423,7 +417,7 @@ function textOnFocus() {
   opacity: 0.9;
 }
 
-.markdown-body:hover{
+.markdown-body:hover {
   background-color: var(--markdown_article_body_activated);
 }
 

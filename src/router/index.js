@@ -37,7 +37,7 @@ const router = createRouter({
     {
       path: '/web_site',
       name: 'web_site',
-      component: () => import('@/views/WebSite.vue')
+      component: () => import('@/views/WebNavigate.vue')
     }
     ,
     {
