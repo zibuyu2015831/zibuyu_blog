@@ -15,8 +15,9 @@ export default {
       el.classList.remove('light', 'dark');
       el.classList.add(theme);
 
-      // 将主题写入浏览器本地存储，设置有效期为6小时
-      setLocalStorageWithExpiration(deviceInfo.theme_store_key, theme, 6);
+      // 将主题作为长期偏好写入本地存储（约 1 年）。
+      // 用户手动切换后长期记忆，不再因短期过期被时段判断自动覆盖。
+      setLocalStorageWithExpiration(deviceInfo.theme_store_key, theme, 24 * 365);
     })
 
 

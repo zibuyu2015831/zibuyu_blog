@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, onBeforeMount, onBeforeUnmount, nextTick } from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
@@ -49,6 +49,7 @@ const toc = []; // 存放目录的标题与id
 const imageIdList = []; // 存放图片的id与url
 const article = ref("");
 const tocItems = ref([]);
+const activeTocId = ref(""); // 当前阅读到的章节标题 id（用于 TOC 高亮）
 const marked = new Marked();
 
 marked.use({
@@ -90,7 +91,7 @@ marked.use({
       });
 
       return `<p style="text-align:center" id="${pId}" >
-        <img id="${imageId}" loading="lazy" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
+        <img id="${imageId}" loading="lazy" style="border-radius: var(--radius-md, 8px);margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
         <span style="color: gray; font-size: 16px;"> ↑ ${title} ↑ </span>
         </p>`;
     },
@@ -130,11 +131,66 @@ const generateimageIdList = () => {
   }));
 };
 
+// TOC 当前章节高亮：用 IntersectionObserver 监听各标题元素
+let tocObserver = null;
+const visibleHeadings = new Set();
+
+const setupTocObserver = () => {
+  // 先清理旧的观察器（防止热更新/重复调用泄漏）
+  if (tocObserver) {
+    tocObserver.disconnect();
+    tocObserver = null;
+  }
+  visibleHeadings.clear();
+
+  const headings = tocItems.value
+    .map((item) => document.getElementById(item.headId))
+    .filter(Boolean);
+
+  if (!headings.length) return;
+
+  tocObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visibleHeadings.add(entry.target.id);
+        else visibleHeadings.delete(entry.target.id);
+      });
+      // 按文档顺序取第一个可见标题作为当前章节
+      for (const item of tocItems.value) {
+        if (visibleHeadings.has(item.headId)) {
+          activeTocId.value = item.headId;
+          break;
+        }
+      }
+    },
+    {
+      // 触发线落在视口上部，下方留出余量，避免频繁跳动
+      rootMargin: "-120px 0px -65% 0px",
+      threshold: 0,
+    }
+  );
+
+  headings.forEach((h) => tocObserver.observe(h));
+
+  // 初始默认高亮第一项
+  activeTocId.value = tocItems.value[0]?.headId || "";
+};
+
 onBeforeMount(async () => {
   const markdownTEXT = await getArticle(132156);
   // 渲染前做 XSS 净化（保留代码高亮所需标签/类，见 utils/sanitize.js）
   article.value = sanitizeArticleContent(marked.parse(markdownTEXT));
   tocItems.value = generateTOC();
+  // 等待 v-html 把标题渲染进 DOM 后再建立观察器
+  await nextTick();
+  setupTocObserver();
+});
+
+onBeforeUnmount(() => {
+  if (tocObserver) {
+    tocObserver.disconnect();
+    tocObserver = null;
+  }
 });
 
 // 设置图片点击放大功能
@@ -189,14 +245,14 @@ const scrollToAnchor = (headId) => {
 // // // // // ↓ 评论输入框 ↓ // // // // //
 
 const textarea = ref();
-const TextareaColor = ref("#F2F3F5");
+const TextareaColor = ref("var(--color-bg-elevated)");
 
 function textOnBlur() {
-  TextareaColor.value = "#F2F3F5";
+  TextareaColor.value = "var(--color-bg-elevated)";
 }
 
 function textOnFocus() {
-  TextareaColor.value = "#e9d7df";
+  TextareaColor.value = "var(--color-primary-subtle)";
 }
 
 // // // // // ↑ 评论输入框 ↑ // // // // //
@@ -251,7 +307,7 @@ function textOnFocus() {
       :offset="1"
       :class="{ isfixed: isArticleRightBlockFixed }"
     >
-      <el-card style="max-width: 480px" class="right_card author_info">
+      <el-card style="max-width: 100%" class="right_card author_info">
         <template #header>
           <div class="card-header">
             <span class="right_title">作者信息</span>
@@ -263,7 +319,7 @@ function textOnFocus() {
         <div class="card_item">现居广州</div>
       </el-card>
 
-      <el-card style="max-width: 480px" class="right_card right_toc">
+      <el-card style="max-width: 100%" class="right_card right_toc">
         <template #header>
           <div class="card-header">
             <span class="right_title">文章目录</span>
@@ -273,7 +329,7 @@ function textOnFocus() {
           <div
             v-for="item in tocItems"
             :key="item.headId"
-            :class="item.depth_class"
+            :class="[item.depth_class, { active: item.headId === activeTocId }]"
             @click="() => scrollToAnchor(item.headId)"
           >
             {{ item.text }}
@@ -383,7 +439,7 @@ function textOnFocus() {
 }
 
 .toc_icon .icon-good1 {
-  color: #cb3f1c;
+  color: var(--color-primary);
 }
 
 .toc_icon .icon-arrow-to-bottom,
@@ -396,42 +452,76 @@ function textOnFocus() {
 }
 
 .toc {
-  margin-left: 20px;
+  margin-left: 4px;
+}
+
+.toc > div {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-left: 2px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  line-height: var(--leading-normal, 1.5);
+  transition: color var(--motion-fast, 150ms) var(--ease-standard, ease),
+    border-color var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.toc > div:hover {
+  color: var(--color-text-primary);
+}
+
+/* TOC 当前章节高亮：朱砂左边框 + 朱砂字 */
+.toc > div.active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  font-weight: var(--weight-medium, 500);
 }
 
 .toc .toc_first {
-  color: red;
+  font-weight: var(--weight-semibold, 600);
 }
 
 .toc .toc_second {
-  color: gray;
-  margin-top: 10px;
-  margin-left: 20px;
+  padding-left: var(--space-5, 24px);
 }
 
 .toc .toc_third {
-  color: green;
-  margin-top: 10px;
-  margin-left: 40px;
+  padding-left: var(--space-7, 40px);
+  font-size: var(--font-size-sm, 14px);
 }
 
 /* 文章主题样式 */
 
 .markdown-body {
-  padding: 3%;
-  border-radius: 10px;
-  font-size: 18px;
-  margin-bottom: 20px;
+  /* 行宽：约 70ch（致命项），居中，保证长文阅读舒适 */
+  max-width: 70ch;
+  width: 100%;
+  margin: 0 auto var(--space-5, 24px);
+  padding: var(--space-6, 32px);
+  border-radius: var(--radius-lg, 12px);
+  font-size: var(--font-size-lg, 18px);
+  line-height: var(--leading-relaxed, 1.75);
   background-color: var(--markdown_article_body_deactivated);
-  opacity: 0.9;
-}
-
-.markdown-body:hover {
-  background-color: var(--markdown_article_body_activated);
 }
 
 .article_head {
   color: var(--markdown_article_title);
+}
+
+.article_head .date {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.article_head .tag {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs, 12px);
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm, 4px);
+  padding: 2px 10px;
+  margin-bottom: var(--space-4, 16px);
 }
 
 /* 右侧板块设置 */
@@ -452,7 +542,8 @@ function textOnFocus() {
 }
 
 .isfixed {
-  width: 395px;
+  /* 与 .right 同宽，消除固定时 395 vs 400 的横向跳动 */
+  width: 400px;
   position: fixed;
   right: 80px;
   top: 150px;
@@ -461,21 +552,31 @@ function textOnFocus() {
 /* ↓ 页面标题设置 ↓ */
 
 .title {
-  font-size: 40px;
-  font-weight: 600;
-  margin-top: 20px;
-  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: var(--font-size-4xl, 40px);
+  font-weight: var(--weight-bold, 700);
+  line-height: var(--leading-tight, 1.25);
+  color: var(--color-text-primary);
+  margin-top: var(--space-5, 24px);
+  margin-bottom: var(--space-3, 12px);
+  text-align: center;
 }
 
 .title span {
-  background: linear-gradient(to right, #538dcb, #cb1ccb) no-repeat right bottom;
-  background-size: 0 3px;
-  transition: background-size 1000ms;
+  background: linear-gradient(
+      to right,
+      var(--color-primary),
+      var(--color-primary)
+    )
+    no-repeat right bottom;
+  background-size: 0 2px;
+  transition: background-size var(--motion-slow, 400ms) var(--ease-standard, ease);
+  padding-bottom: 4px;
 }
 
 .title span:hover {
   background-position-x: left;
-  background-size: 100% 3px;
+  background-size: 100% 2px;
 }
 
 /* ↑ 页面标题设置 ↑ */
@@ -486,10 +587,11 @@ function textOnFocus() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
-  background: rgb(233, 240, 229);
+  z-index: var(--z-overlay, 1000);
+  background: var(--color-bg-elevated);
   padding: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-lg, 0 0 10px rgba(0, 0, 0, 0.5));
 }
 .overlay {
   position: fixed;

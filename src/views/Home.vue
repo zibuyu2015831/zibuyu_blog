@@ -8,6 +8,8 @@ import postSuggestion from "@/content/postSuggestion.vue";
 import Advertising from "@/content/Advertising.vue";
 import RewardList from "@/content/RewardList.vue";
 import MyInfo from "@/content/MyInfo.vue";
+import ArticleCard from "@/content/ArticleCard.vue";
+import { posts } from "@/content/data/posts.js";
 
 defineOptions({ name: "HomeView" });
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
@@ -111,50 +113,7 @@ setTimeout(() => {
       <el-divider />
 
       <el-col class="article_list">
-        <el-row justify="center" class="" v-for="movie in 10" :key="movie">
-          <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
-            <el-image
-              class="article_image"
-              src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-              fit="fill"
-              lazy
-            />
-
-            <div class="article_intro">
-              <div class="title">
-                <a href="/article/123" class="title_text">
-                  <el-text tag="b" size="large" class="mx-1" type="success" truncated
-                    >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
-                  >
-                </a>
-              </div>
-
-              <div class="abstract">
-                <el-text line-clamp="2" size="default" tag="i">
-                  这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
-                </el-text>
-              </div>
-
-              <div class="data">
-                <div class="category flex gap-2">
-                  <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
-                </div>
-                <div class="date">
-                  <el-icon class="article_icon"><Clock /></el-icon>
-                  <el-text class="mx-1" size="small">2024-06-19</el-text>
-                </div>
-                <div class="view_data">
-                  <el-icon class="article_icon"><View /></el-icon>
-                  <el-text class="mx-1" size="small">2009</el-text>
-                </div>
-                <div class="like_data">
-                  <el-icon class="article_icon"><StarFilled /></el-icon>
-                  <el-text class="mx-1" size="small">2029</el-text>
-                </div>
-              </div>
-            </div>
-          </el-card>
-        </el-row>
+        <ArticleCard v-for="post in posts" :key="post.id" :post="post" />
       </el-col>
 
       <el-col class="article_page">
@@ -234,51 +193,12 @@ setTimeout(() => {
     <el-row justify="center" style="margin-top: 50px">
       <el-col :span="isShowRightBox ? 14 : 24" class="left">
         <el-col class="article_list">
-          <el-row justify="center" class="" v-for="movie in 10" :key="movie">
-            <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
-              <el-image
-                v-if="isShowArticleImageInSmallScreen"
-                class="article_image"
-                src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-                fit="fill"
-                lazy
-              />
-
-              <div class="article_intro">
-                <div class="title">
-                  <a href="/article/123" class="title_text">
-                    <el-text tag="b" size="large" class="mx-1" type="success" truncated
-                      >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
-                    >
-                  </a>
-                </div>
-
-                <div class="abstract">
-                  <el-text line-clamp="2" size="default" tag="i">
-                    这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
-                  </el-text>
-                </div>
-
-                <div class="data">
-                  <div class="category flex gap-2">
-                    <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
-                  </div>
-                  <div class="date">
-                    <el-icon class="article_icon"><Clock /></el-icon>
-                    <el-text class="mx-1" size="small">2024-06-19</el-text>
-                  </div>
-                  <div class="view_data">
-                    <el-icon class="article_icon"><View /></el-icon>
-                    <el-text class="mx-1" size="small">2009</el-text>
-                  </div>
-                  <div class="like_data">
-                    <el-icon class="article_icon"><StarFilled /></el-icon>
-                    <el-text class="mx-1" size="small">2029</el-text>
-                  </div>
-                </div>
-              </div>
-            </el-card>
-          </el-row>
+          <ArticleCard
+            v-for="post in posts"
+            :key="post.id"
+            :post="post"
+            :show-cover="isShowArticleImageInSmallScreen"
+          />
         </el-col>
 
         <el-col class="article_page">
@@ -339,7 +259,10 @@ setTimeout(() => {
 /* ↓ 文章列表设置 ↓ */
 
 .article_list {
-  margin: 0 5px;
+  margin: 0 var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .article_page {

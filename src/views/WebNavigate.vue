@@ -4,9 +4,9 @@ import { storeToRefs } from "pinia";
 
 import WebSite from "@/components/WebSite.vue";
 import InputBar from "@/content/InputBar.vue";
-// // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
+import { recommendedSites, groupedSites } from "@/content/data/webSites.js";
 
-// // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
+defineOptions({ name: "WebNavigate" });
 
 // // // // // // // // // // ↓ 状态管理 ↓ // // // // // // // // // //
 
@@ -19,74 +19,152 @@ const { isShowHeaderNavigate, isShowBottomMenu, isShowFooterComponent } = storeT
 );
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
-
-// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
 </script>
 
 <template>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
-  <div class="container">
-    <el-row>
-      <el-col :span="8" :offset="8" class="header">
-        <InputBar> </InputBar>
-      </el-col>
-    </el-row>
+  <div class="nav-page">
+    <div class="nav-page__inner">
+      <!-- 搜索框 -->
+      <div class="nav-page__search">
+        <InputBar></InputBar>
+      </div>
 
-    <el-row>
-      <el-col :span="16" :offset="4" class="content recommendations">
-        <WebSite v-for="o in 4" :key="o" class="web_site"> </WebSite>
-      </el-col>
-    </el-row>
+      <!-- 推荐分区 -->
+      <section v-if="recommendedSites.length" class="nav-section" aria-label="推荐站点">
+        <h2 class="nav-section__title">
+          <span class="nav-section__dot"></span>推荐
+        </h2>
+        <div class="nav-grid">
+          <WebSite
+            v-for="site in recommendedSites"
+            :key="`reco-${site.url}`"
+            :title="site.title"
+            :desc="site.desc"
+            :url="site.url"
+            :favicon="site.favicon"
+            :category="site.category"
+          />
+        </div>
+      </section>
 
-    <el-row>
-      <el-col :span="16" :offset="4" class="divider">
-        <el-divider>
-          <el-icon><star-filled /></el-icon>
-        </el-divider>
-      </el-col>
-    </el-row>
+      <!-- 全部（按分类分组） -->
+      <section class="nav-section" aria-label="全部站点">
+        <h2 class="nav-section__title">
+          <span class="nav-section__dot"></span>全部
+        </h2>
 
-    <el-row>
-      <el-col :span="16" :offset="4" class="content">
-        <WebSite v-for="o in 24" :key="o" class="web_site"> </WebSite>
-      </el-col>
-    </el-row>
+        <div v-for="group in groupedSites" :key="group.category" class="nav-group">
+          <h3 class="nav-group__title">{{ group.category }}</h3>
+          <div class="nav-grid">
+            <WebSite
+              v-for="site in group.sites"
+              :key="site.url"
+              :title="site.title"
+              :desc="site.desc"
+              :url="site.url"
+              :favicon="site.favicon"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 
   <Footer v-if="isShowFooterComponent"></Footer>
 </template>
 
 <style scoped>
-/* ↓ 代码块 ↓ */
-
-.container {
+.nav-page {
   width: 100%;
-  background-color: var(--home_background);
+  background-color: var(--color-bg-default);
 }
 
-.header {
-  margin-top: 200px;
+.nav-page__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-7);
 }
 
-.divider {
-  margin-top: 50px;
+/* 搜索框 */
+.nav-page__search {
+  max-width: 640px;
+  margin: 0 auto var(--space-8);
 }
 
-.content {
-  margin-top: 50px;
+/* ---------- 分区 ---------- */
+.nav-section + .nav-section {
+  margin-top: var(--space-8);
+}
 
+.nav-section__title {
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: center;
-
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--font-size-2xl);
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
 }
 
-.web_site {
-  margin: 20px;
+/* 朱砂小圆点 */
+.nav-section__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
 }
-/* ↑ 代码块 ↑ */
+
+/* ---------- 分组 ---------- */
+.nav-group + .nav-group {
+  margin-top: var(--space-6);
+}
+
+.nav-group__title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+/* ---------- 卡片网格：自适应列 ---------- */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .nav-page__inner {
+    padding: var(--space-6) var(--space-4) var(--space-6);
+  }
+
+  .nav-page__search {
+    margin-bottom: var(--space-6);
+  }
+
+  .nav-section__title {
+    font-size: var(--font-size-xl);
+  }
+
+  /* 双列自适应：窄屏下最小列宽放宽 */
+  .nav-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 420px) {
+  /* 极窄屏单列 */
+  .nav-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

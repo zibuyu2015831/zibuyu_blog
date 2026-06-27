@@ -16,28 +16,8 @@
    --base-text-weight-semibold: 600;
    --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
 
-   --zibuyu-a-gb: #630be7;
-
-   /*二级标题背景颜色*/
-   --zibuyu-second-title-gb: #ef7060;
-
-   /*二级标题字体颜色*/
-   --zibuyu-second-title-font: #ece4df;
-
-   /*三级标题背景颜色*/
-   --zibuyu-third-title-gb: #5888f0;
-
-   /*三级标题字体颜色*/
-   --zibuyu-third-title-font: #e9ecdf;
-
-   /*行内代码字体颜色*/
-   --zibuyu-inline-code-font: #fad505;
-
-   /*行内代码背景颜色*/
-   --zibuyu-inline-code-bg: #939393;
-
-   /*代码块背景颜色*/
-   --zibuyu-block-code-bg: black;
+   /* 方向 A · 子曰·墨：链接/标题/引用/代码统一直接引用 tokens.css 的
+      --color-* 设计令牌（见各规则），明暗自动跟随 <html>.light/.dark。 */
  }
 
  /*
@@ -48,13 +28,7 @@
 
    .markdown-body,
    [data-theme="dark"] {
-     /*自定义颜色--子不语*/
-     --zibuyu-blockquote-bg: #18323e;
-     --zibuyu-blockquote-bg-suffix: #eba4a4;
-     --zibuyu-inline-code-font: #2213f5;
-     --zibuyu-inline-code-bg: #d0d0d0;
-     --zibuyu-a-gb: #c9b5e7;
-     --zibuyu-block-code-bg: #381609;
+     /* 自定义颜色统一走设计令牌（--color-*），见各规则 */
      /*dark*/
      color-scheme: dark;
      --focus-outlineColor: #1f6feb;
@@ -113,13 +87,7 @@
 
    .markdown-body,
    [data-theme="light"] {
-     /*自定义颜色--子不语*/
-     --zibuyu-blockquote-bg: #e9edef;
-     --zibuyu-blockquote-bg-suffix: #eba4a4;
-     --zibuyu-inline-code-font: #e3e70c;
-     --zibuyu-inline-code-bg: #554aea;
-     --zibuyu-a-gb: #630be7;
-     --zibuyu-block-code-bg: rgb(33, 7, 7);
+     /* 自定义颜色统一走设计令牌（--color-*），见各规则 */
      /*light*/
      color-scheme: light;
      --focus-outlineColor: #0969da;
@@ -175,13 +143,7 @@
  }
 
  .markdown-body.dark {
-   /*自定义颜色--子不语*/
-   --zibuyu-blockquote-bg: #18323e;
-   --zibuyu-blockquote-bg-suffix: #eba4a4;
-   --zibuyu-inline-code-font: #2213f5;
-   --zibuyu-inline-code-bg: #d0d0d0;
-   --zibuyu-a-gb: #c9b5e7;
-   --zibuyu-block-code-bg: #381609;
+   /* 自定义颜色统一走设计令牌（--color-*），见各规则 */
    /*dark*/
    color-scheme: dark;
    --focus-outlineColor: #1f6feb;
@@ -236,13 +198,7 @@
  }
 
  .markdown-body.light {
-   /*自定义颜色--子不语*/
-   --zibuyu-blockquote-bg: #e9edef;
-   --zibuyu-blockquote-bg-suffix: #eba4a4;
-   --zibuyu-inline-code-font: #e3e70c;
-   --zibuyu-inline-code-bg: #554aea;
-   --zibuyu-a-gb: #630be7;
-   --zibuyu-block-code-bg: rgb(33, 7, 7);
+   /* 自定义颜色统一走设计令牌（--color-*），见各规则 */
    /*light*/
    color-scheme: light;
    --focus-outlineColor: #0969da;
@@ -300,12 +256,13 @@
    -ms-text-size-adjust: 100%;
    -webkit-text-size-adjust: 100%;
    margin: 0;
-   color: var(--fgColor-default);
+   color: var(--color-text-primary, var(--fgColor-default));
    background-color: var(--bgColor-default);
-   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+   font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif);
    font-size: 16px;
-   line-height: 1.5;
+   line-height: var(--leading-relaxed, 1.75);
    word-wrap: break-word;
+   overflow-wrap: break-word;
    scroll-behavior: auto;
  }
 
@@ -347,20 +304,16 @@
  .markdown-body a {
    text-decoration: none;
    word-wrap: break-word;
-   color: var(--zibuyu-a-gb);
-   border-bottom: 1px solid var(--zibuyu-a-gb);
+   color: var(--color-primary);
    cursor: pointer;
-
+   transition: color var(--motion-fast, 150ms) var(--ease-standard, ease);
  }
 
  .markdown-body a:hover {
-   border-bottom: none;
+   color: var(--color-primary-hover, var(--color-primary));
+   text-decoration: underline;
+   text-underline-offset: 3px;
  }
-
- .markdown-body a:before {
-  content: '✍🏻 ';
-}
-
 
  .markdown-body abbr[title] {
    border-bottom: none;
@@ -381,10 +334,12 @@
 
  .markdown-body h1 {
    margin: .67em 0;
-   font-weight: var(--base-text-weight-semibold, 600);
+   font-family: var(--font-display);
+   font-weight: var(--weight-bold, 700);
    padding-bottom: .3em;
    font-size: 2em;
-   border-bottom: 1px solid var(--borderColor-muted);
+   line-height: var(--leading-tight, 1.25);
+   border-bottom: 1px solid var(--color-border-default, var(--borderColor-muted));
  }
 
  .markdown-body mark {
@@ -583,66 +538,75 @@
  .markdown-body h6 {
    margin-top: 24px;
    margin-bottom: 16px;
-   font-weight: var(--base-text-weight-semibold, 600);
-   line-height: 1.25;
+   font-family: var(--font-display);
+   font-weight: var(--weight-bold, 700);
+   line-height: var(--leading-tight, 1.4);
+   color: var(--color-text-primary);
  }
 
+ /* H2：宋体 + 朱砂下边框（去掉彩色标签背景） */
  .markdown-body h2 {
-   font-weight: var(--base-text-weight-semibold, 600);
-   padding-bottom: .3em;
-   margin: 40px 10px 20px 0;
+   font-family: var(--font-display);
+   font-weight: var(--weight-bold, 700);
+   padding-bottom: var(--space-2, 8px);
+   margin: var(--space-7, 48px) 0 var(--space-4, 16px);
    font-size: 1.6em;
-   border-bottom: 2px solid var(--zibuyu-second-title-gb);
-
+   letter-spacing: 0.02em;
+   border-bottom: 2px solid var(--color-primary);
  }
 
  .markdown-body h2 span {
-   display: inline-block;
-   font-weight: bold;
-   background: var(--zibuyu-second-title-gb);
-   color: var(--zibuyu-second-title-font);
-   padding: 5px 10px;
-   border-top-right-radius: 15px;
-   border-top-left-radius: 15px;
+   display: inline;
+   font-weight: inherit;
+   background: none;
+   color: inherit;
+   padding: 0;
  }
 
+ /* H3：宋体 + 标题前朱砂小圆点（去掉彩色标签背景） */
  .markdown-body h3 {
-   font-weight: var(--base-text-weight-semibold, 600);
+   font-family: var(--font-display);
+   font-weight: var(--weight-bold, 700);
+   margin: var(--space-6, 32px) 0 var(--space-3, 12px);
    font-size: 1.25em;
- }
-
- .markdown-body h3 {
-   font-weight: var(--base-text-weight-semibold, 600);
-   padding-bottom: .3em;
-   margin: 40px 10px 20px 0;
-   font-size: 1.2em;
-   border-bottom: 2px solid var(--zibuyu-third-title-gb);
-
+   letter-spacing: 0.02em;
  }
 
  .markdown-body h3 span {
+   display: inline;
+   background: none;
+   color: inherit;
+   padding: 0;
+ }
+
+ .markdown-body h3 span::before {
+   content: "";
    display: inline-block;
-   background: var(--zibuyu-third-title-gb);
-   color: var(--zibuyu-third-title-font);
-   padding: 5px 10px;
-   border-top-right-radius: 15px;
-   border-top-left-radius: 15px;
+   width: 7px;
+   height: 7px;
+   border-radius: var(--radius-full, 50%);
+   background: var(--color-primary);
+   margin-right: var(--space-2, 8px);
+   vertical-align: middle;
  }
 
  .markdown-body h4 {
-   font-weight: var(--base-text-weight-semibold, 600);
-   font-size: 1em;
+   font-family: var(--font-display);
+   font-weight: var(--weight-semibold, 600);
+   font-size: 1.05em;
  }
 
  .markdown-body h5 {
-   font-weight: var(--base-text-weight-semibold, 600);
-   font-size: .875em;
+   font-family: var(--font-display);
+   font-weight: var(--weight-semibold, 600);
+   font-size: .9em;
  }
 
  .markdown-body h6 {
-   font-weight: var(--base-text-weight-semibold, 600);
+   font-family: var(--font-display);
+   font-weight: var(--weight-semibold, 600);
    font-size: .85em;
-   color: var(--fgColor-muted);
+   color: var(--color-text-secondary, var(--fgColor-muted));
  }
 
  .markdown-body p {
@@ -651,48 +615,21 @@
  }
 
  .markdown-body blockquote {
-   font-weight: lighter;
-   font-size: 0.9em;
-   font-style: italic;
-   padding: 3% 3%;
-   margin: 3%;
-   position: relative;
-   line-height: 1.8;
+   font-style: normal;
+   padding: var(--space-3, 12px) var(--space-5, 24px);
+   margin: var(--space-5, 24px) 0;
+   line-height: var(--leading-relaxed, 1.75);
    text-indent: 0;
-   border-left: 3px solid rebeccapurple;
-   color: var(--color-prettylights-syntax-comment);
+   background-color: var(--color-bg-subtle);
+   border-left: 3px solid var(--color-primary);
+   border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
+   color: var(--color-text-secondary);
  }
 
  .markdown-body blockquote p {
-   background-color: var(--zibuyu-blockquote-bg);
-   padding: 5px;
-   border-radius: 10px;
- }
-
- .markdown-body blockquote:before {
-
-   content: "“";
-   left: 12px;
-   top: 0;
-   color: var(--zibuyu-blockquote-bg-suffix);
-   font-size: 3em;
-   font-family: Arial, serif;
-   line-height: 1em;
-   font-weight: 700;
-   position: absolute;
- }
-
- .markdown-body blockquote:after {
-   content: "”";
-   right: 12px;
-   bottom: -26px;
-   color: var(--zibuyu-blockquote-bg-suffix);
-   font-size: 3em;
-   font-family: Arial, serif;
-   line-height: 1em;
-   font-weight: 700;
-   position: absolute;
-   bottom: -31px;
+   background: none;
+   padding: 0;
+   border-radius: 0;
  }
 
  .markdown-body ul,
@@ -1072,23 +1009,26 @@
    text-align: right;
  }
 
- p code {
-   color: var(--zibuyu-inline-code-font);
-   font-style: italic;
-   font-weight: bold;
-   /* 设置字体为斜体 */
-   margin: 0 8px;
-   background-color: var(--zibuyu-inline-code-bg);
+ /* 行内代码：暖纸凹陷底 + 朱砂字（去掉原黄蓝反差） */
+ .markdown-body p code,
+ .markdown-body li code,
+ .markdown-body td code {
+   color: var(--color-primary);
+   font-style: normal;
+   font-weight: var(--weight-medium, 500);
+   margin: 0 var(--space-1, 4px);
+   background-color: var(--color-bg-inset);
  }
 
  .markdown-body code,
  .markdown-body tt {
-   padding: .2em .3em;
-
+   padding: .2em .4em;
    font-size: 85%;
    white-space: break-spaces;
-   background-color: var();
-   border-radius: 6px;
+   color: var(--color-primary);
+   background-color: var(--color-bg-inset);
+   border: 1px solid var(--color-border-subtle);
+   border-radius: var(--radius-sm, 4px);
  }
 
 
@@ -1128,15 +1068,17 @@
    word-break: normal;
  }
 
+ /* 代码块：暖纸凹陷底（light）/ 浓墨凹陷底（dark），统一走令牌 */
  .markdown-body .highlight pre,
  .markdown-body pre {
-   padding: 12px;
+   padding: var(--space-4, 16px) var(--space-5, 20px);
    overflow: auto;
    font-size: 85%;
-   line-height: 1.45;
-   color: var(--fgColor-default);
-   background-color: var(--zibuyu-block-code-bg);
-   border-radius: 6px;
+   line-height: 1.6;
+   color: var(--color-text-primary);
+   background-color: var(--color-bg-inset);
+   border: 1px solid var(--color-border-default);
+   border-radius: var(--radius-md, 8px);
  }
 
  .markdown-body pre code,
@@ -1148,9 +1090,55 @@
    overflow: visible;
    line-height: inherit;
    word-wrap: normal;
+   color: inherit;
    background-color: transparent;
    border: 0;
+   font-style: normal;
+   font-weight: var(--weight-normal, 400);
  }
+
+ /* highlight.js 全局引入的是 atom-one-dark-reasonable（暗底配色）。
+    暗色主题下直接落在浓墨凹陷底上即可；亮色主题（暖纸底）需要把
+    语法前景色覆盖为方向 A 的纸面配色，保证对比舒适。 */
+ .markdown-body.light pre code.hljs,
+ .markdown-body.light pre .hljs {
+   color: #4A4338;
+   background: transparent;
+ }
+ .markdown-body.light pre .hljs-comment,
+ .markdown-body.light pre .hljs-quote {
+   color: #9A9180;
+   font-style: italic;
+ }
+ .markdown-body.light pre .hljs-keyword,
+ .markdown-body.light pre .hljs-selector-tag,
+ .markdown-body.light pre .hljs-built_in,
+ .markdown-body.light pre .hljs-name,
+ .markdown-body.light pre .hljs-tag {
+   color: var(--color-primary);
+ }
+ .markdown-body.light pre .hljs-string,
+ .markdown-body.light pre .hljs-title,
+ .markdown-body.light pre .hljs-section,
+ .markdown-body.light pre .hljs-attribute,
+ .markdown-body.light pre .hljs-literal,
+ .markdown-body.light pre .hljs-template-tag,
+ .markdown-body.light pre .hljs-template-variable,
+ .markdown-body.light pre .hljs-type,
+ .markdown-body.light pre .hljs-addition {
+   color: #2B6E6A;
+ }
+ .markdown-body.light pre .hljs-number,
+ .markdown-body.light pre .hljs-symbol,
+ .markdown-body.light pre .hljs-bullet,
+ .markdown-body.light pre .hljs-attr,
+ .markdown-body.light pre .hljs-variable,
+ .markdown-body.light pre .hljs-meta,
+ .markdown-body.light pre .hljs-link {
+   color: #8A6D2F;
+ }
+ .markdown-body.light pre .hljs-emphasis { font-style: italic; }
+ .markdown-body.light pre .hljs-strong { font-weight: 700; }
 
  .markdown-body .csv-data td,
  .markdown-body .csv-data th {

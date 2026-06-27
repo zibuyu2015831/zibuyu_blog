@@ -160,7 +160,6 @@ const changeCommand = (command) => {
   font-size: clamp(28px, 3vh, 38px);
   text-align: center;
   margin-top: 12px;
-  filter: contrast(30);
   position: relative;
 }
 
@@ -175,6 +174,9 @@ const changeCommand = (command) => {
 
 .top .text {
   line-height: 6vh;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text-primary);
   animation: showup 3s forwards;
 }
 
@@ -210,11 +212,17 @@ const changeCommand = (command) => {
   line-height: 50px;
   margin: 16px 10px;
   border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color var(--motion-fast) ease, outline-color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease;
 }
 
 .function_item_active {
   outline: 2px solid var(--english_left_funtion_item_hover);
   background-color: var(--english_left_funtion_item_active);
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .function_item_unactive {
@@ -223,6 +231,7 @@ const changeCommand = (command) => {
 
 .middle .function_item:hover {
   outline: 2px solid var(--english_left_funtion_item_hover);
+  color: var(--color-text-primary);
 }
 
 /* ↑ 中间样式 ↑ */
@@ -249,6 +258,17 @@ const changeCommand = (command) => {
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color var(--motion-fast) ease;
+}
+
+.bottom .content .bottom_item:hover {
+  color: var(--color-primary);
+}
+
+.bottom .content .bottom_item a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .bottom .content span {

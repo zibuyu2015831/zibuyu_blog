@@ -6,6 +6,9 @@ body {
   color: var(--color-text-primary, #2B2620);
   font-family: var(--font-body, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
   'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif);
+  /* 主题切换时整页平滑过渡，与 Hero 配图淡变协调 */
+  transition: background-color var(--motion-slow, 400ms) var(--ease-standard, ease),
+    color var(--motion-slow, 400ms) var(--ease-standard, ease);
 }
 
 * {
@@ -14,4 +17,23 @@ body {
 
 a {
   all: unset;
+  cursor: pointer;
+}
+
+/* 可访问性：键盘聚焦时给出可见焦点环（all:unset 会清掉默认焦点） */
+a:focus-visible {
+  outline: 2px solid var(--color-primary, #C8453B);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+/* 尊重用户的减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

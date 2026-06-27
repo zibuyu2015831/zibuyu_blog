@@ -55,10 +55,6 @@ const handleCommand = async (command) => {
         <el-text type="danger" size="large" tag="b">好站收藏</el-text>
       </router-link>
 
-      <router-link to="/test">
-        <el-text type="danger" size="large" tag="b">测试</el-text>
-      </router-link>
-
       <router-link to="/article/1231">
         <el-text type="danger" size="large" tag="b">官方文档</el-text>
       </router-link>

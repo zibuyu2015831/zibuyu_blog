@@ -56,8 +56,8 @@ marked.use(
 // 聊天消息区域
 const messageAreaRef = ref(null);
 
-// 聊天框中，消息的下间距
-const messageMarginBottom = ref(8);
+// 聊天框中，消息的下间距（≥ --space-5，避免操作按钮与下一条消息重叠）
+const messageMarginBottom = ref(24);
 
 // 标题高度
 const titleHeight = computed(() => {
@@ -918,16 +918,10 @@ async function customizedConversation() {
       </div>
       </template>
 
-      <div v-else>
-        <div class="react_content_ai">
-          <div class="avatar" @click="showSetting('assistant')"></div>
-          <div>
-            <div class="content">
-              <div>你好，有什么可以帮你的吗?</div>
-            </div>
-          </div>
-        </div>
-        <div class="final_message clear-fix"></div>
+      <div v-else class="empty_state">
+        <span class="icon-message iconfont empty_state_icon"></span>
+        <div class="empty_state_title">开始一段对话</div>
+        <div class="empty_state_desc">选择左侧功能或在下方输入内容，即可开始对话</div>
       </div>
       <div class="final_message clear-fix"></div>
       <!-- 对话结束 -->
@@ -943,7 +937,7 @@ async function customizedConversation() {
       <div class="tip">交互内容由AI生成, 请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" width="650" top="50px" center>
+    <el-dialog v-model="botSettingVisible" width="min(90vw, 600px)" top="50px" center>
       <div class="setting_items" ref="setting_items">
         <div class="setting_item">
           <div class="setting_left">
@@ -1180,8 +1174,8 @@ async function customizedConversation() {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="userSettingVisible" width="650" top="50px" center>
-      <div>功能待开发~ 0.0</div>
+    <el-dialog v-model="userSettingVisible" width="min(90vw, 600px)" top="50px" center>
+      <div class="placeholder_text">功能待开发~ 0.0</div>
     </el-dialog>
   </div>
 </template>
@@ -1273,7 +1267,7 @@ async function customizedConversation() {
 }
 
 .react_content_ai {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
   margin-left: 50px;
@@ -1287,6 +1281,18 @@ async function customizedConversation() {
   background-color: var(--english_reacte_content_ai_bg);
   padding: 10px;
   border-radius: 15px;
+}
+
+/* 长代码/表格不撑破气泡 */
+.react_content_ai .content :deep(pre),
+.react_content_ai .content :deep(code),
+.react_content_ai .content :deep(table),
+.react_content_user .content :deep(pre),
+.react_content_user .content :deep(code),
+.react_content_user .content :deep(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: break-word;
 }
 
 .hidden_text {
@@ -1305,7 +1311,7 @@ async function customizedConversation() {
 }
 
 .react_content_user {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-right: 60px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
@@ -1374,16 +1380,18 @@ async function customizedConversation() {
 
 .message_area .react_content_ai .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   left: 20px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .message_area .react_content_user .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   right: 15px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .chat_area .input_area .tip {
@@ -1396,6 +1404,49 @@ async function customizedConversation() {
 }
 
 /* ↑ 右侧布局 ↑ */
+
+/* ↓ 空状态 ↓ */
+
+.empty_state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  min-height: 240px;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-secondary);
+}
+
+.empty_state_icon {
+  font-size: 44px;
+  color: var(--color-primary);
+  opacity: 0.85;
+  margin-bottom: var(--space-4);
+}
+
+.empty_state_title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.empty_state_desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  line-height: 1.6;
+}
+
+.placeholder_text {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-base);
+  padding: var(--space-5) 0;
+}
+
+/* ↑ 空状态 ↑ */
 
 /* ↓ 弹出框样式 ↓ */
 
@@ -1424,7 +1475,7 @@ async function customizedConversation() {
 }
 
 .wrong_input {
-  border: 1px solid red;
+  border: 1px solid var(--color-danger);
 }
 
 .setting_title {

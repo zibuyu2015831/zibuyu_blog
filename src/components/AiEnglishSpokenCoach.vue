@@ -46,8 +46,8 @@ marked.use(
 
 const messageAreaRef = ref(null);
 
-// 聊天框中，消息的下间距
-const messageMarginBottom = ref(8);
+// 聊天框中，消息的下间距（≥ --space-5，避免操作按钮与下一条消息重叠）
+const messageMarginBottom = ref(24);
 
 // 标题高度
 const titleHeight = computed(() => {
@@ -507,7 +507,7 @@ const changeCommand = (command) => {
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="功能开关" width="350" center>
+    <el-dialog v-model="botSettingVisible" title="功能开关" width="min(90vw, 360px)" center>
       <div class="setting_items">
         <div class="setting_item">
           <span class="setting_item_text">是否开启语法检测：</span>
@@ -733,7 +733,7 @@ const changeCommand = (command) => {
 }
 
 .react_content_ai {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
   margin-left: 50px;
@@ -747,6 +747,18 @@ const changeCommand = (command) => {
   background-color: var(--english_reacte_content_ai_bg);
   padding: 10px;
   border-radius: 15px;
+}
+
+/* 长代码/表格不撑破气泡 */
+.react_content_ai .content :deep(pre),
+.react_content_ai .content :deep(code),
+.react_content_ai .content :deep(table),
+.react_content_user .content :deep(pre),
+.react_content_user .content :deep(code),
+.react_content_user .content :deep(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: break-word;
 }
 
 .hidden_text {
@@ -765,7 +777,7 @@ const changeCommand = (command) => {
 }
 
 .react_content_user {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-right: 60px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
@@ -816,16 +828,18 @@ const changeCommand = (command) => {
 
 .message_area .react_content_ai .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   left: 20px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .message_area .react_content_user .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   right: 15px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .chat_area .input_area .tip {
