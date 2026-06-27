@@ -406,11 +406,6 @@ const textarea = ref();
 // 侧边作者头像（本地资源，避免依赖远端路径）
 const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).href;
 
-// 文章封面带：复用首页同两张昼/夜图，按 deviceInfo.theme 交叉淡入。
-// 注意：这是阅读页内独立元素，不触碰受保护的首页 Header.vue 昼夜特性。
-const coverDay = new URL("../assets/image/header_day.jpg", import.meta.url).href;
-const coverNight = new URL("../assets/image/header_night.jpg", import.meta.url).href;
-
 // 作者卡社交链接（与页脚同款方框图标）
 const authorSocials = [
   { name: "GitHub", href: "#", icon: new URL("../assets/image/github.png", import.meta.url).href },
@@ -428,43 +423,27 @@ const authorSocials = [
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
-  <!-- 文章封面带：窄幅昼/夜配图（保留特色与昼夜切换），其上叠左对齐编辑风文章头 -->
-  <header class="article-cover">
-    <img
-      class="article-cover__img"
-      :src="coverNight"
-      alt=""
-      :class="{ 'cover-top': webTheme === 'dark', 'cover-bottom': webTheme !== 'dark' }"
-    />
-    <img
-      class="article-cover__img"
-      :src="coverDay"
-      alt=""
-      :class="{ 'cover-top': webTheme !== 'dark', 'cover-bottom': webTheme === 'dark' }"
-    />
-    <div class="article-cover__scrim"></div>
-
-    <div class="article-cover__head">
-      <nav class="crumb" aria-label="面包屑">
-        <router-link to="/home">首页</router-link><span class="sep">/</span>
-        <router-link to="/article/1231">文章</router-link><span class="sep">/</span>
-        <span>{{ articleCategory }}</span>
-      </nav>
-      <span class="tag"><span class="mark-dot"></span>{{ articleCategory }}</span>
-      <h1 class="article-title">{{ articleTitle }}</h1>
-      <div class="byline">
-        <span class="byline-author">
-          <img :src="userAvatar" alt="子不语的头像" />子不语
-        </span>
-        <span class="sep">·</span><span>{{ articleDate }}</span>
-        <span class="sep">·</span><span>阅读 {{ articleReadMinutes }} 分钟</span>
-        <span class="sep">·</span><span>浏览 {{ articleViews }}</span>
-      </div>
-    </div>
-  </header>
-
   <el-row class="main" justify="center">
     <el-col :span="isArticleShowRightBox ? 11 : 22" class="left">
+      <!-- 文章头：纯文字编辑风（对齐原型，去封面图），落在页面纸/墨色上 -->
+      <header class="article-head">
+        <nav class="crumb" aria-label="面包屑">
+          <router-link to="/home">首页</router-link><span class="sep">/</span>
+          <router-link to="/article/1231">文章</router-link><span class="sep">/</span>
+          <span>{{ articleCategory }}</span>
+        </nav>
+        <span class="tag"><span class="mark-dot"></span>{{ articleCategory }}</span>
+        <h1 class="article-title">{{ articleTitle }}</h1>
+        <div class="byline">
+          <span class="byline-author">
+            <img :src="userAvatar" alt="子不语的头像" />子不语
+          </span>
+          <span class="sep">·</span><span>{{ articleDate }}</span>
+          <span class="sep">·</span><span>阅读 {{ articleReadMinutes }} 分钟</span>
+          <span class="sep">·</span><span>浏览 {{ articleViews }}</span>
+        </div>
+      </header>
+
       <div
         ref="articleBodyRef"
         v-html="article"
@@ -874,83 +853,39 @@ const authorSocials = [
   color: var(--color-primary);
 }
 
-/* ↓ 文章封面带（窄幅昼/夜图 + 叠加编辑风文章头） ↓ */
-.article-cover {
-  position: relative;
+/* ↓ 文章头：纯文字编辑风（对齐原型，无封面图，落在纸/墨色上） ↓ */
+.article-head {
+  max-width: 70ch;
   width: 100%;
-  height: clamp(240px, 32vh, 320px);
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-}
-
-.article-cover__img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 1.5s ease;
-}
-
-/* 昼/夜交叉淡入（与首页 Hero 同机制，受 deviceInfo.theme 驱动） */
-.article-cover__img.cover-top {
-  opacity: 1;
-}
-
-.article-cover__img.cover-bottom {
-  opacity: 0;
-}
-
-/* 底部暗纱：保证编辑头文字在昼/夜两张图上都清晰（比首页强一档） */
-.article-cover__scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.66) 0%,
-    rgba(0, 0, 0, 0.34) 42%,
-    rgba(0, 0, 0, 0.05) 100%
-  );
-}
-
-/* 编辑头：落在封面带左下，与正文左对齐 */
-.article-cover__head {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 40px 28px;
-  color: #fbf7ef;
+  padding: 0 var(--space-2, 8px);
 }
 
 /* 面包屑 */
-.article-cover__head .crumb {
+.article-head .crumb {
   font-size: 13px;
   letter-spacing: 0.03em;
-  color: rgba(251, 247, 239, 0.78);
-  margin-bottom: 16px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 22px;
 }
 
-.article-cover__head .crumb a {
+.article-head .crumb a {
   color: inherit;
   text-decoration: none;
   transition: color 0.22s ease;
 }
 
-.article-cover__head .crumb a:hover {
-  color: #fff;
+.article-head .crumb a:hover {
+  color: var(--color-primary);
 }
 
-.article-cover__head .crumb .sep {
+.article-head .crumb .sep {
   margin: 0 8px;
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
-/* 标签胶囊：暖白描边，叠在图上可读 */
-.article-cover__head .tag {
+/* 标签胶囊：朱砂描边 */
+.article-head .tag {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -958,79 +893,79 @@ const authorSocials = [
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.1em;
-  color: #fbf7ef;
-  border: 1px solid rgba(251, 247, 239, 0.6);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-sm, 4px);
   padding: 2px 12px;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
-.article-cover__head .tag .mark-dot {
+.article-head .tag .mark-dot {
   width: 5px;
   height: 5px;
   box-shadow: none;
 }
 
-/* 大宋体标题 */
-.article-cover__head .article-title {
-  margin: 0 0 16px;
+/* 大宋体标题（墨色，左对齐） */
+.article-head .article-title {
+  margin: 0 0 24px;
   font-family: var(--font-display, "Noto Serif SC", serif);
   font-weight: 900;
-  font-size: clamp(28px, 4vw, 42px);
-  line-height: 1.3;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.32;
   letter-spacing: 0.01em;
+  color: var(--color-text-primary);
   max-width: 22ch;
   text-wrap: balance;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* 署名行 */
-.article-cover__head .byline {
+/* 署名行：底部发丝线收束 */
+.article-head .byline {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   font-size: 14px;
-  color: rgba(251, 247, 239, 0.86);
+  color: var(--color-text-secondary);
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--color-border-default);
 }
 
-.article-cover__head .byline-author {
+.article-head .byline-author {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
-.article-cover__head .byline-author img {
+.article-head .byline-author img {
   width: 26px;
   height: 26px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(251, 247, 239, 0.5);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
 }
 
-.article-cover__head .byline .sep {
+.article-head .byline .sep {
   opacity: 0.45;
 }
-/* ↑ 文章封面带 ↑ */
-
-@media (max-width: 768px) {
-  .article-cover__head {
-    padding: 0 16px 22px;
-  }
-}
+/* ↑ 文章头 ↑ */
 
 /* 右侧板块设置 */
 
 .main {
   position: relative;
+  /* 无封面图后，留出固定顶栏（约 60px）的安全间距，内容不被遮挡 */
+  padding-top: 92px;
 }
 
 .right {
   position: absolute;
   width: 400px;
-  top: 50px;
+  /* 与文章头顶端对齐（= .main padding-top） */
+  top: 92px;
   right: 80px;
 }
 
@@ -1039,7 +974,7 @@ const authorSocials = [
   width: 400px;
   position: fixed;
   right: 80px;
-  top: 150px;
+  top: 96px;
 }
 
 /* ↓ 作者卡社交图标行（与页脚同款方框） ↓ */
