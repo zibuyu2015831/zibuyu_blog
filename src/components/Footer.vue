@@ -74,7 +74,9 @@ const beianIcon = new URL("../assets/image/beian.png", import.meta.url).href;
       </div>
     </div>
 
-    <el-backtop :right="80" :bottom="100" :visibility-height="500" />
+    <!-- bottom 取 150：到达页面底部时，按钮下沿稳稳落在页脚分割线（约 127px）上方，
+         留出约 23px 安全间距，避免浮动按钮与结构线相切（视觉碰撞）。 -->
+    <el-backtop :right="80" :bottom="150" :visibility-height="500" />
   </footer>
 </template>
 
