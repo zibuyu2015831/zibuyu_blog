@@ -23,7 +23,6 @@ const {
   isShowBottomMenu,
   isShowFooterComponent,
 
-  isArticleRightBlockFixed,
   isArticleShowRightBox,
   webTheme,
 } = storeToRefs(deviceInfo); // 读取状态
@@ -423,8 +422,9 @@ const authorSocials = [
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
-  <el-row class="main" justify="center">
-    <el-col :span="isArticleShowRightBox ? 11 : 22" class="left">
+  <div class="article-page">
+    <main class="article-layout" :class="{ 'no-aside': !isArticleShowRightBox }">
+      <article class="article-main">
       <!-- 文章头：纯文字编辑风（对齐原型，去封面图），落在页面纸/墨色上 -->
       <header class="article-head">
         <nav class="crumb" aria-label="面包屑">
@@ -473,15 +473,9 @@ const authorSocials = [
           </div>
         </div>
       </section>
-    </el-col>
+      </article>
 
-    <el-col
-      v-if="isArticleShowRightBox"
-      class="right"
-      :span="5"
-      :offset="1"
-      :class="{ isfixed: isArticleRightBlockFixed }"
-    >
+      <aside v-if="isArticleShowRightBox" class="aside">
       <div class="aside-block toc-block">
         <p class="aside-title"><span class="mark-dot"></span>目录</p>
         <div class="toc">
@@ -568,8 +562,9 @@ const authorSocials = [
           </a>
         </div>
       </div>
-    </el-col>
-  </el-row>
+      </aside>
+    </main>
+  </div>
 
   <!-- C. 图片 lightbox：全屏遮罩居中放大，点击遮罩或按 ESC 关闭 -->
   <Transition name="lightbox">
@@ -582,9 +577,30 @@ const authorSocials = [
 </template>
 
 <style scoped>
-.main {
+/* 页面纸/墨底：铺满视口宽度，居中栅格落于其上 */
+.article-page {
   background-color: var(--home_background);
+  min-height: 100vh;
 }
+
+/* 文章栅格：正文 1fr + 右栏定宽，整体居中（对齐原型 .article-layout） */
+.article-layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  /* 顶部留出固定导航（约 60px）安全间距，内容不被遮挡 */
+  padding: 92px 32px 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 56px;
+  align-items: start;
+}
+
+/* 无右栏（窄屏）时单列居中，保持舒适阅读测度 */
+.article-layout.no-aside {
+  max-width: 820px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* 用户评论样式（方向A·子曰·墨：宋体小标题 + 朱砂点 + 纸面输入卡） */
 
 .comment-section {
@@ -678,12 +694,12 @@ const authorSocials = [
 
 /* ↓ 侧边栏卡片（方向A·子曰·墨：纸面卡 + 朱砂印章作者卡 + 宋体小标题） ↓ */
 
-.right .aside-block {
+.aside .aside-block {
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-default);
   border-radius: 12px;
   padding: 22px 20px;
-  margin-bottom: 20px;
+  /* 块间距交由 .aside 的 flex gap 统一管理 */
 }
 
 /* 作者卡 */
@@ -830,11 +846,11 @@ const authorSocials = [
 /* 文章主题样式 */
 
 .markdown-body {
-  /* 行宽：约 70ch（致命项），居中，保证长文阅读舒适 */
+  /* 行宽：约 70ch（致命项），左对齐落在栅格左列，保证长文阅读舒适 */
   max-width: 70ch;
   width: 100%;
-  margin: var(--space-7, 40px) auto var(--space-5, 24px);
-  padding: 0 var(--space-2, 8px);
+  margin: var(--space-6, 32px) 0 var(--space-5, 24px);
+  padding: 0;
   font-size: var(--font-size-lg, 18px);
   line-height: var(--leading-relaxed, 1.75);
   /* 正文直接落在页面纸色上（对齐原型，无卡片底） */
@@ -845,20 +861,22 @@ const authorSocials = [
    正文由 v-html 注入，不带 scoped 属性，需用 :deep() 穿透。 */
 .article_body > :deep(p:first-of-type::first-letter) {
   font-family: var(--font-display, "Noto Serif SC", serif);
-  font-weight: 900;
-  font-size: 3em;
-  line-height: 0.82;
+  font-weight: 700;
+  /* 绝对尺寸而非 em：正文段落字号被 markdown.css 放大，用 em 会过冲。
+     与标题同步缩放但始终更小（标题 clamp(28,4vw,44)，此处上限 38），作引子而非压过标题。 */
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1;
   float: left;
-  margin: 4px 12px 0 0;
+  margin: 2px 12px 0 0;
   color: var(--color-primary);
 }
 
 /* ↓ 文章头：纯文字编辑风（对齐原型，无封面图，落在纸/墨色上） ↓ */
+/* 头部横跨整列（面包屑/标题/署名与底部发丝线铺满左列，充分利用空间） */
 .article-head {
-  max-width: 70ch;
   width: 100%;
-  margin: 0 auto;
-  padding: 0 var(--space-2, 8px);
+  margin: 0;
+  padding: 0;
 }
 
 /* 面包屑 */
@@ -953,28 +971,14 @@ const authorSocials = [
 }
 /* ↑ 文章头 ↑ */
 
-/* 右侧板块设置 */
-
-.main {
-  position: relative;
-  /* 无封面图后，留出固定顶栏（约 60px）的安全间距，内容不被遮挡 */
-  padding-top: 92px;
-}
-
-.right {
-  position: absolute;
-  width: 400px;
-  /* 与文章头顶端对齐（= .main padding-top） */
-  top: 92px;
-  right: 80px;
-}
-
-.isfixed {
-  /* 与 .right 同宽，消除固定时 395 vs 400 的横向跳动 */
-  width: 400px;
-  position: fixed;
-  right: 80px;
-  top: 96px;
+/* ↓ 右侧栏：sticky 跟随滚动（替代旧的 absolute↔fixed JS 切换，消除滚动中的突兀跳现） ↓ */
+.aside {
+  position: sticky;
+  /* 固定导航（约 60px）下方留出余量，随正文滚动平滑吸顶 */
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* ↓ 作者卡社交图标行（与页脚同款方框） ↓ */
