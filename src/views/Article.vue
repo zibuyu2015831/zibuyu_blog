@@ -21,7 +21,6 @@ const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
 const {
   isShowHeaderNavigate,
   isShowBottomMenu,
-  isShowHeaderComponent,
   isShowFooterComponent,
 
   isArticleRightBlockFixed,
@@ -50,6 +49,15 @@ const imageIdList = []; // 存放图片的id与url
 const article = ref("");
 const tocItems = ref([]);
 const activeTocId = ref(""); // 当前阅读到的章节标题 id（用于 TOC 高亮）
+
+// 文章头元信息（方向A·子曰·墨：编辑风文章头）
+const articleTitle = ref(""); // 真实标题：从正文首个一级标题提取
+const articleReadMinutes = ref(1); // 阅读时长：按正文字数派生
+// 以下三项后端暂无结构化数据，先用占位样例（待接入真实数据）
+const articleCategory = "技术笔记";
+const articleDate = "2026-06-12";
+const articleViews = "2.1k";
+
 const marked = new Marked();
 
 marked.use({
@@ -170,8 +178,19 @@ const setupTocObserver = () => {
 
 onBeforeMount(async () => {
   const markdownTEXT = await getArticle(132156);
+
+  // 文章标题取自正文首个一级标题，并将该 H1 从正文剥离，避免标题重复
+  // （剥离后 TOC 自然从 H2 起算，与原型一致）
+  const h1Match = markdownTEXT.match(/^\s*#\s+(.+?)\s*$/m);
+  articleTitle.value = h1Match ? h1Match[1].replace(/`/g, "") : "未命名文章";
+  const bodyMarkdown = h1Match ? markdownTEXT.replace(h1Match[0], "") : markdownTEXT;
+
+  // 阅读时长：以去除标记后的字数估算（中文约 350 字/分钟）
+  const plainLength = bodyMarkdown.replace(/[#>*`\-![\]()]/g, "").replace(/\s/g, "").length;
+  articleReadMinutes.value = Math.max(1, Math.round(plainLength / 350));
+
   // 渲染前做 XSS 净化（保留代码高亮所需标签/类，见 utils/sanitize.js）
-  article.value = sanitizeArticleContent(marked.parse(markdownTEXT));
+  article.value = sanitizeArticleContent(marked.parse(bodyMarkdown));
   tocItems.value = generateTOC();
   // 等待 v-html 把标题渲染进 DOM 后再建立观察器
   await nextTick();
@@ -386,6 +405,18 @@ const textarea = ref();
 
 // 侧边作者头像（本地资源，避免依赖远端路径）
 const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).href;
+
+// 文章封面带：复用首页同两张昼/夜图，按 deviceInfo.theme 交叉淡入。
+// 注意：这是阅读页内独立元素，不触碰受保护的首页 Header.vue 昼夜特性。
+const coverDay = new URL("../assets/image/header_day.jpg", import.meta.url).href;
+const coverNight = new URL("../assets/image/header_night.jpg", import.meta.url).href;
+
+// 作者卡社交链接（与页脚同款方框图标）
+const authorSocials = [
+  { name: "GitHub", href: "#", icon: new URL("../assets/image/github.png", import.meta.url).href },
+  { name: "Gitee", href: "https://gitee.com/zibuyu2015831", icon: new URL("../assets/image/gitee.png", import.meta.url).href },
+  { name: "哔哩哔哩", href: "#", icon: new URL("../assets/image/bilibili.png", import.meta.url).href },
+];
 </script>
 
 <template>
@@ -394,26 +425,46 @@ const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).h
     <div class="reading-progress__bar" :style="{ width: readingProgress + '%' }"></div>
   </div>
 
-  <Header v-if="isShowHeaderComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
 
+  <!-- 文章封面带：窄幅昼/夜配图（保留特色与昼夜切换），其上叠左对齐编辑风文章头 -->
+  <header class="article-cover">
+    <img
+      class="article-cover__img"
+      :src="coverNight"
+      alt=""
+      :class="{ 'cover-top': webTheme === 'dark', 'cover-bottom': webTheme !== 'dark' }"
+    />
+    <img
+      class="article-cover__img"
+      :src="coverDay"
+      alt=""
+      :class="{ 'cover-top': webTheme !== 'dark', 'cover-bottom': webTheme === 'dark' }"
+    />
+    <div class="article-cover__scrim"></div>
+
+    <div class="article-cover__head">
+      <nav class="crumb" aria-label="面包屑">
+        <router-link to="/home">首页</router-link><span class="sep">/</span>
+        <router-link to="/article/1231">文章</router-link><span class="sep">/</span>
+        <span>{{ articleCategory }}</span>
+      </nav>
+      <span class="tag"><span class="mark-dot"></span>{{ articleCategory }}</span>
+      <h1 class="article-title">{{ articleTitle }}</h1>
+      <div class="byline">
+        <span class="byline-author">
+          <img :src="userAvatar" alt="子不语的头像" />子不语
+        </span>
+        <span class="sep">·</span><span>{{ articleDate }}</span>
+        <span class="sep">·</span><span>阅读 {{ articleReadMinutes }} 分钟</span>
+        <span class="sep">·</span><span>浏览 {{ articleViews }}</span>
+      </div>
+    </div>
+  </header>
+
   <el-row class="main" justify="center">
     <el-col :span="isArticleShowRightBox ? 11 : 22" class="left">
-      <div class="article_head">
-        <el-row justify="center">
-          <div class="title"><span>我是标题</span></div>
-        </el-row>
-        <el-row justify="center">
-          <div class="date">我是日期</div>
-        </el-row>
-        <el-row justify="center">
-          <div class="tag">我是标签</div>
-        </el-row>
-      </div>
-
-      <el-divider />
-
       <div
         ref="articleBodyRef"
         v-html="article"
@@ -452,15 +503,6 @@ const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).h
       :offset="1"
       :class="{ isfixed: isArticleRightBlockFixed }"
     >
-      <div class="aside-block author-card">
-        <div class="author-avatar-wrap">
-          <img class="author-avatar" :src="userAvatar" alt="子不语的头像" />
-          <span class="author-seal">思</span>
-        </div>
-        <p class="author-name">子不语</p>
-        <p class="author-bio">全栈开发工程师 · 现居广州</p>
-      </div>
-
       <div class="aside-block toc-block">
         <p class="aside-title"><span class="mark-dot"></span>目录</p>
         <div class="toc">
@@ -523,6 +565,28 @@ const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).h
           >
             <span class="iconfont icon-arrow-to-top" @click="backToTop"></span>
           </el-tooltip>
+        </div>
+      </div>
+
+      <div class="aside-block author-card">
+        <div class="author-avatar-wrap">
+          <img class="author-avatar" :src="userAvatar" alt="子不语的头像" />
+          <span class="author-seal">子</span>
+        </div>
+        <p class="author-name">子不语</p>
+        <p class="author-bio">写代码，也写字。<br />前端 / AI / 偶尔读点旧书。</p>
+        <div class="author-links">
+          <a
+            v-for="s in authorSocials"
+            :key="s.name"
+            :href="s.href"
+            :aria-label="s.name"
+            :title="s.name"
+            target="_blank"
+            rel="noopener"
+          >
+            <img :src="s.icon" :alt="s.name" />
+          </a>
         </div>
       </div>
     </el-col>
@@ -790,33 +854,171 @@ const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).h
   /* 行宽：约 70ch（致命项），居中，保证长文阅读舒适 */
   max-width: 70ch;
   width: 100%;
-  margin: 0 auto var(--space-5, 24px);
-  padding: var(--space-6, 32px);
-  border-radius: var(--radius-lg, 12px);
+  margin: var(--space-7, 40px) auto var(--space-5, 24px);
+  padding: 0 var(--space-2, 8px);
   font-size: var(--font-size-lg, 18px);
   line-height: var(--leading-relaxed, 1.75);
-  background-color: var(--markdown_article_body_deactivated);
+  /* 正文直接落在页面纸色上（对齐原型，无卡片底） */
+  background-color: transparent;
 }
 
-.article_head {
-  color: var(--markdown_article_title);
-}
-
-.article_head .date {
-  font-size: var(--font-size-sm, 14px);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-2, 8px);
-}
-
-.article_head .tag {
-  font-family: var(--font-display);
-  font-size: var(--font-size-xs, 12px);
-  letter-spacing: 0.1em;
+/* 首字下沉：朱砂宋体，仅作用于正文首段（对齐原型 lead 段）。
+   正文由 v-html 注入，不带 scoped 属性，需用 :deep() 穿透。 */
+.article_body > :deep(p:first-of-type::first-letter) {
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 900;
+  font-size: 3em;
+  line-height: 0.82;
+  float: left;
+  margin: 4px 12px 0 0;
   color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+}
+
+/* ↓ 文章封面带（窄幅昼/夜图 + 叠加编辑风文章头） ↓ */
+.article-cover {
+  position: relative;
+  width: 100%;
+  height: clamp(240px, 32vh, 320px);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.article-cover__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 1.5s ease;
+}
+
+/* 昼/夜交叉淡入（与首页 Hero 同机制，受 deviceInfo.theme 驱动） */
+.article-cover__img.cover-top {
+  opacity: 1;
+}
+
+.article-cover__img.cover-bottom {
+  opacity: 0;
+}
+
+/* 底部暗纱：保证编辑头文字在昼/夜两张图上都清晰（比首页强一档） */
+.article-cover__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.66) 0%,
+    rgba(0, 0, 0, 0.34) 42%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+}
+
+/* 编辑头：落在封面带左下，与正文左对齐 */
+.article-cover__head {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 40px 28px;
+  color: #fbf7ef;
+}
+
+/* 面包屑 */
+.article-cover__head .crumb {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: rgba(251, 247, 239, 0.78);
+  margin-bottom: 16px;
+}
+
+.article-cover__head .crumb a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.22s ease;
+}
+
+.article-cover__head .crumb a:hover {
+  color: #fff;
+}
+
+.article-cover__head .crumb .sep {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+/* 标签胶囊：暖白描边，叠在图上可读 */
+.article-cover__head .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: #fbf7ef;
+  border: 1px solid rgba(251, 247, 239, 0.6);
   border-radius: var(--radius-sm, 4px);
-  padding: 2px 10px;
-  margin-bottom: var(--space-4, 16px);
+  padding: 2px 12px;
+  margin-bottom: 16px;
+}
+
+.article-cover__head .tag .mark-dot {
+  width: 5px;
+  height: 5px;
+  box-shadow: none;
+}
+
+/* 大宋体标题 */
+.article-cover__head .article-title {
+  margin: 0 0 16px;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  max-width: 22ch;
+  text-wrap: balance;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 署名行 */
+.article-cover__head .byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: rgba(251, 247, 239, 0.86);
+}
+
+.article-cover__head .byline-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.article-cover__head .byline-author img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(251, 247, 239, 0.5);
+}
+
+.article-cover__head .byline .sep {
+  opacity: 0.45;
+}
+/* ↑ 文章封面带 ↑ */
+
+@media (max-width: 768px) {
+  .article-cover__head {
+    padding: 0 16px 22px;
+  }
 }
 
 /* 右侧板块设置 */
@@ -840,37 +1042,40 @@ const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).h
   top: 150px;
 }
 
-/* ↓ 页面标题设置 ↓ */
-
-.title {
-  font-family: var(--font-display);
-  font-size: var(--font-size-4xl, 40px);
-  font-weight: var(--weight-bold, 700);
-  line-height: var(--leading-tight, 1.25);
-  color: var(--color-text-primary);
-  margin-top: var(--space-5, 24px);
-  margin-bottom: var(--space-3, 12px);
-  text-align: center;
+/* ↓ 作者卡社交图标行（与页脚同款方框） ↓ */
+.author-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
 }
 
-.title span {
-  background: linear-gradient(
-      to right,
-      var(--color-primary),
-      var(--color-primary)
-    )
-    no-repeat right bottom;
-  background-size: 0 2px;
-  transition: background-size var(--motion-slow, 400ms) var(--ease-standard, ease);
-  padding-bottom: 4px;
+.author-links a {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  transition: border-color 0.22s ease, transform 0.22s ease;
 }
 
-.title span:hover {
-  background-position-x: left;
-  background-size: 100% 2px;
+.author-links a:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
-/* ↑ 页面标题设置 ↑ */
+.author-links img {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+}
+
+/* 暗色下给深色 logo 一点亮底，避免糊进卡片 */
+:global(html.dark) .author-links a {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* ↑ 作者卡社交图标行 ↑ */
 
 /* ↓ A. 阅读进度条 ↓ */
 .reading-progress {
