@@ -488,57 +488,6 @@ const authorSocials = [
             {{ item.text }}
           </div>
         </div>
-        <div class="aside-divider"></div>
-        <div class="toc_icon">
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="AI问答"
-            placement="top-start"
-          >
-            <span class="iconfont icon-message"></span>
-          </el-tooltip>
-
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="我来评论两句"
-            placement="top-start"
-          >
-            <span class="iconfont icon-iconfontconment2"></span>
-          </el-tooltip>
-
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="点赞+收藏"
-            placement="top-start"
-          >
-            <span
-              class="iconfont"
-              :class="{ 'icon-good1': userLike, 'icon-good': !userLike }"
-              @click="userLikeArticle"
-            ></span>
-          </el-tooltip>
-
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="返回底部"
-            placement="top-start"
-          >
-            <span class="iconfont icon-arrow-to-bottom" @click="backToButton"></span>
-          </el-tooltip>
-
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="返回开头"
-            placement="top-start"
-          >
-            <span class="iconfont icon-arrow-to-top" @click="backToTop"></span>
-          </el-tooltip>
-        </div>
       </div>
 
       <div class="aside-block author-card">
@@ -561,6 +510,33 @@ const authorSocials = [
             <img :src="s.icon" :alt="s.name" />
           </a>
         </div>
+      </div>
+
+      <!-- 操作栏：点赞收藏 / AI问答（计划功能）等移到侧栏底部，目录卡回归原型纯净的「标题 + 列表」 -->
+      <div class="aside-actions">
+        <el-tooltip class="box-item" effect="dark" content="AI问答" placement="top">
+          <span class="iconfont icon-message"></span>
+        </el-tooltip>
+
+        <el-tooltip class="box-item" effect="dark" content="我来评论两句" placement="top">
+          <span class="iconfont icon-iconfontconment2"></span>
+        </el-tooltip>
+
+        <el-tooltip class="box-item" effect="dark" content="点赞+收藏" placement="top">
+          <span
+            class="iconfont"
+            :class="{ 'icon-good1': userLike, 'icon-good': !userLike }"
+            @click="userLikeArticle"
+          ></span>
+        </el-tooltip>
+
+        <el-tooltip class="box-item" effect="dark" content="返回底部" placement="top">
+          <span class="iconfont icon-arrow-to-bottom" @click="backToButton"></span>
+        </el-tooltip>
+
+        <el-tooltip class="box-item" effect="dark" content="返回开头" placement="top">
+          <span class="iconfont icon-arrow-to-top" @click="backToTop"></span>
+        </el-tooltip>
       </div>
       </aside>
     </main>
@@ -770,20 +746,20 @@ const authorSocials = [
   color: var(--color-text-secondary);
 }
 
-/* 目录卡内分隔线 + 动作图标行 */
-.aside-divider {
-  height: 1px;
-  background: var(--color-border-default);
-  margin: 16px 0 14px;
-}
-
-.toc_icon {
+/* 侧栏底部操作栏：点赞收藏 / AI问答（计划功能）等独立成栏，
+   与目录解耦——目录卡回归原型纯净的「标题 + 列表」 */
+.aside-actions {
   display: flex;
-  justify-content: space-between;
-  padding: 0 2px;
+  align-items: center;
+  justify-content: space-around;
+  gap: 6px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  padding: 13px 14px;
 }
 
-.toc_icon span {
+.aside-actions span {
   font-size: 20px;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -791,17 +767,17 @@ const authorSocials = [
     transform var(--motion-fast, 180ms) var(--ease-standard, ease);
 }
 
-.toc_icon span:hover {
+.aside-actions span:hover {
   color: var(--color-primary);
   transform: translateY(-2px);
 }
 
-.toc_icon .icon-good1 {
+.aside-actions .icon-good1 {
   color: var(--color-primary);
 }
 
-.toc_icon .icon-arrow-to-bottom,
-.toc_icon .icon-arrow-to-top {
+.aside-actions .icon-arrow-to-bottom,
+.aside-actions .icon-arrow-to-top {
   font-size: 18px;
 }
 
