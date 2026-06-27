@@ -144,24 +144,68 @@ npm run lint
 
 > 已按复审结论调整：✅ 推荐项；⚠️ 复审认定不首选/不需要的项；路由懒加载经核查**已实现**，故移出待办。
 
+> ✅ 标记项已于 2026-06-27 在分支 `fix/dev-docs-optimizations` 实施完成，详见下方「📌 实施状态」。
+
 **优先（低风险高收益）**
-- [ ] 抽取重复的 `base64Encode` 到 `src/utils/encoding.js`（11）
-- [ ] 生产构建移除 `console`（08，esbuild `drop` 或安装 terser）
-- [ ] 统一错误处理 `src/utils/errorHandler.js`（07）
-- [ ] 接口地址/占位 token 改为环境变量，删除死文件 `customizedChat copy.js`（01）
+- [x] 抽取重复的 `base64Encode` 到 `src/utils/encoding.js`（11）
+- [x] 生产构建移除 `console`（08，采用 esbuild `drop`，无需 terser）
+- [x] 统一错误处理 `src/utils/errorHandler.js`（07）
+- [x] 接口地址改为环境变量；删除整个死代码目录 `src/server/`（含 `customizedChat copy.js`）（01）
 
 **安全加固**
-- [ ] 对 `v-html`（尤其 AI 回复处）接入 DOMPurify 净化（02）
-- [ ] 确认 HTTPS 传输 + 后端哈希（03，前端加密非首选）
-- [ ] 补充表单 `:rules` 输入校验（12）
-- [ ] Token 续期 / 401 统一处理（06，依赖后端 refresh 接口）
+- [x] 对 `v-html`（含两处 AI 回复）接入 DOMPurify 净化（02）
+- [N/A] 确认 HTTPS 传输 + 后端哈希（03）—— 属后端/部署职责，**前端无需改动**（保持 base64Encode 即可）
+- [x] 补充表单 `:rules` 输入校验（12）
+- [x] Token 401 统一处理 `src/utils/auth.js`（06，refresh 续期仍依赖后端接口）
 
 **按需 / 谨慎**
-- [ ] 清理 Footer/Header/About/Test 的 `setInterval`（05）
-- [ ] 图片懒加载 + resize 节流（10，路由懒加载已实现）
-- [ ] ⚠️ CSRF token：当前 Bearer 头鉴权，暂不需要（04）
-- [ ] ⚠️ 前端加密存储：不建议作为主要手段（09）
-- [ ] ⚠️ 响应式：原方案有 CSS 语法错误，仅做安全增量改动（13）
+- [x] 清理 Footer/Header/About/Test 的 `setInterval`（05）
+- [x] 图片懒加载 + resize/scroll 节流（10，路由懒加载已实现）
+- [跳过] ⚠️ CSRF token：当前 Bearer 头鉴权天然免疫，**不实施**（04，已删除唯一 cookie 痕迹 `defaultChat.js`）
+- [跳过] ⚠️ 前端加密存储：属安全表演，**不实施**（09，正解是后端 HttpOnly Cookie）
+- [x] ⚠️ 响应式：断点魔法数字常量化（13，经核查代码中无 `@media var()` 语法错误）
+
+## 📌 实施状态（2026-06-27，分支 `fix/dev-docs-optimizations`）
+
+本轮按修订后的方案文档逐条落地，**每个小阶段均经过 lint + 单元测试 + `vite build` 验证并单独提交**。
+
+### 已建立测试体系（基于测试开发/修复）
+
+引入 **Vitest + @vue/test-utils + jsdom**（`npm test` / `npm run test:watch` / `npm run test:coverage`），
+对新增工具与关键行为编写单测，当前 **43 个用例全部通过**：
+
+| 测试文件 | 覆盖 |
+|---------|------|
+| `encoding.test.js` | base64Encode 与旧实现逐字一致（含中文/emoji） |
+| `errorHandler.test.js` | 敏感信息脱敏、HTTP/业务码映射、弹窗分级 |
+| `sanitize.test.js` | 剥离 script、移除事件属性、保留代码高亮 |
+| `auth.test.js` | 401 判定、清理 token、触发重新登录 |
+| `throttle.test.js` | leading-edge 节流时序与上下文 |
+| `deviceInfo.test.js` | 各断点 getter 边界行为（重构回归基线） |
+| `Footer.lifecycle.test.js` | 定时器在卸载时被 clearInterval（#05 回归） |
+
+### 关键架构决策（基于代码的深入核查）
+
+1. **删除整个 `src/server/` 死代码目录**：经 grep 核实 `serverRequest.js`、`defaultChat.js`、
+   `customizedChat copy.js` 三者**均无任何 import 引用**，且都引用 gitignore 的 `aiEnglish` store、
+   携带占位 token。文档 06/07/04 曾假设 `serverRequest.js` 是「线上 axios 请求层」，实为误判——
+   真实请求层是各处**原生 fetch**（账户、AI 组件）与 `api/getNews.js` 的**直接 axios**。
+   因此 #07 错误处理、#06 的 401 处理**改接入真实 fetch/axios 调用点**，而非已删除的 server 封装。
+2. **`src/stores/aiEnglish.js` 被 gitignore**（含真实密钥），`aiEnglish_demo.js` 是提交版模板。
+   全新检出会因缺该文件导致 `vite build` 失败；本地用 `cp aiEnglish_demo.js aiEnglish.js` 即可恢复构建门禁。
+3. **#03 / #04 / #09 不产生前端代码改动**：均为「依赖后端/部署」或「前端做了反而是安全表演」，
+   按文档结论保持现状（#04 顺带删除了唯一的 cookie 痕迹 `defaultChat.js`）。
+
+### 提交一览（每阶段一个 commit）
+
+测试体系 → #11 去重+删死代码 → #08 console/eslint → #01 环境变量 → #07 错误处理 →
+#02 XSS → #06 401 → #12 表单校验 → #05 内存泄漏 → #10 性能 → #13 断点常量。
+
+### 验证基线
+
+- 单元测试：**43 通过**；`vite build`：**通过**。
+- ESLint 全量问题：60 → 46（减少的为本轮触及文件；剩余 46 项均为**与本次无关的 pre-existing 结构性问题**，
+  如单词组件名、`while(true)`、正则 `if(match=...)` 等，未在 13 篇文档范围内，故未改动）。
 
 ## 🤝 后端协作
 
@@ -193,3 +237,4 @@ npm run lint
 
 - **2024-01-07**: 初始版本，拆分13个优化点文档
 - **2026-06-27**: 基于真实源码的逐条复审。修正各文档严重度与优先级、重写与现网代码脱节的修复方案（重点：05 内存泄漏文件清单、06 token 流程、08 console 清理方案），补充每个问题的真实代码文件路径与行号、可落地的修复步骤；修正索引文件名、依赖关系、配套工具与检查清单。
+- **2026-06-27（实施）**: 在分支 `fix/dev-docs-optimizations` 按修订方案逐条落地。新增 Vitest 测试体系（43 例全绿）；实施 #01/#02/#05/#06/#07/#08/#10/#11/#12/#13；#03/#04/#09 按结论不做前端改动；删除整个死代码目录 `src/server/`。详见上方「📌 实施状态」。

@@ -35,9 +35,8 @@ src/
 ├── content/      # 业务内容组件（登录 / 注册 / 打赏 / 个人信息等弹窗）
 ├── plugins/      # 插件（主题插件）
 ├── router/       # 路由配置
-├── server/       # 大模型对话请求逻辑
 ├── stores/       # Pinia 状态管理
-├── utils/        # 工具函数（日期处理、登录态、本地存储等）
+├── utils/        # 工具函数（编码、错误处理、HTML 净化、鉴权、节流、日期、本地存储等）
 ├── views/        # 页面（Home / About / Article / AiEnglish / WebNavigate）
 ├── App.vue
 └── main.js
@@ -75,6 +74,17 @@ npm run build
 ```sh
 npm run lint
 ```
+
+### 运行单元测试
+
+```sh
+npm test            # 单次运行（Vitest）
+npm run test:watch  # 监听模式
+npm run test:coverage
+```
+
+> 注意：`src/stores/aiEnglish.js` 含真实密钥、已被 gitignore。全新检出后若需 `npm run build` 或运行
+> AI 英语相关页面，请先复制模板：`cp src/stores/aiEnglish_demo.js src/stores/aiEnglish.js`。
 
 ## ⚙️ 配置说明
 
