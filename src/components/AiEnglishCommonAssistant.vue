@@ -1,6 +1,7 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
+import { sanitizeAIResponse } from "@/utils/sanitize";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, nextTick, onMounted, watch } from "vue";
@@ -827,7 +828,7 @@ async function customizedConversation() {
           <div @mouseenter="show_button">
             <div :id="index" class="content">
               <div
-                v-html="item.content"
+                v-html="sanitizeAIResponse(item.content)"
                 :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>

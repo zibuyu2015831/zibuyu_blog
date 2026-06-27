@@ -2,6 +2,7 @@
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 import useUserInfo from "@/stores/userInfo";
+import { sanitizeAIResponse } from "@/utils/sanitize";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, reactive, nextTick, onMounted } from "vue";
@@ -384,7 +385,7 @@ const changeCommand = (command) => {
           <div @mouseenter="show_button">
             <div :id="index" class="content">
               <div
-                v-html="item.content"
+                v-html="sanitizeAIResponse(item.content)"
                 :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>

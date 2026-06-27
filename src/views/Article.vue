@@ -4,6 +4,7 @@ import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
 import { markedHighlight } from "marked-highlight";
+import { sanitizeArticleContent } from "@/utils/sanitize";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
 import "@/assets/css/zibuyu-markdown.css";
 
@@ -129,7 +130,8 @@ const generateimageIdList = () => {
 
 onBeforeMount(async () => {
   const markdownTEXT = await getArticle(132156);
-  article.value = marked.parse(markdownTEXT);
+  // 渲染前做 XSS 净化（保留代码高亮所需标签/类，见 utils/sanitize.js）
+  article.value = sanitizeArticleContent(marked.parse(markdownTEXT));
   tocItems.value = generateTOC();
 });
 
