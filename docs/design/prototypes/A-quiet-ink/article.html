@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>设计令牌：让你的 CSS 不再失控 — 子不语</title>
+<meta name="description" content="17 种强调色、15 种字号是怎么失控的，以及如何用三层令牌收敛。" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   设计方向 A · 子曰·墨（Quiet Ink）— 文章页
+   与首页共享配色变量与昼夜系统
+   ============================================================ */
+
+/* ---------- 明亮主题（昼） ---------- */
+:root,
+[data-theme="light"] {
+  --cinnabar:        #C8453B;
+  --cinnabar-soft:   rgba(200, 69, 59, 0.10);
+  --bg:              #FBF7EF;
+  --bg-sub:          #F4EEE2;
+  --card:            #FFFDF8;
+  --ink:             #2B2620;
+  --ink-soft:        #6B6356;
+  --line:            #E3DACA;
+  /* 代码块语法高亮（昼） */
+  --code-bg:         #F4EEE2;
+  --code-text:       #4A4338;
+  --code-keyword:    #C8453B;  /* 朱砂关键字 */
+  --code-prop:       #2B6E6A;  /* 青墨属性 */
+  --code-value:      #8A6D2F;  /* 赭黄值 */
+  --code-comment:    #9A9180;
+}
+
+/* ---------- 暗色主题（夜） ---------- */
+[data-theme="dark"] {
+  --cinnabar:        #E06A5E;
+  --cinnabar-soft:   rgba(224, 106, 94, 0.14);
+  --bg:              #15120E;
+  --bg-sub:          #1F1B16;
+  --card:            #211D17;
+  --ink:             #E9E2D4;
+  --ink-soft:        #A89E8C;
+  --line:            #332C22;
+  --code-bg:         #1A1611;
+  --code-text:       #D6CDBC;
+  --code-keyword:    #E06A5E;
+  --code-prop:       #6FB7B1;
+  --code-value:      #D2A85C;
+  --code-comment:    #6E665A;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+.topbar, .card, .aside-block, .footer, .theme-toggle,
+pre, blockquote, .tag { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
+
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--cinnabar-soft); color: var(--ink); }
+
+.mark-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  vertical-align: middle;
+}
+
+/* ============================================================
+   顶栏（与首页一致）
+   ============================================================ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+.brand .seal {
+  display: inline-grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: 5px;
+  background: var(--cinnabar);
+  color: #FBF7EF;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 19px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+}
+.nav { display: flex; gap: 22px; margin-left: 14px; }
+.nav a {
+  position: relative;
+  font-size: 15px;
+  color: var(--ink-soft);
+  padding: 4px 0;
+  transition: color 0.25s ease;
+}
+.nav a:hover, .nav a[aria-current="page"] { color: var(--ink); }
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 2px;
+  background: var(--cinnabar);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s ease;
+}
+.nav a:hover::after { transform: scaleX(1); }
+.topbar-spacer { flex: 1; }
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, background-color 0.4s ease;
+}
+.theme-toggle:hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+.theme-toggle svg { width: 18px; height: 18px; }
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-sun  { display: none; }
+[data-theme="dark"] .icon-moon { display: block; }
+.nav-mobile-hint { display: none; }
+
+/* ============================================================
+   阅读进度条（朱砂细线，顶栏下方）
+   ============================================================ */
+.progress {
+  position: fixed;
+  top: 64px; left: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--cinnabar);
+  z-index: 49;
+  transition: width 0.08s linear;
+}
+
+/* ============================================================
+   文章布局：正文 + 右侧 TOC（≥1100 两栏）
+   ============================================================ */
+.article-layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 56px 32px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  gap: 72px;
+  align-items: start;
+}
+
+/* ---------- 面包屑 ---------- */
+.crumb {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 22px;
+  letter-spacing: 0.03em;
+}
+.crumb a:hover { color: var(--cinnabar); }
+.crumb .sep { margin: 0 8px; opacity: 0.5; }
+
+/* ---------- 文章头 ---------- */
+.article-head { margin-bottom: 12px; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--cinnabar);
+  border: 1px solid var(--cinnabar);
+  border-radius: 4px;
+  padding: 2px 10px;
+  margin-bottom: 22px;
+}
+.tag .mark-dot { width: 5px; height: 5px; }
+
+.article-title {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 900;
+  font-size: clamp(30px, 4.2vw, 44px);
+  line-height: 1.32;
+  letter-spacing: 0.01em;
+  margin: 0 0 24px;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.byline .author {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.byline .author img {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+.byline .sep { opacity: 0.4; }
+
+/* ============================================================
+   正文排版：18px / 行高 1.8 / 70ch
+   ============================================================ */
+.prose {
+  font-size: 18px;
+  line-height: 1.8;
+  max-width: 70ch;
+  width: 100%;
+  margin-top: 36px;
+  /* 极端长词/英文串不撑破容器 */
+  overflow-wrap: break-word;
+}
+.prose p {
+  margin: 0 0 26px;
+  text-wrap: pretty;
+}
+
+/* 首字下沉 */
+.prose > p.lead::first-letter {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 900;
+  font-size: 3.4em;
+  line-height: 0.84;
+  float: left;
+  margin: 6px 12px 0 0;
+  color: var(--cinnabar);
+}
+.prose p.lead { font-size: 19px; }
+
+/* H2：朱砂点 + 宋体 */
+.prose h2 {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 27px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  margin: 54px 0 22px;
+  padding-top: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-wrap: balance;
+}
+.prose h2 .mark-dot { transform: translateY(-4px); flex-shrink: 0; }
+
+.prose h3 {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  margin: 36px 0 14px;
+  color: var(--ink);
+}
+/* 三层令牌 H3 前的朱砂竖线 */
+.prose h3::before {
+  content: "";
+  display: inline-block;
+  width: 3px; height: 0.9em;
+  background: var(--cinnabar);
+  margin-right: 10px;
+  vertical-align: -1px;
+  border-radius: 1px;
+}
+
+/* 列表 */
+.prose ul, .prose ol {
+  margin: 0 0 26px;
+  padding-left: 0;
+  list-style: none;
+}
+.prose ul li, .prose ol li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 12px;
+}
+.prose ul li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 0.78em;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+}
+/* 有序列表：朱砂宋体序号 */
+.prose ol { counter-reset: step; }
+.prose ol li {
+  padding-left: 38px;
+  margin-bottom: 18px;
+}
+.prose ol li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 0;
+  width: 26px; height: 26px;
+  display: grid;
+  place-items: center;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cinnabar);
+  border: 1.5px solid var(--cinnabar);
+  border-radius: 5px;
+  line-height: 1;
+}
+.prose ol li strong { color: var(--ink); }
+
+/* 引用 blockquote：朱砂左线 + 宋体 */
+.prose blockquote {
+  margin: 36px 0;
+  padding: 6px 0 6px 26px;
+  border-left: 3px solid var(--cinnabar);
+  font-family: "Noto Serif SC", serif;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.7;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+.prose blockquote p { margin: 0; }
+.prose blockquote cite {
+  display: block;
+  margin-top: 12px;
+  font-family: "Noto Sans SC", sans-serif;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* 行内代码 */
+.prose code {
+  font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  color: var(--cinnabar);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+
+/* 代码块 */
+.prose pre {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin: 30px 0;
+  overflow-x: auto;
+  line-height: 1.7;
+  position: relative;
+}
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--code-text);
+  font-size: 14.5px;
+}
+/* 代码块右上角语言标记 */
+.code-lang {
+  position: absolute;
+  top: 0; right: 0;
+  font-family: "Noto Serif SC", serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  background: var(--bg-sub);
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0 8px 0 6px;
+  padding: 4px 12px;
+}
+/* 手工语法上色 */
+.tok-comment { color: var(--code-comment); font-style: italic; }
+.tok-keyword { color: var(--code-keyword); }
+.tok-prop    { color: var(--code-prop); }
+.tok-value   { color: var(--code-value); }
+.tok-punc    { color: var(--ink-soft); }
+
+/* 配图：调色板占位（非假照片） */
+figure { margin: 38px 0; }
+.palette-fig {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card);
+}
+.palette-row { display: flex; height: 132px; }
+.palette-swatch {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.92);
+  font-family: ui-monospace, Menlo, monospace;
+}
+/* 三层令牌示意的色阶 */
+.sw-1 { background: #C8453B; }
+.sw-2 { background: #D9695F; }
+.sw-3 { background: #2B6E6A; }
+.sw-4 { background: #8A6D2F; }
+.sw-5 { background: #2B2620; }
+.palette-meta {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+  font-family: ui-monospace, Menlo, monospace;
+}
+figcaption {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+figcaption::before { content: ""; }
+
+/* 文末分隔 + 作者印 */
+.article-end {
+  margin: 56px 0 0;
+  text-align: center;
+  color: var(--cinnabar);
+  font-family: "Noto Serif SC", serif;
+  letter-spacing: 0.5em;
+  font-size: 18px;
+}
+
+/* ============================================================
+   右侧栏：TOC + 作者卡
+   ============================================================ */
+.aside { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 28px; }
+
+.toc-block { }
+.toc-title {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  display: flex; align-items: center; gap: 9px;
+}
+.toc-title .mark-dot { width: 5px; height: 5px; }
+.toc-list { list-style: none; margin: 0; padding: 0; }
+.toc-list li { margin: 0; }
+.toc-list a {
+  display: block;
+  position: relative;
+  padding: 7px 0 7px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--line);
+  transition: color 0.22s ease, border-color 0.22s ease;
+  text-wrap: pretty;
+}
+.toc-list a.sub { padding-left: 30px; font-size: 13.5px; }
+.toc-list a:hover { color: var(--ink); }
+/* 当前章节高亮（朱砂） */
+.toc-list a.is-active {
+  color: var(--cinnabar);
+  border-left-color: var(--cinnabar);
+  font-weight: 500;
+}
+
+/* 作者卡（与首页一致风格的精简版） */
+.aside-block {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px 22px;
+  text-align: center;
+}
+.author-avatar-wrap { position: relative; width: 64px; height: 64px; margin: 0 auto 12px; }
+.author-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--bg-sub);
+}
+.author-seal {
+  position: absolute;
+  right: -2px; bottom: -2px;
+  width: 23px; height: 23px;
+  border-radius: 5px;
+  background: var(--cinnabar);
+  color: #FBF7EF;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 12px;
+  display: grid; place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+}
+.author-name {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+}
+.author-bio { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 16px; }
+.author-links { display: flex; justify-content: center; gap: 10px; }
+.author-links a {
+  display: inline-grid; place-items: center;
+  width: 34px; height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: border-color 0.22s ease, transform 0.22s ease;
+}
+.author-links a:hover { border-color: var(--cinnabar); transform: translateY(-2px); }
+.author-links img { width: 17px; height: 17px; object-fit: contain; }
+[data-theme="dark"] .author-links img { filter: invert(0.9) brightness(1.1); }
+
+/* ============================================================
+   页脚（与首页一致）
+   ============================================================ */
+.footer { border-top: 1px solid var(--line); background: var(--bg-sub); margin-top: 32px; }
+.footer-inner {
+  max-width: 1180px; margin: 0 auto; padding: 40px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+}
+.footer-brand {
+  font-family: "Noto Serif SC", serif; font-weight: 700;
+  font-size: 16px; letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 10px;
+}
+.footer-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.9; }
+.footer-social { display: flex; gap: 10px; }
+.footer-social a {
+  display: inline-grid; place-items: center;
+  width: 34px; height: 34px;
+  border: 1px solid var(--line); border-radius: 6px;
+  transition: border-color 0.22s ease;
+}
+.footer-social a:hover { border-color: var(--cinnabar); }
+.footer-social img { width: 16px; height: 16px; object-fit: contain; }
+[data-theme="dark"] .footer-social img { filter: invert(0.9) brightness(1.1); }
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 1100px) {
+  /* minmax(0,1fr) 让列可收缩到内容最小宽度以下，代码块内部横向滚动而不撑破页面 */
+  .article-layout { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .aside { position: static; }
+  .toc-block { display: none; } /* 窄屏隐藏 TOC，作者卡保留 */
+}
+@media (max-width: 768px) {
+  .topbar-inner { padding: 0 16px; gap: 14px; }
+  .nav { display: none; }
+  .nav-mobile-hint { display: inline-block; font-size: 13px; color: var(--ink-soft); }
+  .article-layout { padding: 36px 16px 32px; } /* 正文左右 16px */
+  .aside { display: none; }
+  .prose { font-size: 17px; }
+  .footer-inner { padding: 32px 16px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===================== 顶栏 ===================== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="home.html" aria-label="子不语 首页">
+      <span class="seal">子</span>
+      <span>子不语</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="home.html">首页</a>
+      <a href="#" aria-current="page">文章</a>
+      <a href="#">导航</a>
+      <a href="#">AI英语</a>
+      <a href="#">关于</a>
+    </nav>
+    <span class="nav-mobile-hint">文人编辑风</span>
+    <span class="topbar-spacer"></span>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换昼夜主题">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+<div class="progress" id="progress"></div>
+
+<!-- ===================== 文章 ===================== -->
+<main class="article-layout">
+
+  <!-- 左：正文 -->
+  <article>
+    <nav class="crumb" aria-label="面包屑">
+      <a href="home.html">首页</a><span class="sep">/</span>
+      <a href="#">文章</a><span class="sep">/</span>
+      <span>设计</span>
+    </nav>
+
+    <header class="article-head">
+      <span class="tag"><span class="mark-dot"></span>设计</span>
+      <h1 class="article-title">设计令牌：让你的 CSS 不再失控</h1>
+      <div class="byline">
+        <span class="author">
+          <img src="../assets/user_avatar.png" alt="子不语" />子不语
+        </span>
+        <span class="sep">·</span><span>2026-06-12</span>
+        <span class="sep">·</span><span>阅读 8 分钟</span>
+        <span class="sep">·</span><span>浏览 2.1k</span>
+      </div>
+    </header>
+
+    <div class="prose">
+      <!-- 引言（首字下沉） -->
+      <p class="lead">每一个长期维护的前端项目，几乎都会经历同一种缓慢的失序：起初只是为某个按钮加了一种「稍微深一点的红」，半年后样式表里躺着十几种近似却又不完全相同的红色。颜色、字号、间距、圆角——这些本该收敛的视觉决策，悄悄地各自繁殖。设计令牌（Design Tokens）正是为了把这种熵增重新关进笼子里。</p>
+
+      <p>它的思路并不复杂：把所有视觉决策抽象成有名字的变量，让设计与实现共享同一套词汇。但真正难的不是定义令牌，而是<strong>如何组织它们</strong>——让令牌既能保持一致，又能在需要时灵活地被覆盖。</p>
+
+      <!-- H2 问题 -->
+      <h2 id="sec-problem"><span class="mark-dot"></span>问题：CSS 是怎么失控的</h2>
+      <p>失控很少是一次性的崩塌，而是无数次「就这一次」累积的结果。设计稿里出现了一个新的强调色，开发者顺手写下十六进制值；下个迭代换了设计师，又带来一套审美略有差异的灰阶。没有人做错什么，但系统整体却越来越难以维护。</p>
+      <p>当我打开一个运行了两年的项目，用脚本统计实际用到的样式值时，结果往往触目惊心。这些数字背后是真实的认知负担：每一次新需求，开发者都要在一堆相似选项里做无意义的抉择。</p>
+      <ul>
+        <li>项目里散落着 <strong>17 种强调色</strong>，其中至少 9 种肉眼几乎无法区分；</li>
+        <li>字号多达 <strong>15 种</strong>，从 13px 到 32px 之间挤满了没有规律的数值；</li>
+        <li>圆角有 <strong>8 种</strong>，4px、5px、6px 同时存在，没人记得为什么。</li>
+      </ul>
+      <p>这些值之所以失控，不是因为它们「太多」，而是因为它们<strong>没有名字、没有出处、没有层级</strong>。一个孤立的 <code>#C8453B</code> 不携带任何意图，而一个叫 <code>var(--color-primary)</code> 的令牌，才开始承载语义。</p>
+
+      <!-- H2 三层 -->
+      <h2 id="sec-arch"><span class="mark-dot"></span>三层令牌架构</h2>
+      <p>收敛的关键，是把令牌分成职责清晰的三层。每一层只解决一个问题，彼此通过引用串联——上层永远不直接写死值，而是指向下一层。这样既保证了一致性，又保留了局部覆盖的弹性。</p>
+
+      <h3 id="sec-raw">原始层 Primitive</h3>
+      <p>最底层是不带任何语义的「原材料」：一整套色阶、一把字号刻度、一组间距单位。它们只描述「是什么」，不描述「用在哪」。比如 <code>--red-500: #C8453B</code>，它只是红色色阶里的一档，本身不关心自己将被用作主色还是警告色。</p>
+
+      <h3 id="sec-semantic">语义层 Semantic</h3>
+      <p>语义层把原始值映射到「用途」。<code>--color-primary</code> 指向某一档红，<code>--color-danger</code> 指向另一档。当品牌升级、主色从朱砂改为绛紫时，你只需要改动语义层的这一处指向，整个产品随之更新——而原始色阶纹丝不动。</p>
+
+      <h3 id="sec-alias">组件别名层 Alias</h3>
+      <p>最上层是面向具体组件的别名，如 <code>--button-bg</code>、<code>--card-border</code>。它默认引用语义层，但允许某个组件在不破坏全局的前提下做局部微调。这一层是「逃生舱口」：既享受系统的统一，又不被系统绑死。</p>
+
+      <!-- 引用 -->
+      <blockquote>
+        <p>「好设计是从内容里长出来的，不是套出来的。」</p>
+        <cite>—— 一条贴在显示器边上的便签</cite>
+      </blockquote>
+
+      <p>令牌系统也是如此。它不该是一份从别处抄来的、悬浮在项目之上的规范，而应当从你真实使用过的颜色与字号里<strong>提炼</strong>出来。下面是一份精简到极致的语义层定义，足以支撑一个小型项目的昼夜双主题：</p>
+
+      <!-- 代码块（手工语法高亮） -->
+      <pre><code><span class="tok-comment">/* 语义层：把原始色阶映射到用途 */</span>
+<span class="tok-keyword">:root</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">--color-primary</span><span class="tok-punc">:</span>     <span class="tok-keyword">var</span>(<span class="tok-value">--red-500</span>)<span class="tok-punc">;</span>
+  <span class="tok-prop">--color-bg</span><span class="tok-punc">:</span>          <span class="tok-keyword">var</span>(<span class="tok-value">--paper-50</span>)<span class="tok-punc">;</span>
+  <span class="tok-prop">--color-text</span><span class="tok-punc">:</span>        <span class="tok-keyword">var</span>(<span class="tok-value">--ink-900</span>)<span class="tok-punc">;</span>
+  <span class="tok-prop">--color-border</span><span class="tok-punc">:</span>      <span class="tok-keyword">var</span>(<span class="tok-value">--ink-100</span>)<span class="tok-punc">;</span>
+<span class="tok-punc">}</span>
+<span class="tok-keyword">[data-theme=<span class="tok-value">"dark"</span>]</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">--color-primary</span><span class="tok-punc">:</span>     <span class="tok-keyword">var</span>(<span class="tok-value">--red-300</span>)<span class="tok-punc">;</span>
+  <span class="tok-prop">--color-bg</span><span class="tok-punc">:</span>          <span class="tok-keyword">var</span>(<span class="tok-value">--ink-950</span>)<span class="tok-punc">;</span>
+<span class="tok-punc">}</span></code><span class="code-lang">CSS</span></pre>
+
+      <p>组件里从此不再出现任何裸色值，只引用语义令牌——例如按钮背景统一写成 <code>var(--color-primary)</code>。切换主题时，你改的永远是令牌指向，而不是组件本身。</p>
+
+      <!-- 配图：调色板占位（非假照片） -->
+      <figure>
+        <div class="palette-fig" role="img" aria-label="三层令牌关系示意调色板">
+          <div class="palette-row">
+            <div class="palette-swatch sw-1">primitive · red-500</div>
+            <div class="palette-swatch sw-2">primitive · red-300</div>
+            <div class="palette-swatch sw-3">primitive · teal-600</div>
+            <div class="palette-swatch sw-4">primitive · gold-600</div>
+            <div class="palette-swatch sw-5">primitive · ink-900</div>
+          </div>
+          <div class="palette-meta">
+            <span>原始层 → 语义层 → 组件别名层</span>
+            <span>5 档原始色 · 逐层引用</span>
+          </div>
+        </div>
+        <figcaption>图：三层令牌关系示意</figcaption>
+      </figure>
+
+      <!-- H2 迁移 -->
+      <h2 id="sec-migrate"><span class="mark-dot"></span>迁移：零破坏地替换</h2>
+      <p>已经失控的老项目，也不必推倒重来。令牌迁移可以做到对线上零破坏——核心是先建立映射，再逐步收口，最后才清理。</p>
+      <ol>
+        <li><strong>先建底座：</strong>不动任何现有样式，先把原始层与语义层定义好，让新令牌与旧值并存、互不干扰。</li>
+        <li><strong>逐文件替换：</strong>以组件为单位，把裸色值、裸字号替换成对应令牌；每替换一个就回归一次，确保视觉无变化。</li>
+        <li><strong>收口与清理：</strong>当裸值不再新增，用 lint 规则禁止直接写颜色值，最后删掉无人引用的死令牌。</li>
+      </ol>
+
+      <p>当这套流程跑完，你会发现真正改变的不只是样式表，而是团队讨论视觉时的语言——从「把那个红改深一点」变成「primary 提一档」。令牌的终点，从来不是变量本身，而是一种被共享的、可被理解的秩序。</p>
+
+      <div class="article-end">· 完 ·</div>
+    </div>
+  </article>
+
+  <!-- 右：TOC + 作者卡 -->
+  <aside class="aside" aria-label="侧栏">
+    <nav class="toc-block" aria-label="目录">
+      <p class="toc-title"><span class="mark-dot"></span>目录</p>
+      <ul class="toc-list" id="toc">
+        <li><a href="#sec-problem">问题：CSS 是怎么失控的</a></li>
+        <li><a href="#sec-arch">三层令牌架构</a></li>
+        <li><a href="#sec-raw" class="sub">原始层 Primitive</a></li>
+        <li><a href="#sec-semantic" class="sub">语义层 Semantic</a></li>
+        <li><a href="#sec-alias" class="sub">组件别名层 Alias</a></li>
+        <li><a href="#sec-migrate">迁移：零破坏地替换</a></li>
+      </ul>
+    </nav>
+
+    <div class="aside-block">
+      <div class="author-avatar-wrap">
+        <img class="author-avatar" src="../assets/user_avatar.png" alt="子不语的头像" />
+        <span class="author-seal">语</span>
+      </div>
+      <p class="author-name">子不语</p>
+      <p class="author-bio">写代码，也写字。<br/>前端 / AI / 偶尔读点旧书。</p>
+      <div class="author-links">
+        <a href="#" aria-label="GitHub"><img src="../assets/github.png" alt="GitHub" /></a>
+        <a href="#" aria-label="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili" /></a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- ===================== 页脚 ===================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="seal" style="width:28px;height:28px;border-radius:4px;background:var(--cinnabar);color:#FBF7EF;display:grid;place-items:center;font-family:'Noto Serif SC',serif;font-size:15px;">子</span>
+      子不语
+    </div>
+    <div class="footer-meta">
+      © 2026 子不语 · 保留所有权利<br/>
+      京 ICP 备 2026XXXXXX 号 · 京公网安备 0000000 号
+    </div>
+    <div class="footer-social">
+      <a href="#" aria-label="GitHub"><img src="../assets/github.png" alt="GitHub" /></a>
+      <a href="#" aria-label="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili" /></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   1) 昼/夜主题切换 + localStorage 记忆（与首页一致）
+   ============================================================ */
+(function () {
+  var root = document.documentElement;
+  var KEY = "ziburiu-theme";
+  var saved = localStorage.getItem(KEY);
+  if (saved === "light" || saved === "dark") {
+    root.setAttribute("data-theme", saved);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    root.setAttribute("data-theme", "dark");
+  }
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem(KEY, next);
+  });
+})();
+
+/* ============================================================
+   2) TOC 当前章节高亮（IntersectionObserver）
+   ============================================================ */
+(function () {
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var map = {};
+  tocLinks.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+
+  var headings = tocLinks
+    .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+    .filter(Boolean);
+
+  function setActive(id) {
+    tocLinks.forEach(function (a) { a.classList.remove("is-active"); });
+    if (map[id]) map[id].classList.add("is-active");
+  }
+
+  // 记录当前可见标题集合，取最靠上的那个作为 active
+  var visible = new Set();
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) visible.add(e.target.id);
+      else visible.delete(e.target.id);
+    });
+    if (visible.size) {
+      // 按文档顺序取第一个可见标题
+      for (var i = 0; i < headings.length; i++) {
+        if (visible.has(headings[i].id)) { setActive(headings[i].id); break; }
+      }
+    }
+  }, {
+    // 顶栏 64 + 进度条，触发线落在视口上部
+    rootMargin: "-78px 0px -68% 0px",
+    threshold: 0
+  });
+  headings.forEach(function (h) { observer.observe(h); });
+
+  // 初始：默认高亮第一项
+  if (headings.length) setActive(headings[0].id);
+})();
+
+/* ============================================================
+   3) 阅读进度条
+   ============================================================ */
+(function () {
+  var bar = document.getElementById("progress");
+  function update() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop;
+    var total = h.scrollHeight - h.clientHeight;
+    var pct = total > 0 ? (scrolled / total) * 100 : 0;
+    bar.style.width = pct + "%";
+  }
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update);
+  update();
+})();
+</script>
+
+</body>
+</html>
