@@ -180,7 +180,8 @@ function selectCategory(category) {
 .nav-page__inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-7);
+  /* 顶部为固定顶栏(60px)再留一段呼吸空间，避免搜索框紧贴导航条 */
+  padding: calc(var(--space-8) + var(--space-7)) var(--space-6) var(--space-7);
 }
 
 /* 搜索框 */
