@@ -476,7 +476,7 @@ const authorSocials = [
       </article>
 
       <aside v-if="isArticleShowRightBox" class="aside">
-      <div class="aside-block toc-block">
+      <div class="toc-block">
         <p class="aside-title"><span class="mark-dot"></span>目录</p>
         <div class="toc">
           <div
@@ -567,7 +567,8 @@ const authorSocials = [
   padding: 92px 32px 48px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 56px;
+  /* 正文与右栏间距加大：把侧栏整组往右推，给页面更多呼吸感（对齐原型 72px） */
+  gap: 72px;
   align-items: start;
 }
 
@@ -950,11 +951,19 @@ const authorSocials = [
 /* ↓ 右侧栏：sticky 跟随滚动（替代旧的 absolute↔fixed JS 切换，消除滚动中的突兀跳现） ↓ */
 .aside {
   position: sticky;
-  /* 固定导航（约 60px）下方留出余量，随正文滚动平滑吸顶 */
-  top: 84px;
+  /* 固定导航（约 60px）下方留出更宽余量，吸顶时不贴着导航 */
+  top: 100px;
+  /* 整组下移：目录从标题区起算、与正文顶部脱开，增加呼吸感（配合 gap 实现「往右下」） */
+  margin-top: 32px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+}
+
+/* 目录栏：去卡片外壳（无背景/无边框），直接落在页面纸/墨色上（对齐原型 .toc-block）。
+   仅作者卡与操作栏保留实底卡片，形成「轻目录 + 实卡片」的层次。 */
+.toc-block {
+  padding: 0 2px;
 }
 
 /* ↓ 作者卡社交图标行（与页脚同款方框） ↓ */
