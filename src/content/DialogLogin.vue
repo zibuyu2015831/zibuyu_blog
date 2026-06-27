@@ -18,6 +18,16 @@ const loginInfo = reactive({
   password: "",
 });
 
+// 表单引用与校验规则（#12 输入校验）
+const loginFormRef = ref(null);
+const loginRules = {
+  username: [
+    { required: true, message: "请填写用户名！", trigger: "blur" },
+    { max: 50, message: "用户名太长了", trigger: "blur" },
+  ],
+  password: [{ required: true, message: "请填写登录密码！", trigger: "blur" }],
+};
+
 // 取消登录
 function cancelLogin() {
   deviceInfoStore.isShowLoginDialog = false;
@@ -76,22 +86,10 @@ function isDigitOdd(randomString) {
   }
 }
 
-function commitLogin() {
-  if (!loginInfo.username) {
-    ElMessage({
-      message: "请填写用户名！",
-      type: "error",
-    });
-    return;
-  }
-
-  if (!loginInfo.password) {
-    ElMessage({
-      message: "请填写登录密码！",
-      type: "error",
-    });
-    return;
-  }
+async function commitLogin() {
+  if (!loginFormRef.value) return;
+  const valid = await loginFormRef.value.validate().catch(() => false);
+  if (!valid) return;
 
   const splitChar = generateRandomString(10);
   const encodedUsername = base64Encode(loginInfo.username);
@@ -176,15 +174,17 @@ function forget_pwd() {
     :lock-scroll="false"
   >
     <el-form
+      ref="loginFormRef"
       :label-position="'top'"
       label-width="auto"
       :model="loginInfo"
+      :rules="loginRules"
       style="max-width: 500px"
     >
-      <el-form-item label="用户名" :required="true">
+      <el-form-item label="用户名" prop="username">
         <el-input v-model="loginInfo.username" autofocus placeholder="忘记用户名？可在公众号【思维兵工厂】，发送【用户名】获取"/>
       </el-form-item>
-      <el-form-item label="密码" :required="true">
+      <el-form-item label="密码" prop="password">
         <el-input v-model="loginInfo.password" type="password" show-password/>
       </el-form-item>
     </el-form>

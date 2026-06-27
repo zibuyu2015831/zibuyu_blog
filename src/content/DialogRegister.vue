@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from "vue";
+import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { base64Encode } from "@/utils/encoding";
@@ -16,6 +16,30 @@ const registerInfo = reactive({
   inviteCode: "",
 });
 
+// 表单引用与校验规则（#12 输入校验）
+const registerFormRef = ref(null);
+const registerRules = {
+  username: [
+    { required: true, message: "请填写用户名", trigger: "blur" },
+    { max: 50, message: "用户名太长了", trigger: "blur" },
+  ],
+  password: [{ required: true, message: "请填写密码", trigger: "blur" }],
+  again_password: [
+    { required: true, message: "请再次输入密码", trigger: "blur" },
+    {
+      validator: (rule, value, callback) =>
+        value === registerInfo.password
+          ? callback()
+          : callback(new Error("两次密码输入不一致，请检查")),
+      trigger: "blur",
+    },
+  ],
+  inviteCode: [
+    { required: true, message: "请填写邀请码", trigger: "blur" },
+    { len: 32, message: "【邀请码】格式错误，请检查", trigger: "blur" },
+  ],
+};
+
 function cancelRegister() {
   deviceInfoStore.isShowRegisterDialog = false;
   registerInfo.username = "";
@@ -24,43 +48,10 @@ function cancelRegister() {
   registerInfo.inviteCode = "";
 }
 
-function commitRegister() {
-  if (
-    !registerInfo.username ||
-    !registerInfo.password ||
-    !registerInfo.again_password ||
-    !registerInfo.inviteCode
-  ) {
-    ElMessage({
-      message: "请填写所有字段！",
-      type: "error",
-    });
-    return;
-  }
-
-  if (registerInfo.inviteCode.length !== 32) {
-    ElMessage({
-      message: "【邀请码】格式错误，请检查",
-      type: "error",
-    });
-    return;
-  }
-
-  if (registerInfo.username.length > 50) {
-    ElMessage({
-      message: "用户名太长了",
-      type: "error",
-    });
-    return;
-  }
-
-  if (registerInfo.password !== registerInfo.again_password) {
-    ElMessage({
-      message: "两次密码输入不一致，请检查",
-      type: "error",
-    });
-    return;
-  }
+async function commitRegister() {
+  if (!registerFormRef.value) return;
+  const valid = await registerFormRef.value.validate().catch(() => false);
+  if (!valid) return;
 
   const splitChar = registerInfo.inviteCode.substring(2, 12);
   const encodedUsername = base64Encode(registerInfo.username);
@@ -139,16 +130,18 @@ function login_now() {
     :lock-scroll="false"
   >
     <el-form
+      ref="registerFormRef"
       :label-position="'top'"
       label-width="auto"
       :model="registerInfo"
+      :rules="registerRules"
       style="max-width: 500px"
     >
-      <el-form-item label="用户名" :required="true">
+      <el-form-item label="用户名" prop="username">
         <el-input v-model="registerInfo.username" placeholder="请输入用户名" />
       </el-form-item>
 
-      <el-form-item label="密码" :required="true">
+      <el-form-item label="密码" prop="password">
         <el-input
           v-model="registerInfo.password"
           type="password"
@@ -156,7 +149,7 @@ function login_now() {
         />
       </el-form-item>
 
-      <el-form-item label="再次输入密码" :required="true">
+      <el-form-item label="再次输入密码" prop="again_password">
         <el-input
           v-model="registerInfo.again_password"
           type="password"
@@ -164,7 +157,7 @@ function login_now() {
         />
       </el-form-item>
 
-      <el-form-item label="邀请码" :required="true">
+      <el-form-item label="邀请码" prop="inviteCode">
         <el-input
           v-model="registerInfo.inviteCode"
           placeholder="关注公众号【思维兵工厂】，回复“邀请码”"

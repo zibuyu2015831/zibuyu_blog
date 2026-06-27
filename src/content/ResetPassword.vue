@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from "vue";
+import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { base64Encode } from "@/utils/encoding";
@@ -16,6 +16,26 @@ const userInfo = reactive({
   authenticateCode: "",
 });
 
+// 表单引用与校验规则（#12 输入校验）
+const resetFormRef = ref(null);
+const resetRules = {
+  password: [{ required: true, message: "请填写新的密码！", trigger: "blur" }],
+  again_password: [
+    { required: true, message: "请再次输入新的密码！", trigger: "blur" },
+    {
+      validator: (rule, value, callback) =>
+        value === userInfo.password
+          ? callback()
+          : callback(new Error("两次密码输入不一致，请检查")),
+      trigger: "blur",
+    },
+  ],
+  authenticateCode: [
+    { required: true, message: "请填写授权码！", trigger: "blur" },
+    { len: 32, message: "【授权码】格式错误，请检查", trigger: "blur" },
+  ],
+};
+
 function cancelResetPassword() {
   deviceInfoStore.isShowResetPasswordDialog = false;
   userInfo.password = "";
@@ -23,46 +43,10 @@ function cancelResetPassword() {
   userInfo.authenticateCode = "";
 }
 
-function commitResetPassword() {
-  if (!userInfo.password) {
-    ElMessage({
-      message: "请填写新的密码！",
-      type: "error",
-    });
-    return;
-  }
-
-  if (!userInfo.again_password) {
-    ElMessage({
-      message: "请再次输入新的密码！",
-      type: "error",
-    });
-    return;
-  }
-
-  if (!userInfo.authenticateCode) {
-    ElMessage({
-      message: "请填写授权码！",
-      type: "error",
-    });
-    return;
-  }
-
-  if (userInfo.authenticateCode.length !== 32) {
-    ElMessage({
-      message: "【授权码】格式错误，请检查",
-      type: "error",
-    });
-    return;
-  }
-
-  if (userInfo.password !== userInfo.again_password) {
-    ElMessage({
-      message: "两次密码输入不一致，请检查",
-      type: "error",
-    });
-    return;
-  }
+async function commitResetPassword() {
+  if (!resetFormRef.value) return;
+  const valid = await resetFormRef.value.validate().catch(() => false);
+  if (!valid) return;
 
   const data = base64Encode(userInfo.password);
 
@@ -141,12 +125,14 @@ function login_now() {
     :lock-scroll="false"
   >
     <el-form
+      ref="resetFormRef"
       :label-position="'top'"
       label-width="auto"
       :model="userInfo"
+      :rules="resetRules"
       style="max-width: 500px"
     >
-      <el-form-item label="新密码" :required="true">
+      <el-form-item label="新密码" prop="password">
         <el-input
           v-model="userInfo.password"
           type="password"
@@ -154,7 +140,7 @@ function login_now() {
         />
       </el-form-item>
 
-      <el-form-item label="再次输入密码" :required="true">
+      <el-form-item label="再次输入密码" prop="again_password">
         <el-input
           v-model="userInfo.again_password"
           type="password"
@@ -162,7 +148,7 @@ function login_now() {
         />
       </el-form-item>
 
-      <el-form-item label="操作授权码" :required="true">
+      <el-form-item label="操作授权码" prop="authenticateCode">
         <el-input
           v-model="userInfo.authenticateCode"
           placeholder="关注公众号【思维兵工厂】，回复“授权码”"

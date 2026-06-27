@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from "vue";
+import { ref, reactive } from "vue";
 import { ElNotification } from "element-plus";
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 
@@ -27,6 +27,16 @@ const userSuggestion = reactive({
   contact: "",
 });
 
+// 表单引用与校验规则（#12 输入校验）
+const suggestionFormRef = ref(null);
+const suggestionRules = {
+  note: [
+    { required: true, message: "您好像忘记填写反馈内容了 0.0", trigger: "blur" },
+    { max: 500, message: "反馈内容请控制在 500 字以内", trigger: "blur" },
+  ],
+  contact: [{ max: 100, message: "联系方式太长了", trigger: "blur" }],
+};
+
 function resetUserSuggestion() {
   userSuggestion.note = "";
   userSuggestion.contact = "";
@@ -39,20 +49,10 @@ function resetUserSuggestion() {
   });
 }
 
-function submitUserSuggestion() {
-  if (!userSuggestion.note) {
-    ElNotification({
-      title: "意见反馈",
-      message: "您好像忘记填写反馈内容了 0.0",
-      position: "bottom-right",
-      type: "warning",
-    });
-
-    return;
-  }
-
-  console.log("意见反馈-联系方式：", userSuggestion.contact);
-  console.log("意见反馈-具体内容：", userSuggestion.note);
+async function submitUserSuggestion() {
+  if (!suggestionFormRef.value) return;
+  const valid = await suggestionFormRef.value.validate().catch(() => false);
+  if (!valid) return;
 
   userSuggestion.note = "";
   userSuggestion.contact = "";
@@ -77,15 +77,17 @@ function submitUserSuggestion() {
     </template>
 
     <el-form
+      ref="suggestionFormRef"
       :label-position="'top'"
       label-width="auto"
       :model="userSuggestion"
+      :rules="suggestionRules"
       style="max-width: 600px"
     >
-      <el-form-item label="联系方式">
+      <el-form-item label="联系方式" prop="contact">
         <el-input v-model="userSuggestion.contact" placeholder="微信 / QQ / 邮箱皆可" />
       </el-form-item>
-      <el-form-item label="建议反馈">
+      <el-form-item label="建议反馈" prop="note">
         <el-input
           v-model="userSuggestion.note"
           type="textarea"
