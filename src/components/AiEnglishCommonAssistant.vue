@@ -807,6 +807,7 @@ async function customizedConversation() {
               <el-dropdown-item
                 :disabled="key === aiEnglishStore.currentConmand"
                 v-for="(value, key) in aiEnglishStore.commands"
+                :key="key"
                 @click="changeCommand(key)"
                 trigger="click"
                 divided
@@ -820,8 +821,8 @@ async function customizedConversation() {
     </div>
 
     <div class="message_area" ref="messageAreaRef">
+      <template v-if="aiEnglishStore.assistant_messages.data.length !== 0">
       <div
-        v-if="aiEnglishStore.assistant_messages.data.length !== 0"
         class="message_parent clear-fix"
         v-for="(item, index) in aiEnglishStore.assistant_messages.data"
         :key="index"
@@ -916,6 +917,7 @@ async function customizedConversation() {
           </div>
         </div>
       </div>
+      </template>
 
       <div v-else>
         <div class="react_content_ai">

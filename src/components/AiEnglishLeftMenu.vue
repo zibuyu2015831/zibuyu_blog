@@ -44,6 +44,7 @@ const changeCommand = (command) => {
           function_item_unactive: key !== aiEnglishStore.currentConmand,
         }"
         v-for="(value, key) in aiEnglishStore.commands"
+        :key="key"
         @click="changeCommand(key)"
       >
         {{ key }}

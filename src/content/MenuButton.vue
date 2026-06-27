@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
 // // // // // // // // // // ↓ 读取状态 ↓ // // // // // // // // // //
@@ -45,11 +45,11 @@ if (props.title) {
   withHeater.value = true;
 }
 
-// 检查是否正确传入了方向
+// 校验方向取值：非法时回退到 "ttb"（用计算属性派生，避免直接修改 prop）
 const directions = ["rtl", "ltr", "ttb", "btt"];
-if (!directions.includes(props.direction)) {
-  props.direction = "ttb";
-}
+const drawerDirection = computed(() =>
+  directions.includes(props.direction) ? props.direction : "ttb"
+);
 
 // 计算图标大小
 const iconSize = props.iconSize || 16;
@@ -71,7 +71,7 @@ const drawer = ref(false);
     v-model="drawer"
     :with-header="withHeater"
     :size="props.size"
-    :direction="props.direction"
+    :direction="drawerDirection"
   >
     <template #header>
       <h2>{{ title }}</h2>

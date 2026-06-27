@@ -361,6 +361,7 @@ const changeCommand = (command) => {
               <el-dropdown-item
                 :disabled="key === aiEnglishStore.currentConmand"
                 v-for="(value, key) in aiEnglishStore.commands"
+                :key="key"
                 @click="changeCommand(key)"
                 trigger="click"
                 divided
