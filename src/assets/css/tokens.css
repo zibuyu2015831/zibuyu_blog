@@ -1,0 +1,170 @@
+/* =============================================================
+ * tokens.css · 设计令牌系统（single source of truth）
+ * 方向 A · 子曰·墨（Quiet Ink）
+ *
+ * 三层结构（详见 docs/design/03-design-spec.md、06-tokens-A-quiet-ink.md）：
+ *   第 1 层 原始令牌  :root            —— 明暗共用的纯数值
+ *   第 2 层 语义令牌  html.light/.dark —— 主题在此切换
+ *   第 3 层 组件别名  html.light,.dark —— 兼容旧变量名，逐步淘汰
+ *
+ * 本文件由 main.js 静态引入、常驻；主题仅由 <html> 的 light/dark class 控制。
+ * ============================================================= */
+
+/* ---------- 第 1 层：原始令牌（明暗共用） ---------- */
+:root {
+  /* 间距 · 8pt 网格 */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  /* 圆角 */
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
+  --radius-xl: 16px; --radius-full: 9999px;
+
+  /* 字号 · 约 1.25 模数（base 16） */
+  --font-size-xs: 12px;  --font-size-sm: 14px;  --font-size-base: 16px;
+  --font-size-lg: 18px;  --font-size-xl: 20px;  --font-size-2xl: 24px;
+  --font-size-3xl: 30px; --font-size-4xl: 36px; --font-size-5xl: 48px;
+
+  /* 行高 / 字重 */
+  --leading-tight: 1.25; --leading-normal: 1.5; --leading-relaxed: 1.75;
+  --weight-normal: 400; --weight-medium: 500;
+  --weight-semibold: 600; --weight-bold: 700;
+
+  /* 字体家族（方向 A · 系统字体优先，零下载、跨平台稳健）
+   * 决策：面向中文读者，不引入数 MB 中文 webfont（Google Fonts 在国内常被墙）；
+   * 衬线优先苹果 Songti SC / 思源宋体 / Win 宋体 / Android Noto，几乎全设备覆盖。*/
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong",
+    "SimSun", "Noto Serif CJK SC", serif;
+  --font-body: "Noto Sans SC", "Source Han Sans SC", -apple-system, BlinkMacSystemFont,
+    "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* 动效 */
+  --motion-fast: 150ms; --motion-normal: 250ms; --motion-slow: 400ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* 层级 */
+  --z-base: 1; --z-sticky: 100; --z-nav: 900;
+  --z-overlay: 1000; --z-modal: 1100; --z-toast: 1200;
+}
+
+/* ---------- 第 2 层：语义令牌 · 亮色 ---------- */
+html.light {
+  --color-primary:        #C8453B;   /* 朱砂 */
+  --color-primary-hover:  #A8362E;
+  --color-primary-subtle: #F6E3DF;   /* 朱砂浅底：标签/激活/用户气泡 */
+
+  --color-bg-default:  #FBF7EF;      /* 宣纸 */
+  --color-bg-subtle:   #F4EEE2;      /* 次级区块 */
+  --color-bg-elevated: #FFFDF8;      /* 卡片/导航 */
+  --color-bg-inset:    #EFE8D8;      /* 输入框/代码块凹陷 */
+
+  --color-text-primary:   #2B2620;
+  --color-text-secondary: #6B6356;
+  --color-text-tertiary:  #9B9283;
+  --color-text-inverse:   #FBF7EF;
+
+  --color-border-default: #E3DACA;
+  --color-border-subtle:  #EEE7D8;
+
+  --color-success: #4E7A3F;  /* 墨绿 */
+  --color-warning: #9A6B1E;  /* 赭黄 */
+  --color-danger:  #B23A2E;  /* 朱砂同源·深 */
+  --color-info:    #3E6B8C;  /* 黛蓝 */
+
+  --shadow-color: 43, 38, 32;
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-color), .08);
+  --shadow-md: 0 4px 14px rgba(var(--shadow-color), .12);
+  --shadow-lg: 0 12px 30px rgba(var(--shadow-color), .16);
+}
+
+/* ---------- 第 2 层：语义令牌 · 暗色 ---------- */
+html.dark {
+  --color-primary:        #E06A5E;   /* 暗底朱砂提亮 */
+  --color-primary-hover:  #EA8076;
+  --color-primary-subtle: #3A211C;
+
+  --color-bg-default:  #15120E;      /* 浓墨 */
+  --color-bg-subtle:   #1F1B16;
+  --color-bg-elevated: #211D17;
+  --color-bg-inset:    #100D0A;
+
+  --color-text-primary:   #E9E2D4;
+  --color-text-secondary: #A89E8C;
+  --color-text-tertiary:  #786F60;
+  --color-text-inverse:   #15120E;
+
+  --color-border-default: #332C22;
+  --color-border-subtle:  #28221A;
+
+  --color-success: #7FA36A;
+  --color-warning: #C99A4E;
+  --color-danger:  #E07A6E;
+  --color-info:    #7FA8C4;
+
+  --shadow-color: 0, 0, 0;
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-color), .35);
+  --shadow-md: 0 4px 14px rgba(var(--shadow-color), .45);
+  --shadow-lg: 0 12px 30px rgba(var(--shadow-color), .55);
+}
+
+/* ---------- 第 3 层：组件别名（兼容旧变量名，逐步淘汰） ----------
+ * 旧变量名全部保留、模板零改动；取值改为引用语义令牌，明暗自动跟随。 */
+html.light,
+html.dark {
+  /* 全局框架 */
+  --door:               var(--color-bg-subtle);
+  --header_background:   var(--color-bg-elevated);
+  --header_font:         var(--color-text-primary);
+  --header_slogen_font:  #FBF7EF;                  /* 标语暖白（落在 Hero 底部暗纱上，昼夜皆清晰） */
+  --home_background:     var(--color-bg-default);
+  --footer_background:   var(--color-bg-elevated);
+  --watermarkColor:      var(--color-text-tertiary);
+  --el-bg-color:         var(--color-bg-elevated);
+
+  /* 移动端菜单 */
+  --small_screen_menu_bg:            var(--color-bg-elevated);
+  --small_screen_menu_font:          var(--color-text-secondary);
+  --small_screen_menu_font_activate: var(--color-primary);
+  --menu_button_activate_bg:         var(--color-primary-subtle);
+
+  /* 文章 */
+  --markdown_article_title:            var(--color-text-primary);
+  --markdown_article_body_deactivated: var(--color-bg-default);
+  --markdown_article_body_activated:   var(--color-bg-subtle);
+
+  /* AiEnglish 子应用 */
+  --english_page_bg:                    var(--color-bg-default);
+  --english_left_bg:                    var(--color-bg-subtle);
+  --english_left_spilit_line:           var(--color-border-default);
+  --english_left_funtion_item_active:   var(--color-primary-subtle);
+  --english_left_funtion_item_unactive: var(--color-bg-elevated);
+  --english_left_funtion_item_hover:    var(--color-primary);
+  --english_right_bg:                   var(--color-bg-default);
+  --english_right_title_activate:       var(--color-bg-subtle);
+  --english_reacte_content_ai_bg:       var(--color-bg-subtle);
+  --english_reacte_content_user_bg:     var(--color-primary-subtle);
+  --english_input_area_bg:              var(--color-bg-inset);
+  --english_input_area_border:          var(--color-border-default);
+  --english_input_area_border_focus:    var(--color-primary);
+  --english_input_area_tip:             var(--color-text-tertiary);
+  --english_scrollbar_bg:               var(--color-bg-default);
+  --english_scrollbar:                  var(--color-border-default);
+  --english_top_menu_icon:              var(--color-text-primary);
+  --english_audio_icon:                 var(--color-primary);
+  --english_left_menu_fold_icon:        var(--color-primary);
+  --english_left_menu_split_line:       var(--color-border-default);
+}
+
+/* 阴影别名（旧代码用 var(--home_hover_shadow) 作 box-shadow 颜色） */
+html.light { --home_hover_shadow: rgba(43, 38, 32, .18); }
+html.dark  { --home_hover_shadow: rgba(0, 0, 0, .55); }
+
+/* 主题切换时整体平滑过渡（与 Hero 图 1s 淡变协调） */
+html.light,
+html.dark {
+  --theme-transition: background-color var(--motion-slow) var(--ease-standard),
+    color var(--motion-slow) var(--ease-standard),
+    border-color var(--motion-slow) var(--ease-standard);
+}

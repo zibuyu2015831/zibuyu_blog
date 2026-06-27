@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>子不语 — 子不语怪力乱神，唯记代码与思考</title>
+<meta name="description" content="子不语的个人技术博客：写代码，也写字。前端 / AI / 偶尔读点旧书。" />
+
+<!-- Google Fonts：标题 Noto Serif SC（宋体气质），正文 Noto Sans SC -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   设计方向 A · 子曰·墨（Quiet Ink）
+   东方文人编辑风：暖宣纸 + 浓墨 + 一点朱砂
+   配色用 CSS 变量，明/暗双主题，data-theme 切换
+   ============================================================ */
+
+/* ---------- 明亮主题（昼）：暖宣纸 ---------- */
+:root,
+[data-theme="light"] {
+  --cinnabar:        #C8453B;  /* 朱砂主色 */
+  --cinnabar-soft:   rgba(200, 69, 59, 0.10);
+  --bg:              #FBF7EF;  /* 页面底 */
+  --bg-sub:          #F4EEE2;  /* 次级区块 */
+  --card:            #FFFDF8;  /* 卡片 */
+  --ink:             #2B2620;  /* 正文 */
+  --ink-soft:        #6B6356;  /* 次要文字 */
+  --line:            #E3DACA;  /* 边框 */
+  --hero-scrim:      rgba(20, 16, 10, 0.34);
+}
+
+/* ---------- 暗色主题（夜）：浓墨 ---------- */
+[data-theme="dark"] {
+  --cinnabar:        #E06A5E;
+  --cinnabar-soft:   rgba(224, 106, 94, 0.14);
+  --bg:              #15120E;
+  --bg-sub:          #1F1B16;
+  --card:            #211D17;
+  --ink:             #E9E2D4;
+  --ink-soft:        #A89E8C;
+  --line:            #332C22;
+  --hero-scrim:      rgba(8, 6, 4, 0.46);
+}
+
+/* ---------- 全局换色平滑过渡 ---------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 整体换色过渡 */
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 让大面积色块也跟随主题平滑过渡 */
+.topbar, .card, .aside-block, .footer, .page-btn,
+.hero-scrim, .tag, .donate-btn { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
+
+a { color: inherit; text-decoration: none; }
+
+::selection { background: var(--cinnabar-soft); color: var(--ink); }
+
+/* 朱砂标记：章节小圆点 / 装饰 */
+.mark-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  vertical-align: middle;
+}
+
+/* ============================================================
+   顶栏 navigation
+   ============================================================ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+/* 站名：宋体 + 朱砂印章 */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+.brand .seal {
+  display: inline-grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: 5px;
+  background: var(--cinnabar);
+  color: #FBF7EF;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+}
+
+.nav {
+  display: flex;
+  gap: 22px;
+  margin-left: 14px;
+}
+.nav a {
+  position: relative;
+  font-size: 15px;
+  color: var(--ink-soft);
+  padding: 4px 0;
+  transition: color 0.25s ease;
+}
+.nav a:hover,
+.nav a[aria-current="page"] { color: var(--ink); }
+/* 朱砂下划线：hover 时从中间生长 */
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 2px;
+  background: var(--cinnabar);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s ease;
+}
+.nav a:hover::after,
+.nav a[aria-current="page"]::after { transform: scaleX(1); }
+
+.topbar-spacer { flex: 1; }
+
+/* 昼夜切换按钮 */
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease, background-color 0.4s ease;
+}
+.theme-toggle:hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+.theme-toggle svg { width: 18px; height: 18px; }
+/* 按主题切换图标显隐 */
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-sun  { display: none; }
+[data-theme="dark"] .icon-moon { display: block; }
+
+/* 移动端汉堡（仅 <768 显示） */
+.nav-mobile-hint { display: none; }
+
+/* ============================================================
+   Hero 区：昼夜双图交叉淡入 + 宋体标语
+   ============================================================ */
+.hero {
+  position: relative;
+  height: clamp(360px, 52vh, 520px);
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  transition: opacity 1s ease;
+}
+/* 默认（昼）：day 图可见，night 隐藏 */
+.hero .hero-day   { opacity: 1; }
+.hero .hero-night { opacity: 0; }
+[data-theme="dark"] .hero .hero-day   { opacity: 0; }
+[data-theme="dark"] .hero .hero-night { opacity: 1; }
+
+/* 文字可读性蒙版：左侧偏重，文字落在安静的左半 */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg,
+      var(--hero-scrim) 0%,
+      var(--hero-scrim) 38%,
+      transparent 78%);
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(251, 247, 239, 0.86);
+  font-size: 13px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.hero-eyebrow .seal-line {
+  width: 22px; height: 1px; background: var(--cinnabar);
+}
+.hero h1 {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 900;
+  color: #FCF8F0;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1.28;
+  margin: 0;
+  max-width: 18ch;
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.32);
+}
+.hero h1 .accent { color: var(--cinnabar); }
+.hero-sub {
+  margin-top: 16px;
+  color: rgba(251, 247, 239, 0.82);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  max-width: 40ch;
+  text-wrap: pretty;
+}
+
+/* ============================================================
+   主体布局：左内容 + 右侧栏（≥1100 两栏）
+   ============================================================ */
+.layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 64px 32px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 312px;
+  gap: 64px;
+  align-items: start;
+}
+
+/* 区块小标题：朱砂点 + 宋体 */
+.section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  margin: 0 0 28px;
+}
+.section-title .mark-dot { transform: translateY(-3px); }
+.section-title .cn-count {
+  font-family: "Noto Sans SC", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 文章列表 ---------- */
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.post {
+  position: relative;
+  padding: 30px 0;
+  border-bottom: 1px solid var(--line);
+}
+.post:first-child { padding-top: 4px; }
+
+/* 置顶标记：朱砂印章式角标 */
+.post.is-pinned .pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Noto Serif SC", serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cinnabar);
+  border: 1px solid var(--cinnabar);
+  border-radius: 4px;
+  padding: 1px 7px;
+  margin-bottom: 12px;
+  letter-spacing: 0.12em;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.post-cat {
+  color: var(--cinnabar);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.post-meta .dot-sep { opacity: 0.5; }
+
+.post h3 {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.4;
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+  text-wrap: pretty;
+}
+.post h3 a {
+  background-image: linear-gradient(var(--cinnabar), var(--cinnabar));
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 0.32s ease, color 0.25s ease;
+  padding-bottom: 2px;
+}
+.post h3 a:hover { background-size: 100% 2px; color: var(--cinnabar); }
+
+.post-excerpt {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.78;
+  margin: 0;
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
+/* ---------- 分页 ---------- */
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 44px;
+  flex-wrap: wrap;
+}
+.page-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.22s ease, color 0.22s ease;
+}
+.page-btn:hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+.page-btn.is-active {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #FBF7EF;
+  font-weight: 500;
+}
+.page-ellipsis { color: var(--ink-soft); padding: 0 4px; user-select: none; }
+.page-btn.is-nav { font-size: 13px; letter-spacing: 0.04em; }
+
+/* ============================================================
+   右侧栏
+   ============================================================ */
+.aside { display: flex; flex-direction: column; gap: 28px; position: sticky; top: 88px; }
+.aside-block {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 26px 24px;
+}
+.aside-title {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+}
+.aside-title .mark-dot { width: 5px; height: 5px; }
+
+/* 作者卡 */
+.author-card { text-align: center; }
+.author-avatar-wrap {
+  position: relative;
+  width: 76px; height: 76px;
+  margin: 0 auto 14px;
+}
+.author-avatar {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--bg-sub);
+}
+/* 朱砂作者印：右下角小方印 */
+.author-seal {
+  position: absolute;
+  right: -2px; bottom: -2px;
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  background: var(--cinnabar);
+  color: #FBF7EF;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+}
+.author-name {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+}
+.author-bio {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.74;
+  margin: 0 0 18px;
+  text-wrap: pretty;
+}
+.author-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.author-links a {
+  display: inline-grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: border-color 0.22s ease, transform 0.22s ease;
+}
+.author-links a:hover { border-color: var(--cinnabar); transform: translateY(-2px); }
+.author-links img {
+  width: 18px; height: 18px;
+  object-fit: contain;
+  /* 暗色下让深色 PNG 图标提亮 */
+}
+[data-theme="dark"] .author-links img { filter: invert(0.9) brightness(1.1); }
+
+/* 推荐阅读 */
+.reco-list { list-style: none; margin: 0; padding: 0; }
+.reco-list li {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.reco-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.reco-list li:first-child { padding-top: 0; }
+.reco-list a {
+  display: flex;
+  gap: 12px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  transition: color 0.22s ease;
+  text-wrap: pretty;
+}
+.reco-list a:hover { color: var(--cinnabar); }
+.reco-index {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cinnabar);
+  flex-shrink: 0;
+  width: 1.4em;
+}
+
+/* 打赏：朱砂描边按钮 */
+.donate-block { text-align: center; }
+.donate-note {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  line-height: 1.7;
+}
+.donate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: var(--cinnabar);
+  border: 1.5px solid var(--cinnabar);
+  border-radius: 6px;
+  padding: 10px 22px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.donate-btn:hover { background: var(--cinnabar); color: #FBF7EF; }
+.donate-btn svg { width: 17px; height: 17px; }
+
+/* ============================================================
+   页脚
+   ============================================================ */
+.footer {
+  border-top: 1px solid var(--line);
+  background: var(--bg-sub);
+  margin-top: 32px;
+}
+.footer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.footer-brand {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.footer-meta {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.9;
+}
+.footer-social { display: flex; gap: 10px; }
+.footer-social a {
+  display: inline-grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: border-color 0.22s ease;
+}
+.footer-social a:hover { border-color: var(--cinnabar); }
+.footer-social img { width: 16px; height: 16px; object-fit: contain; }
+[data-theme="dark"] .footer-social img { filter: invert(0.9) brightness(1.1); }
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+  .aside {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .aside-block { flex: 1 1 280px; }
+}
+
+@media (max-width: 768px) {
+  .topbar-inner { padding: 0 16px; gap: 14px; }
+  .nav { display: none; }            /* 移动端隐藏主导航 */
+  .nav-mobile-hint {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .hero-content { padding: 0 16px; }
+  .layout { padding: 40px 16px 32px; } /* 正文左右 16px */
+  .aside { display: none; }            /* 移动端隐藏侧栏 */
+  .post h3 { font-size: 22px; }
+  .footer-inner { padding: 32px 16px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===================== 顶栏 ===================== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="home.html" aria-label="子不语 首页">
+      <span class="seal">子</span>
+      <span>子不语</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="home.html" aria-current="page">首页</a>
+      <a href="#">文章</a>
+      <a href="#">导航</a>
+      <a href="#">AI英语</a>
+      <a href="#">关于</a>
+    </nav>
+    <span class="nav-mobile-hint">文人编辑风</span>
+    <span class="topbar-spacer"></span>
+    <!-- 昼/夜切换：内联 SVG，不用 emoji -->
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换昼夜主题">
+      <!-- 太阳 -->
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+      </svg>
+      <!-- 月亮 -->
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===================== Hero：昼夜双图交叉淡入 ===================== -->
+<section class="hero" aria-label="站点头图">
+  <!-- 两张图绝对定位堆叠，按主题 opacity 交叉淡入 -->
+  <img class="hero-day"   src="../assets/header_day.jpg"   alt="白昼里的旧式庭院" />
+  <img class="hero-night" src="../assets/header_night.jpg" alt="夜色里的旧式庭院" />
+  <div class="hero-scrim"></div>
+  <div class="hero-content">
+    <span class="hero-eyebrow"><span class="seal-line"></span>子曰 · 墨</span>
+    <h1>子不语<span class="accent">怪力乱神</span>，<br/>唯记代码与思考。</h1>
+    <p class="hero-sub">写代码，也写字。在这里安静地记下前端、AI，与偶尔读到的旧书。</p>
+  </div>
+</section>
+
+<!-- ===================== 主体 ===================== -->
+<main class="layout">
+
+  <!-- 左：文章列表 -->
+  <section aria-label="最新文章">
+    <h2 class="section-title">
+      <span class="mark-dot"></span>近期手记
+      <span class="cn-count">共 48 篇</span>
+    </h2>
+
+    <ol class="post-list">
+      <!-- 1（置顶示例） -->
+      <li class="post is-pinned">
+        <span class="pin">置顶</span>
+        <div class="post-meta">
+          <span class="post-cat">前端</span>
+          <span class="dot-sep">·</span><span>2026-06-20</span>
+          <span class="dot-sep">·</span><span>阅读 1.2k</span>
+        </div>
+        <h3><a href="#">从零实现一个 Vue3 响应式系统</a></h3>
+        <p class="post-excerpt">手写 reactive/effect，理解依赖收集与触发更新的全过程。</p>
+      </li>
+
+      <!-- 2 -->
+      <li class="post">
+        <div class="post-meta">
+          <span class="post-cat">设计</span>
+          <span class="dot-sep">·</span><span>2026-06-12</span>
+          <span class="dot-sep">·</span><span>阅读 2.1k</span>
+        </div>
+        <h3><a href="article.html">设计令牌：让你的 CSS 不再失控</a></h3>
+        <p class="post-excerpt">17 种强调色、15 种字号是怎么失控的，以及如何用三层令牌收敛。</p>
+      </li>
+
+      <!-- 3 -->
+      <li class="post">
+        <div class="post-meta">
+          <span class="post-cat">前端</span>
+          <span class="dot-sep">·</span><span>2026-06-03</span>
+          <span class="dot-sep">·</span><span>阅读 980</span>
+        </div>
+        <h3><a href="#">用 Pinia 管理主题切换的几种姿势</a></h3>
+        <p class="post-excerpt">订阅 store、动态 import 样式、localStorage 持久化的取舍。</p>
+      </li>
+
+      <!-- 4 -->
+      <li class="post">
+        <div class="post-meta">
+          <span class="post-cat">随笔</span>
+          <span class="dot-sep">·</span><span>2026-05-25</span>
+          <span class="dot-sep">·</span><span>阅读 1.5k</span>
+        </div>
+        <h3><a href="#">子不语怪力乱神：一句话的现代解读</a></h3>
+        <p class="post-excerpt">理性不是冷漠，是把注意力留给可被理解的事物。</p>
+      </li>
+
+      <!-- 5 -->
+      <li class="post">
+        <div class="post-meta">
+          <span class="post-cat">AI</span>
+          <span class="dot-sep">·</span><span>2026-05-18</span>
+          <span class="dot-sep">·</span><span>阅读 3.0k</span>
+        </div>
+        <h3><a href="#">LLM 流式输出的前端实现</a></h3>
+        <p class="post-excerpt">从 fetch 流到逐字渲染，处理中断、错误与 markdown 增量。</p>
+      </li>
+
+      <!-- 6 -->
+      <li class="post">
+        <div class="post-meta">
+          <span class="post-cat">效率</span>
+          <span class="dot-sep">·</span><span>2026-05-10</span>
+          <span class="dot-sep">·</span><span>阅读 760</span>
+        </div>
+        <h3><a href="#">我的 2026 工具清单</a></h3>
+        <p class="post-excerpt">编辑器、终端、效率与一点点仪式感。</p>
+      </li>
+    </ol>
+
+    <!-- 分页 -->
+    <nav class="pager" aria-label="分页">
+      <button class="page-btn is-nav" type="button">上一页</button>
+      <button class="page-btn is-active" type="button" aria-current="page">1</button>
+      <button class="page-btn" type="button">2</button>
+      <button class="page-btn" type="button">3</button>
+      <span class="page-ellipsis">…</span>
+      <button class="page-btn" type="button">8</button>
+      <button class="page-btn is-nav" type="button">下一页</button>
+    </nav>
+  </section>
+
+  <!-- 右：侧栏 -->
+  <aside class="aside" aria-label="侧栏">
+
+    <!-- 作者卡 -->
+    <div class="aside-block author-card">
+      <div class="author-avatar-wrap">
+        <img class="author-avatar" src="../assets/user_avatar.png" alt="子不语的头像" />
+        <span class="author-seal">语</span>
+      </div>
+      <p class="author-name">子不语</p>
+      <p class="author-bio">写代码，也写字。<br/>前端 / AI / 偶尔读点旧书。</p>
+      <div class="author-links">
+        <a href="#" aria-label="GitHub"><img src="../assets/github.png" alt="GitHub" /></a>
+        <a href="#" aria-label="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili" /></a>
+      </div>
+    </div>
+
+    <!-- 推荐阅读 -->
+    <div class="aside-block">
+      <h4 class="aside-title"><span class="mark-dot"></span>推荐阅读</h4>
+      <ul class="reco-list">
+        <li><a href="#"><span class="reco-index">一</span>从零实现一个 Vue3 响应式系统</a></li>
+        <li><a href="article.html"><span class="reco-index">二</span>设计令牌：让你的 CSS 不再失控</a></li>
+        <li><a href="#"><span class="reco-index">三</span>用 Pinia 管理主题切换的几种姿势</a></li>
+      </ul>
+    </div>
+
+    <!-- 打赏 -->
+    <div class="aside-block donate-block">
+      <h4 class="aside-title" style="justify-content:center;"><span class="mark-dot"></span>若有所得</h4>
+      <p class="donate-note">文字若对你有一点用处，<br/>不妨请作者歇口气。</p>
+      <button class="donate-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 8h13a3 3 0 0 1 0 6h-1"/>
+          <path d="M4 8v7a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8z"/>
+          <path d="M7 4.5c0 .8-.6 1.2-.6 2M11 4.5c0 .8-.6 1.2-.6 2"/>
+        </svg>
+        请我喝杯茶
+      </button>
+    </div>
+
+  </aside>
+</main>
+
+<!-- ===================== 页脚 ===================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="seal" style="width:28px;height:28px;border-radius:4px;background:var(--cinnabar);color:#FBF7EF;display:grid;place-items:center;font-family:'Noto Serif SC',serif;font-size:15px;">子</span>
+      子不语
+    </div>
+    <div class="footer-meta">
+      © 2026 子不语 · 保留所有权利<br/>
+      京 ICP 备 2026XXXXXX 号 · 京公网安备 0000000 号
+    </div>
+    <div class="footer-social">
+      <a href="#" aria-label="GitHub"><img src="../assets/github.png" alt="GitHub" /></a>
+      <a href="#" aria-label="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili" /></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   昼/夜主题切换 + localStorage 记忆
+   ============================================================ */
+(function () {
+  var root = document.documentElement;
+  var KEY = "ziburiu-theme";
+
+  // 初始化：localStorage > 系统偏好 > 默认 light
+  var saved = localStorage.getItem(KEY);
+  if (saved === "light" || saved === "dark") {
+    root.setAttribute("data-theme", saved);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    root.setAttribute("data-theme", "dark");
+  }
+
+  var btn = document.getElementById("themeToggle");
+  btn.addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem(KEY, next);
+  });
+})();
+</script>
+
+</body>
+</html>

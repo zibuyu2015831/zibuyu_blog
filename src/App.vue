@@ -85,18 +85,18 @@ onBeforeMount(() => {
     deviceInfoStore.theme_store_key
   );
 
-  if (local_webTheme && deviceInfoStore.theme_list.includes(local_webTheme)) {
-    document.documentElement.classList.add(local_webTheme);
-    deviceInfoStore.theme = local_webTheme;
-  } else {
-    if (isDayTime()) {
-      document.documentElement.classList.remove(...document.documentElement.classList);
-      document.documentElement.classList.add("light");
-    } else {
-      document.documentElement.classList.remove(...document.documentElement.classList);
-      document.documentElement.classList.add("dark");
-    }
-  }
+  // 已有用户偏好 → 长期沿用；否则首访按时段判断。
+  const theme =
+    local_webTheme && deviceInfoStore.theme_list.includes(local_webTheme)
+      ? local_webTheme
+      : isDayTime()
+        ? "light"
+        : "dark";
+
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(theme);
+  // 同步到 store：保持顶栏切换控件状态一致，并经 themePlugin 持久化为长期偏好。
+  deviceInfoStore.theme = theme;
 });
 
 // // // // // // // ↑ 页面主题颜色 ↑ // // // // // // //
@@ -115,7 +115,7 @@ watch(isRouterViewReady, (ready) => {
   if (ready) {
     setTimeout(() => {
       isShowDoor.value = false;
-    }, 1000);
+    }, 500);
   }
 });
 
@@ -159,7 +159,7 @@ const isRouterViewMounted = () => {
   width: 50%;
   height: 100%;
   background-color: var(--door);
-  transition: transform 1s ease-in-out;
+  transition: transform 0.5s ease-in-out;
 }
 
 .left-door {

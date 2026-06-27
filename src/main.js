@@ -1,8 +1,10 @@
 import 'normalize.css'
+import '@/assets/css/tokens.css' // 设计令牌（常驻，必须在 reset 之前，主题变量永远就绪）
 import './assets/css/reset.css'
 import '@/assets/css/iconfont.css'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+import '@/assets/css/auth-dialog.css' // 登录/注册/重置密码弹窗主题（须在 element 之后以覆盖默认）
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import themePlugin from '@/plugins/themePlugin.js'
 import dynamicHtml  from '@/utils/dynamicHtml.js'

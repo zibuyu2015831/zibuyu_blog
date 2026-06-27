@@ -1,13 +1,13 @@
 <script setup>
-import { ref } from "vue";
-import { getNews } from "@/api/getNews";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
 import postSuggestion from "@/content/postSuggestion.vue";
-import Advertising from "@/content/Advertising.vue";
+import FeaturedPosts from "@/content/FeaturedPosts.vue";
 import RewardList from "@/content/RewardList.vue";
 import MyInfo from "@/content/MyInfo.vue";
+import ArticleCard from "@/content/ArticleCard.vue";
+import { posts } from "@/content/data/posts.js";
 
 defineOptions({ name: "HomeView" });
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
@@ -32,33 +32,6 @@ const {
 } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 新闻轮播图 ↓ // // // // // // // // // //
-const news_num = ref(0);
-
-function carouselChange(num) {
-  news_num.value = num;
-}
-// // // // // // // // // // ↑ 新闻轮播图 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 异步获取顶部新闻 ↓ // // // // // // // // // //
-
-let news = ref([
-  {
-    name: "",
-    title: "正在获取网络新闻...",
-    link: "#",
-    titleTag: "",
-  },
-]);
-
-setTimeout(() => {
-  getNews().then((res) => {
-    news.value = res;
-  }, 0);
-});
-
-// // // // // // // // // // ↑ 异步获取顶部新闻 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -68,93 +41,12 @@ setTimeout(() => {
 
   <el-row class="main" justify="center" v-if="isBigScreen">
     <el-col :span="11" class="left">
-      <el-row justify="center">
-        <el-col class="news">
-          <el-carousel
-            height="200px"
-            direction="vertical"
-            type="card"
-            :autoplay="true"
-            :loop="true"
-            indicator-position="none"
-            @change="carouselChange"
-          >
-            <el-carousel-item
-              v-for="(item, index) in news"
-              :key="index"
-              :class="{
-                news_activate: index === news_num,
-                news_deactivate: index !== news_num,
-              }"
-            >
-              <h3 text="1xl" justify="center" class="news_content">
-                <a
-                  target="_blank"
-                  :href="item.link"
-                  :class="{ news_activate: index === news_num }"
-                  :id="index"
-                >
-                  <span
-                    >{{
-                      item.name.slice(0, -2) != "B站排"
-                        ? "【 " + item.name.slice(0, -2) + " 】"
-                        : "【 B站 】"
-                    }}{{ item.title }}</span
-                  >
-                </a>
-              </h3>
-            </el-carousel-item>
-          </el-carousel>
-        </el-col>
-      </el-row>
+      <FeaturedPosts />
 
       <el-divider />
 
       <el-col class="article_list">
-        <el-row justify="center" class="" v-for="movie in 10" :key="movie">
-          <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
-            <el-image
-              class="article_image"
-              src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-              fit="fill"
-              lazy
-            />
-
-            <div class="article_intro">
-              <div class="title">
-                <a href="/article/123" class="title_text">
-                  <el-text tag="b" size="large" class="mx-1" type="success" truncated
-                    >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
-                  >
-                </a>
-              </div>
-
-              <div class="abstract">
-                <el-text line-clamp="2" size="default" tag="i">
-                  这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
-                </el-text>
-              </div>
-
-              <div class="data">
-                <div class="category flex gap-2">
-                  <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
-                </div>
-                <div class="date">
-                  <el-icon class="article_icon"><Clock /></el-icon>
-                  <el-text class="mx-1" size="small">2024-06-19</el-text>
-                </div>
-                <div class="view_data">
-                  <el-icon class="article_icon"><View /></el-icon>
-                  <el-text class="mx-1" size="small">2009</el-text>
-                </div>
-                <div class="like_data">
-                  <el-icon class="article_icon"><StarFilled /></el-icon>
-                  <el-text class="mx-1" size="small">2029</el-text>
-                </div>
-              </div>
-            </div>
-          </el-card>
-        </el-row>
+        <ArticleCard v-for="post in posts" :key="post.id" :post="post" />
       </el-col>
 
       <el-col class="article_page">
@@ -173,10 +65,6 @@ setTimeout(() => {
 
     <el-col :span="5" :offset="1" class="right">
       <div class="right_card">
-        <Advertising> </Advertising>
-      </div>
-
-      <div class="right_card">
         <MyInfo> </MyInfo>
       </div>
 
@@ -192,93 +80,20 @@ setTimeout(() => {
 
   <div class="main" v-if="!isBigScreen">
     <el-row justify="center">
-      <el-col class="news" :span="20">
-        <el-carousel
-          height="200px"
-          direction="vertical"
-          type="card"
-          :autoplay="true"
-          :loop="true"
-          indicator-position="none"
-          @change="carouselChange"
-        >
-          <el-carousel-item
-            v-for="(item, index) in news"
-            :key="index"
-            :class="{
-              news_activate: index === news_num,
-              news_deactivate: index !== news_num,
-            }"
-          >
-            <h3 text="1xl" justify="center" class="news_content">
-              <a
-                target="_blank"
-                :href="item.link"
-                :class="{ news_activate: index === news_num }"
-                :id="index"
-              >
-                <span
-                  >{{
-                    item.name.slice(0, -2) != "B站排"
-                      ? "【 " + item.name.slice(0, -2) + " 】"
-                      : "【 B站 】"
-                  }}{{ item.title }}</span
-                >
-              </a>
-            </h3>
-          </el-carousel-item>
-        </el-carousel>
+      <el-col :span="20">
+        <FeaturedPosts />
       </el-col>
     </el-row>
 
     <el-row justify="center" style="margin-top: 50px">
       <el-col :span="isShowRightBox ? 14 : 24" class="left">
         <el-col class="article_list">
-          <el-row justify="center" class="" v-for="movie in 10" :key="movie">
-            <el-card class="article_card" :body-style="{ padding: '5px 1px' }">
-              <el-image
-                v-if="isShowArticleImageInSmallScreen"
-                class="article_image"
-                src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
-                fit="fill"
-                lazy
-              />
-
-              <div class="article_intro">
-                <div class="title">
-                  <a href="/article/123" class="title_text">
-                    <el-text tag="b" size="large" class="mx-1" type="success" truncated
-                      >这是一篇博客标题，这是一篇博客标题，标题文本比较长</el-text
-                    >
-                  </a>
-                </div>
-
-                <div class="abstract">
-                  <el-text line-clamp="2" size="default" tag="i">
-                    这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长这是博客摘要，文本比较长
-                  </el-text>
-                </div>
-
-                <div class="data">
-                  <div class="category flex gap-2">
-                    <el-tag type="warning" effect="dark" round> 文章分类 </el-tag>
-                  </div>
-                  <div class="date">
-                    <el-icon class="article_icon"><Clock /></el-icon>
-                    <el-text class="mx-1" size="small">2024-06-19</el-text>
-                  </div>
-                  <div class="view_data">
-                    <el-icon class="article_icon"><View /></el-icon>
-                    <el-text class="mx-1" size="small">2009</el-text>
-                  </div>
-                  <div class="like_data">
-                    <el-icon class="article_icon"><StarFilled /></el-icon>
-                    <el-text class="mx-1" size="small">2029</el-text>
-                  </div>
-                </div>
-              </div>
-            </el-card>
-          </el-row>
+          <ArticleCard
+            v-for="post in posts"
+            :key="post.id"
+            :post="post"
+            :show-cover="isShowArticleImageInSmallScreen"
+          />
         </el-col>
 
         <el-col class="article_page">
@@ -296,10 +111,6 @@ setTimeout(() => {
       </el-col>
 
       <el-col :span="6" class="right" v-if="isShowRightBox">
-        <div class="right_card">
-          <Advertising> </Advertising>
-        </div>
-
         <div class="right_card">
           <MyInfo> </MyInfo>
         </div>
@@ -330,119 +141,27 @@ setTimeout(() => {
   margin-top: 10px;
 }
 
-/* ↓ 顶部滚动屏 ↓ */
-
-.news {
-  padding-top: 30px;
-}
-
 /* ↓ 文章列表设置 ↓ */
 
 .article_list {
-  margin: 0 5px;
+  margin: 0 var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .article_page {
   margin-bottom: 30px;
 }
 
-.article_card {
-  margin-bottom: 20px;
-  /* 设置过渡效果的持续时间为0.3秒 */
-  transition: transform 0.3s;
-}
-
-.article_card:hover {
-  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
-  transform: scale(1.02);
-}
-
-.article_card .article_image {
-  width: 160px;
-  height: 90px;
-  margin-left: 15px;
-  border-radius: 10px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.article_card .article_intro {
-  margin: 10px 20px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.article_intro .title {
-  max-width: 320px;
-  max-height: 30px;
-  margin-bottom: 10px;
-}
-
-.article_intro .title a {
-  all: unset;
-  font-size: 25px;
-  cursor: pointer;
-}
-
-.article_intro .title .title_text {
-  background: linear-gradient(to right, #538dcb, #cb1ccb) no-repeat right bottom;
-  background-size: 0 2px;
-  transition: background-size 500ms;
-}
-
-.article_intro .title .title_text:hover {
-  background-position-x: left;
-  background-size: 100% 2px;
-}
-
-.article_intro .data {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-evenly;
-}
-
-.article_intro .abstract {
-  max-height: 42px;
-  max-width: 500px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.article_intro .date {
-  position: relative;
-}
-
-.article_intro .article_icon {
-  margin-right: 5px;
-}
-
-.article_intro .date .article_icon {
-  color: red;
-  top: 2px;
-}
-
-.article_intro .view_data .article_icon {
-  color: green;
-  top: 2px;
-}
-
-.article_intro .like_data .article_icon {
-  color: rgb(233, 177, 9);
-  top: 2px;
-}
+/* 文章卡片样式已迁移至 content/ArticleCard.vue（数据驱动组件） */
 
 /* 右侧板块设置 */
 
 .right_card {
   margin-top: 25px;
 }
-
-.right_card:hover {
-  box-shadow: 1px 2px 2px 2px #b8b2b3;
-  transform: scale(1.02);
-}
+/* 悬浮效果交由各卡片自身（仅柔和阴影），此处不再叠加缩放，避免双重 scale */
 
 .right_title {
   font-size: 20px;
@@ -473,42 +192,7 @@ setTimeout(() => {
 
 /* ↓ element 样式 ↓ */
 
-.el-carousel__item h3 {
-  opacity: 0.75;
-  line-height: 100px;
-  margin: 0;
-  text-align: center;
-}
-
-.el-carousel__item.news_deactivate {
-  opacity: 0.3;
-  border-radius: 20px;
-  font-size: clamp(8px, 3.8vw, 18px); /* 设置字体大小的最小值、自适应值和最大值 */
-
-  background-color: var(--news_deactivate_background);
-}
-
-.el-carousel__item.news_activate {
-  opacity: 1;
-  border-radius: 20px;
-  font-size: clamp(10px, 4vw, 20px); /* 设置字体大小的最小值、自适应值和最大值 */
-  overflow: hidden; /* 超出部分隐藏 */
-
-  background-color: var(--news_activate_background);
-}
-
-.el-carousel__item .news_content {
-  color: var(--news_content);
-  padding: auto 10px;
-  display: inline-block; /* 使span可以设置宽度和高度 */
-  word-wrap: break-word; /* 长单词换行 */
-  white-space: nowrap; /* 文本不换行 */
-  overflow: hidden; /* 超出部分隐藏 */
-  text-overflow: ellipsis; /* 使用省略号表示被修剪的文本 */
-  width: 100%;
-}
-
 .el-divider__text {
-  background-color: #f0eeee;
+  background-color: var(--color-bg-default);
 }
 </style>

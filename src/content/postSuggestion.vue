@@ -96,8 +96,8 @@ async function submitUserSuggestion() {
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitUserSuggestion">提交</el-button>
-        <el-button @click="resetUserSuggestion">重置</el-button>
+        <el-button class="auth-btn-primary" @click="submitUserSuggestion">提交</el-button>
+        <el-button class="auth-btn-ghost" @click="resetUserSuggestion">重置</el-button>
       </el-form-item>
     </el-form>
   </el-card>
@@ -106,10 +106,13 @@ async function submitUserSuggestion() {
 <style scoped>
 /* ↓ 代码块 ↓ */
 
+/* 静止内容卡：悬浮仅柔和浮起一层阴影，不缩放不位移（去假可点暗示） */
+.card {
+  transition: box-shadow var(--motion-normal) var(--ease-standard);
+}
+
 .card:hover {
-  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
-  transform: scale(1.02);
-  transition: transform 0.3s;
+  box-shadow: var(--shadow-md);
 }
 
 .title {

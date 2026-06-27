@@ -55,7 +55,7 @@ const rewardTableData = [
       <div class="card-header">
         <span class="title">打赏列表</span>
         <span class="sub_title">
-          <el-button type="primary" link @click="deviceInfoStore.isShowReawrdDialog = true">
+          <el-button class="auth-btn-text" @click="deviceInfoStore.isShowReawrdDialog = true">
             我也要打赏
           </el-button>
         </span>
@@ -96,10 +96,13 @@ const rewardTableData = [
 <style scoped>
 /* ↓ 卡片标题样式 ↓ */
 
+/* 静止内容卡：悬浮仅柔和浮起一层阴影，不缩放不位移（去假可点暗示） */
+.card {
+  transition: box-shadow var(--motion-normal) var(--ease-standard);
+}
+
 .card:hover {
-  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
-  transform: scale(1.02);
-  transition: transform 0.3s;
+  box-shadow: var(--shadow-md);
 }
 
 .title {

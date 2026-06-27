@@ -7,7 +7,7 @@
  *  3. 兼容三种错误来源：axios error（error.response）、原生 fetch 的 Response、
  *     普通 Error / 字符串。
  *
- * 注意：本项目真实请求层是各处原生 fetch 与 api/getNews.js 的直接 axios，
+ * 注意：本项目真实请求层是各处原生 fetch 与零散的直接 axios 调用，
  * 并无统一的 axios 实例可挂拦截器，故以「调用方在 catch 中调用 handleError」的方式接入。
  */
 

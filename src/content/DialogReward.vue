@@ -38,19 +38,25 @@ function submitUserRewardMessage() {
 <template>
   <el-dialog
     v-model="deviceInfoStore.isShowReawrdDialog"
-    title="谢谢您的喜欢~"
     :width="deviceInfoStore.dialogWidth"
     :lock-scroll="false"
-    :center="true"
+    class="auth-dialog"
   >
-    <div class="card_item">
-      <div class="block">
-        <img clsaa="card_img" src="@/assets/image/reward_code_wechat.jpg" />
-        <div class="card_img_title">微信</div>
+    <template #header>
+      <div class="auth-head">
+        <span class="auth-seal">赏</span>
+        <h2 class="auth-title">谢谢您的喜欢</h2>
       </div>
-      <div class="block">
-        <img clsaa="card_img" src="@/assets/image/reward_code_alipay.jpg" />
-        <div class="card_img_title">支付宝</div>
+    </template>
+
+    <div class="auth-qr auth-qr--pair">
+      <div class="auth-qr__item">
+        <img src="@/assets/image/reward_code_wechat.jpg" alt="微信收款码" />
+        <div class="auth-qr__label">微信</div>
+      </div>
+      <div class="auth-qr__item">
+        <img src="@/assets/image/reward_code_alipay.jpg" alt="支付宝收款码" />
+        <div class="auth-qr__label">支付宝</div>
       </div>
     </div>
 
@@ -83,34 +89,12 @@ function submitUserRewardMessage() {
     </el-form>
 
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="resetUserRewardMessage">取消</el-button>
-        <el-button type="primary" @click="submitUserRewardMessage"> 确定 </el-button>
+      <div class="dialog_footer is-end">
+        <el-button class="auth-btn-ghost" @click="resetUserRewardMessage">取消</el-button>
+        <el-button class="auth-btn-primary" @click="submitUserRewardMessage"> 确定 </el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
-<style scoped>
-/* ↓ 打赏弹出框样式 ↓ */
-
-.card_item {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.card_item .block {
-  margin: 5px 30px;
-  display: inline-block;
-  text-align: center;
-}
-
-.card_item img {
-  display: block;
-  width: 120px;
-  height: 120px;
-}
-
-/* ↑ 打赏弹出框样式 ↑ */
-</style>
+<!-- 弹窗主题样式见全局 src/assets/css/auth-dialog.css（.auth-dialog 命名空间） -->

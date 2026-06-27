@@ -46,8 +46,8 @@ marked.use(
 
 const messageAreaRef = ref(null);
 
-// 聊天框中，消息的下间距
-const messageMarginBottom = ref(8);
+// 聊天框中，消息的下间距（≥ --space-5，避免操作按钮与下一条消息重叠）
+const messageMarginBottom = ref(24);
 
 // 标题高度
 const titleHeight = computed(() => {
@@ -146,6 +146,118 @@ const botSetting = reactive({
 
 // // // // // // // // // // ↑ 配置弹出框 ↑ // // // // // // // // // //
 
+// // // // // // // // // // ↓ 时间戳格式化 ↓ // // // // // // // // // //
+
+// 轻量时间格式化：今天显示 HH:mm；昨天显示「昨天 HH:mm」；更早显示「M月D日 HH:mm」
+function formatTimestamp(ts) {
+  if (!ts) return "";
+  const date = new Date(ts);
+  if (isNaN(date.getTime())) return "";
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const hm = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+  const now = new Date();
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(date)) / 86400000);
+
+  if (dayDiff === 0) return hm;
+  if (dayDiff === 1) return `昨天 ${hm}`;
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${hm}`;
+}
+
+// // // // // // // // // // ↑ 时间戳格式化 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 消息搜索 ↓ // // // // // // // // // //
+
+const showSearch = ref(false);
+const searchKeyword = ref("");
+
+// 纯前端派生：带原始下标的消息列表，供搜索过滤（不改动原数组）
+const displayedMessages = computed(() => {
+  const all = aiEnglishStore.english_messages.data.map((item, index) => ({
+    item,
+    index,
+  }));
+
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  if (!keyword) return all;
+
+  return all.filter(({ item }) => {
+    const text = stripHtml(item.content).toLowerCase();
+    return text.includes(keyword);
+  });
+});
+
+// 去除 HTML 标签，得到纯文本（用于搜索匹配）
+function stripHtml(html) {
+  if (!html) return "";
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
+// 转义正则特殊字符
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// 在已 sanitize 的 HTML 中高亮命中关键词（只在文本节点上替换，避免破坏标签）
+function highlightContent(html) {
+  const safe = sanitizeAIResponse(html);
+  const keyword = searchKeyword.value.trim();
+  if (!keyword) return safe;
+
+  const container = document.createElement("div");
+  container.innerHTML = safe;
+  const re = new RegExp(escapeRegExp(keyword), "gi");
+
+  const walk = (node) => {
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        if (re.test(child.textContent)) {
+          re.lastIndex = 0;
+          const span = document.createElement("span");
+          span.innerHTML = child.textContent.replace(
+            re,
+            (m) => `<mark class="search_hit">${m}</mark>`
+          );
+          child.replaceWith(span);
+        }
+      } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== "MARK") {
+        walk(child);
+      }
+    }
+  };
+  walk(container);
+  return container.innerHTML;
+}
+
+function toggleSearch() {
+  showSearch.value = !showSearch.value;
+  if (!showSearch.value) {
+    searchKeyword.value = "";
+  }
+}
+
+function clearSearch() {
+  searchKeyword.value = "";
+}
+
+// // // // // // // // // // ↑ 消息搜索 ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 斜杠命令 ↓ // // // // // // // // // //
+
+function handleSlashCommand(payload) {
+  if (payload.action === "clear") {
+    aiEnglishStore.english_messages.data = [];
+  } else if (payload.action === "help") {
+    addMessage("assistant", `可用快捷命令：\n\n${payload.text}`);
+  }
+}
+
+// // // // // // // // // // ↑ 斜杠命令 ↑ // // // // // // // // // //
+
 // // // // // // // // // // ↓ 消息交互 ↓ // // // // // // // // // //
 
 const canSendMessage = ref(true);
@@ -156,6 +268,7 @@ function addMessage(role, content) {
     content: content,
     role: role,
     isHidden: false,
+    timestamp: Date.now(),
   });
 }
 
@@ -372,12 +485,37 @@ const changeCommand = (command) => {
           </template>
         </el-dropdown>
       </div>
+
+      <div class="search_icon">
+        <el-tooltip effect="dark" content="搜索消息" placement="bottom">
+          <span
+            class="iconfont icon-qingbaojiansuoicon"
+            :class="{ search_icon_active: showSearch }"
+            @click="toggleSearch"
+          ></span>
+        </el-tooltip>
+      </div>
     </div>
+
+    <transition name="search-fade">
+      <div class="search_bar" v-if="showSearch">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索对话内容…"
+          clearable
+          size="default"
+          @clear="clearSearch"
+        />
+        <span class="search_count" v-if="searchKeyword.trim()">
+          {{ displayedMessages.length }} 条匹配
+        </span>
+      </div>
+    </transition>
 
     <div class="message_area" ref="messageAreaRef">
       <div
         class="message_parent clear-fix"
-        v-for="(item, index) in aiEnglishStore.english_messages.data"
+        v-for="{ item, index } in displayedMessages"
         :key="index"
       >
         <div
@@ -391,10 +529,13 @@ const changeCommand = (command) => {
           <div @mouseenter="show_button">
             <div :id="index" class="content">
               <div
-                v-html="sanitizeAIResponse(item.content)"
+                v-html="highlightContent(item.content)"
                 :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>
+            </div>
+            <div class="message_time" v-if="formatTimestamp(item.timestamp)">
+              {{ formatTimestamp(item.timestamp) }}
             </div>
           </div>
 
@@ -501,13 +642,18 @@ const changeCommand = (command) => {
     </div>
 
     <div class="input_area">
-      <InputBar :handle-submit="handleInput" :can-send-message="canSendMessage">
+      <InputBar
+        :handle-submit="handleInput"
+        :can-send-message="canSendMessage"
+        :enable-slash-commands="true"
+        @command="handleSlashCommand"
+      >
       </InputBar>
 
       <div class="tip">交互内容由AI生成，请注意鉴别</div>
     </div>
 
-    <el-dialog v-model="botSettingVisible" title="功能开关" width="350" center>
+    <el-dialog v-model="botSettingVisible" title="功能开关" width="min(90vw, 360px)" center>
       <div class="setting_items">
         <div class="setting_item">
           <span class="setting_item_text">是否开启语法检测：</span>
@@ -733,7 +879,7 @@ const changeCommand = (command) => {
 }
 
 .react_content_ai {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
   margin-left: 50px;
@@ -747,6 +893,18 @@ const changeCommand = (command) => {
   background-color: var(--english_reacte_content_ai_bg);
   padding: 10px;
   border-radius: 15px;
+}
+
+/* 长代码/表格不撑破气泡 */
+.react_content_ai .content :deep(pre),
+.react_content_ai .content :deep(code),
+.react_content_ai .content :deep(table),
+.react_content_user .content :deep(pre),
+.react_content_user .content :deep(code),
+.react_content_user .content :deep(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: break-word;
 }
 
 .hidden_text {
@@ -765,7 +923,7 @@ const changeCommand = (command) => {
 }
 
 .react_content_user {
-  max-width: 75%;
+  max-width: min(75%, 680px);
   padding: 10px;
   margin-right: 60px;
   margin-bottom: calc(v-bind(messageMarginBottom) * 1px);
@@ -816,16 +974,18 @@ const changeCommand = (command) => {
 
 .message_area .react_content_ai .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   left: 20px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .message_area .react_content_user .react_content_button {
   position: absolute;
-  bottom: -18px;
+  bottom: -16px;
   right: 15px;
   display: none;
+  color: var(--color-text-secondary);
 }
 
 .chat_area .input_area .tip {
@@ -839,6 +999,75 @@ const changeCommand = (command) => {
 
 /* ↑ 右侧布局 ↑ */
 
+/* ↓ 消息时间戳 ↓ */
+.message_time {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
+}
+
+.react_content_user .message_time {
+  text-align: right;
+}
+/* ↑ 消息时间戳 ↑ */
+
+/* ↓ 消息搜索 ↓ */
+.search_icon {
+  flex-grow: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-right: var(--space-4);
+}
+
+.search_icon .iconfont {
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color var(--motion-fast) var(--ease-standard, ease);
+}
+
+.search_icon .iconfont:hover,
+.search_icon .search_icon_active {
+  color: var(--color-primary);
+}
+
+.search_bar {
+  flex-grow: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.search_count {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.search-fade-enter-active,
+.search-fade-leave-active {
+  transition: opacity var(--motion-fast) var(--ease-standard, ease);
+}
+
+.search-fade-enter-from,
+.search-fade-leave-to {
+  opacity: 0;
+}
+
+/* 命中关键词高亮（位于 v-html 内容中，需用 :deep） */
+.message_area :deep(.search_hit) {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
+}
+/* ↑ 消息搜索 ↑ */
+
 /* ↓ 弹出框样式 ↓ */
 
 .setting_items {
@@ -846,11 +1075,10 @@ const changeCommand = (command) => {
   display: flex;
   flex-direction: column;
 
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 Q25,20 50,10 Q75,0 100,10 Z" fill="skyblue"/></svg>');
-  background-repeat: no-repeat;
-  background-position: bottom;
-  background-size: 100% 20px; /* 调整SVG的高度 */
-  padding-bottom: 20px; /* 确保内容不会被背景图像遮挡 */
+  /* 原 skyblue 装饰波浪 SVG 已移除（硬编码色、明暗不适配）；
+     底部改用主题感知的细分隔线，统一视觉。 */
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 20px;
 }
 
 .setting_item {
@@ -882,7 +1110,7 @@ const changeCommand = (command) => {
 }
 
 .message_area::-webkit-scrollbar-button:hover {
-  background-color: #999999;
+  background-color: var(--color-text-tertiary);
 }
 
 /* ↑ 滚动条设置 ↑ */

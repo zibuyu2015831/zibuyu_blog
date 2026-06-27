@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计令牌：让你的 CSS 不再失控 · 子不语</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   设计方向 C · 暖光·杂志（Warm Editorial）· 文章页
+   ============================================================ */
+:root {
+  --c-primary:    #D9743F;
+  --c-primary-ink:#B85A2A;
+  --c-accent:     #2A8C82;
+  --c-accent-ink: #1F6B63;
+  --c-bg:         #FFFCF8;
+  --c-bg-sub:     #F7F1E8;
+  --c-card:       #FFFFFF;
+  --c-text:       #2A2522;
+  --c-text-soft:  #7A7065;
+  --c-border:     #ECE3D6;
+
+  --shadow-sm: 0 2px 8px rgba(60,40,20,.06);
+  --shadow:    0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg: 0 16px 40px rgba(80,50,25,.16);
+
+  --radius:    16px;
+  --radius-sm: 12px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --maxw: 1100px;
+  --t-color: .35s ease;
+}
+html[data-theme="dark"] {
+  --c-primary:    #E8915F;
+  --c-primary-ink:#F0A878;
+  --c-accent:     #46B0A4;
+  --c-accent-ink: #5FC6BA;
+  --c-bg:         #1C1A17;
+  --c-bg-sub:     #262320;
+  --c-card:       #2A2622;
+  --c-text:       #EFE8DF;
+  --c-text-soft:  #A89E92;
+  --c-border:     #383330;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.30);
+  --shadow:    0 4px 14px rgba(0,0,0,.40);
+  --shadow-lg: 0 18px 44px rgba(0,0,0,.55);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  font-size: 18px; line-height: 1.75;
+  color: var(--c-text); background: var(--c-bg);
+  transition: background var(--t-color), color var(--t-color);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+h1, h2, h3, .display {
+  font-family: "Fraunces", "Noto Sans SC", Georgia, serif;
+  font-weight: 600; line-height: 1.22; text-wrap: balance; letter-spacing: -.01em;
+}
+a { color: var(--c-accent); text-decoration: none; transition: color .2s; }
+a:hover { color: var(--c-accent-ink); }
+img { display: block; max-width: 100%; }
+p { text-wrap: pretty; }
+
+/* ====================== 顶栏（与首页一致） ====================== */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--c-bg) 86%, transparent);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--c-border);
+  transition: background var(--t-color), border-color var(--t-color);
+}
+.topbar__inner { max-width: 1180px; margin: 0 auto; padding: 14px 28px; display: flex; align-items: center; gap: 28px; }
+.brand { display: flex; align-items: baseline; gap: 10px; font-family: "Fraunces", serif; font-weight: 700; font-size: 23px; color: var(--c-text); letter-spacing: -.02em; white-space: nowrap; }
+.brand .dot { color: var(--c-primary); }
+.brand__tag { font-family: "Noto Sans SC", sans-serif; font-weight: 400; font-size: 12.5px; color: var(--c-text-soft); }
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav a { color: var(--c-text-soft); font-size: 15px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius-pill); transition: color .2s, background .2s; }
+.nav a:hover { color: var(--c-text); background: var(--c-bg-sub); }
+.nav a.is-active { color: var(--c-primary); }
+.theme-toggle { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 1px solid var(--c-border); border-radius: var(--radius-pill); background: var(--c-card); color: var(--c-text); cursor: pointer; transition: background .25s, border-color .25s, transform .25s, color .25s; }
+.theme-toggle:hover { transform: translateY(-1px) rotate(-8deg); border-color: var(--c-primary); color: var(--c-primary); }
+.theme-toggle svg { width: 19px; height: 19px; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* ====================== 布局 ====================== */
+.layout {
+  max-width: var(--maxw); margin: 0 auto; padding: 34px 28px 72px;
+  display: grid; grid-template-columns: minmax(0,1fr) 248px; gap: 56px; align-items: start;
+}
+
+/* 面包屑 */
+.crumbs { font-size: 13.5px; color: var(--c-text-soft); margin: 0 0 22px; }
+.crumbs a { color: var(--c-text-soft); }
+.crumbs a:hover { color: var(--c-accent); }
+.crumbs .sep { margin: 0 8px; opacity: .5; }
+
+/* ====================== 文章头 ====================== */
+.article-hero {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-lg); aspect-ratio: 21/8; min-height: 220px;
+  display: grid; place-items: center; margin-bottom: 30px;
+  background: linear-gradient(135deg, #3AA294 0%, #237A70 100%); /* 设计·鸭青调色板占位 */
+}
+.article-hero::before, .article-hero::after { content: ""; position: absolute; border-radius: 50%; filter: blur(3px); }
+.article-hero::before { width: 40%; aspect-ratio: 1; left: 6%; top: -30%; background: rgba(255,255,255,.18); }
+.article-hero::after  { width: 34%; aspect-ratio: 1; right: 4%; bottom: -34%; background: rgba(0,0,0,.16); }
+.article-hero__note {
+  position: relative; z-index: 2; font-family: "Fraunces", serif; font-weight: 600;
+  font-size: clamp(20px, 3vw, 30px); color: rgba(255,255,255,.92);
+  letter-spacing: .04em; text-shadow: 0 2px 18px rgba(0,0,0,.25);
+}
+
+.cat-tag {
+  display: inline-block; font-size: 13px; font-weight: 500;
+  color: var(--c-accent); background: color-mix(in srgb, var(--c-accent) 12%, transparent);
+  padding: 4px 14px; border-radius: var(--radius-pill); margin-bottom: 16px;
+}
+.article-title {
+  font-size: clamp(30px, 4.4vw, 46px); font-weight: 700; color: var(--c-text);
+  margin: 0 0 22px; line-height: 1.16;
+}
+.byline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 28px; border-bottom: 1px solid var(--c-border); margin-bottom: 36px; }
+.byline__avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px var(--c-border), var(--shadow-sm); }
+.byline__name { font-weight: 600; color: var(--c-text); font-size: 15.5px; }
+.byline__meta { color: var(--c-text-soft); font-size: 14px; }
+.byline__meta .sep { margin: 0 9px; opacity: .45; }
+
+/* ====================== 正文排版 ====================== */
+.prose { color: var(--c-text); }
+.prose > p { margin: 0 0 24px; }
+.prose .lead { font-size: 20px; color: var(--c-text); line-height: 1.7; }
+.prose h2 {
+  font-size: 28px; margin: 48px 0 18px; color: var(--c-text);
+  scroll-margin-top: 86px; position: relative; padding-left: 18px;
+}
+.prose h2::before {
+  content: ""; position: absolute; left: 0; top: .18em; bottom: .18em;
+  width: 5px; border-radius: 3px; background: var(--c-primary);
+}
+.prose h3 { font-size: 20px; margin: 32px 0 12px; color: var(--c-text); scroll-margin-top: 86px; }
+.prose ul, .prose ol { margin: 0 0 24px; padding-left: 26px; }
+.prose li { margin: 8px 0; }
+.prose ul li::marker { color: var(--c-primary); }
+.prose ol li::marker { color: var(--c-accent); font-weight: 600; }
+
+/* 行内代码 */
+.prose code {
+  font-family: "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: .88em; background: var(--c-bg-sub);
+  color: var(--c-primary-ink); padding: 2px 7px; border-radius: 7px;
+  border: 1px solid var(--c-border);
+}
+
+/* 引用块 */
+.prose blockquote {
+  margin: 32px 0; padding: 20px 26px;
+  background: color-mix(in srgb, var(--c-primary) 8%, var(--c-card));
+  border-left: 4px solid var(--c-primary);
+  border-radius: var(--radius-sm);
+  color: var(--c-text); font-size: 18.5px; line-height: 1.7;
+  box-shadow: var(--shadow-sm);
+}
+.prose blockquote p { margin: 0; }
+.prose blockquote cite { display: block; margin-top: 10px; font-size: 14px; font-style: normal; color: var(--c-text-soft); }
+
+/* 代码块（柔和配色 + 语法高亮） */
+.codeblock {
+  margin: 30px 0; border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--c-border);
+}
+.codeblock__bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px; background: var(--c-bg-sub);
+  border-bottom: 1px solid var(--c-border);
+}
+.codeblock__dot { width: 11px; height: 11px; border-radius: 50%; }
+.codeblock__dot.r { background: #E0795F; }
+.codeblock__dot.y { background: #E0B23F; }
+.codeblock__dot.g { background: #5FB58E; }
+.codeblock__name { margin-left: 8px; font-size: 12.5px; color: var(--c-text-soft); font-family: monospace; }
+.codeblock pre {
+  margin: 0; padding: 20px 22px; overflow-x: auto;
+  background: var(--c-card); font-size: 14.5px; line-height: 1.7;
+  font-family: "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+html[data-theme="dark"] .codeblock pre { background: #211E1A; }
+/* 语法高亮（暖色，克制） */
+.tok-sel  { color: var(--c-accent); }
+.tok-prop { color: var(--c-primary-ink); }
+.tok-val  { color: #8A6D3B; }
+.tok-com  { color: var(--c-text-soft); font-style: italic; }
+.tok-punc { color: var(--c-text-soft); }
+html[data-theme="dark"] .tok-val { color: #D6B27A; }
+html[data-theme="dark"] .tok-prop { color: #F0A878; }
+
+/* 文内图（调色板占位） */
+.figure { margin: 34px 0; }
+.figure__img {
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+  aspect-ratio: 16/7; display: grid; place-items: center; position: relative;
+  background: linear-gradient(120deg, #E08A4E 0%, #D7A04A 40%, #3AA294 100%);
+}
+.figure__img span {
+  position: relative; z-index: 2; font-family: "Fraunces", serif; font-weight: 600;
+  color: rgba(255,255,255,.94); font-size: 20px; letter-spacing: .03em;
+  text-shadow: 0 2px 14px rgba(0,0,0,.25);
+}
+/* 三层堆叠的视觉暗示：三条横带 */
+.figure__img::before {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(to bottom,
+      rgba(255,255,255,.0) 0%, rgba(255,255,255,.0) 30%,
+      rgba(255,255,255,.14) 30%, rgba(255,255,255,.14) 33%,
+      rgba(255,255,255,.0) 33%, rgba(255,255,255,.0) 63%,
+      rgba(0,0,0,.10) 63%, rgba(0,0,0,.10) 66%,
+      rgba(255,255,255,.0) 66%);
+}
+.figure figcaption { margin-top: 12px; text-align: center; font-size: 13.5px; color: var(--c-text-soft); }
+
+/* 结语 */
+.endmark { margin: 40px 0 0; padding-top: 26px; border-top: 1px solid var(--c-border); }
+.endmark__sig { font-family: "Fraunces", serif; font-style: italic; color: var(--c-text-soft); font-size: 15px; }
+
+/* ====================== 侧栏：TOC + 作者卡 ====================== */
+.sidebar { position: sticky; top: 86px; display: flex; flex-direction: column; gap: 24px; }
+.toc {
+  border: 1px solid var(--c-border); border-radius: var(--radius);
+  background: var(--c-card); box-shadow: var(--shadow-sm); padding: 22px 22px 18px;
+}
+.toc__title {
+  font-family: "Fraunces", serif; font-size: 14px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--c-text-soft);
+  margin: 0 0 14px;
+}
+.toc__list { list-style: none; margin: 0; padding: 0; }
+.toc__list li { margin: 0; }
+.toc__list a {
+  display: block; padding: 7px 12px; border-radius: 9px;
+  font-size: 14px; line-height: 1.45; color: var(--c-text-soft);
+  border-left: 2px solid transparent; transition: all .25s;
+}
+.toc__list a:hover { color: var(--c-text); background: var(--c-bg-sub); }
+.toc__list a.is-active {
+  color: var(--c-primary); font-weight: 500;
+  background: color-mix(in srgb, var(--c-primary) 9%, transparent);
+  border-left-color: var(--c-primary);
+}
+.toc__list .lv3 a { padding-left: 24px; font-size: 13.5px; }
+
+/* 侧栏作者卡 */
+.widget { background: var(--c-card); border: 1px solid var(--c-border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 22px; }
+.author { text-align: center; }
+.author__avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; object-fit: cover; border: 3px solid var(--c-card); box-shadow: 0 0 0 1px var(--c-border), var(--shadow); }
+.author__name { font-family: "Fraunces", serif; font-size: 19px; font-weight: 600; margin: 0 0 6px; color: var(--c-text); }
+.author__bio { font-size: 13.5px; color: var(--c-text-soft); line-height: 1.65; margin: 0 0 16px; }
+.author__links { display: flex; justify-content: center; gap: 10px; }
+.author__links a { width: 36px; height: 36px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--c-bg-sub); border: 1px solid var(--c-border); transition: transform .22s, border-color .22s; }
+.author__links a:hover { transform: translateY(-2px); border-color: var(--c-primary); }
+.author__links img { width: 18px; height: 18px; object-fit: contain; }
+html[data-theme="dark"] .author__links img { filter: invert(1) brightness(1.6); opacity: .9; }
+
+/* ====================== 页脚（与首页一致） ====================== */
+.footer { border-top: 1px solid var(--c-border); background: var(--c-bg-sub); transition: background var(--t-color), border-color var(--t-color); }
+.footer__inner { max-width: 1180px; margin: 0 auto; padding: 36px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+.footer__brand { font-family: "Fraunces", serif; font-weight: 700; font-size: 19px; color: var(--c-text); }
+.footer__brand .dot { color: var(--c-primary); }
+.footer__meta { font-size: 13px; color: var(--c-text-soft); line-height: 1.7; }
+.footer__social { margin-left: auto; display: flex; gap: 10px; }
+.footer__social a { width: 34px; height: 34px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--c-card); border: 1px solid var(--c-border); transition: transform .2s, border-color .2s; }
+.footer__social a:hover { transform: translateY(-2px); border-color: var(--c-primary); }
+.footer__social img { width: 17px; height: 17px; object-fit: contain; }
+html[data-theme="dark"] .footer__social img { filter: invert(1) brightness(1.6); opacity: .9; }
+
+/* ====================== 响应式 ====================== */
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  .sidebar { position: static; order: -1; flex-direction: row; flex-wrap: wrap; margin-bottom: 28px; }
+  .sidebar .toc { flex: 1 1 100%; }
+  .sidebar .widget { display: none; } /* 窄屏隐藏侧栏作者卡，文末另有作者信息时可恢复 */
+}
+@media (max-width: 768px) {
+  body { font-size: 17px; }
+  .topbar__inner { flex-wrap: wrap; gap: 14px; padding: 12px 18px; }
+  .nav { order: 3; width: 100%; margin-left: 0; overflow-x: auto; }
+  .nav a { padding: 6px 11px; font-size: 14px; }
+  .brand__tag { display: none; }
+  .layout { padding: 24px 18px 56px; }
+  .article-hero { aspect-ratio: 16/9; }
+  .prose .lead { font-size: 18px; }
+  .prose h2 { font-size: 24px; }
+  .footer__inner { padding: 28px 18px; }
+  .footer__social { margin-left: 0; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== 顶栏 ====================== -->
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="home.html" aria-label="子不语 首页">
+      子不语<span class="dot">.</span>
+      <span class="brand__tag">唯记代码与思考</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="home.html">首页</a>
+      <a href="#" class="is-active">文章</a>
+      <a href="#">导航</a>
+      <a href="#">AI英语</a>
+      <a href="#">关于</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换昼夜主题" title="切换昼夜主题">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.5 14.2A8.4 8.4 0 1 1 9.8 3.5a6.6 6.6 0 0 0 10.7 10.7z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ====================== 正文 + 侧栏 ====================== -->
+<div class="layout">
+
+  <article>
+    <nav class="crumbs" aria-label="面包屑">
+      <a href="home.html">首页</a><span class="sep">/</span>
+      <a href="#">文章</a><span class="sep">/</span>
+      <span>设计令牌：让你的 CSS 不再失控</span>
+    </nav>
+
+    <!-- 文章头：圆角大封面（调色板占位） -->
+    <div class="article-hero" role="img" aria-label="文章封面（调色板占位）">
+      <span class="article-hero__note">设计 · Design Tokens</span>
+    </div>
+
+    <span class="cat-tag">设计</span>
+    <h1 class="article-title">设计令牌：让你的 CSS 不再失控</h1>
+
+    <div class="byline">
+      <img class="byline__avatar" src="../assets/user_avatar.png" alt="子不语 头像">
+      <div>
+        <div class="byline__name">子不语</div>
+        <div class="byline__meta">
+          2026-06-12<span class="sep">·</span>阅读 8 分钟<span class="sep">·</span>浏览 2.1k
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================== 正文 ====================== -->
+    <div class="prose">
+      <p class="lead">每一个长寿的前端项目，几乎都会在某个深夜迎来同一个时刻：你想改一下主色，结果在十几个文件里搜 <code>#D9743F</code>，改完一轮，发现按钮、链接、图标边框还是各有各的橙。CSS 没有失控，是我们对颜色和尺寸的「命名权」失控了。设计令牌（Design Tokens）就是把这份命名权收回来的方法。</p>
+
+      <h2 id="sec-chaos">问题：CSS 是怎么失控的</h2>
+      <p>失控很少是一次性发生的。它是一种渐进的熵增：第一个人写下 <code>color: #D9743F</code>，第二个人需要一个「稍微深一点的橙」，于是有了 <code>#C76636</code>；第三个人在做 hover 态，凭手感调出 <code>#B85A2A</code>。三个月后，代码库里住着十几种「橙」，没有任何一个有名字，也没有任何一个是「官方」的。</p>
+      <p>字号、圆角、间距走的是同一条路。一个组件用 <code>15px</code>，另一个用 <code>15.5px</code>，肉眼几乎看不出差别，但它们都是真实存在的、需要被维护的「魔法数字」。当我把某个真实项目里散落的值统计出来时，结果触目惊心：</p>
+      <ul>
+        <li>17 种强调色——大部分只差几个色阶，却谁也不让谁；</li>
+        <li>15 种字号——从 11px 到 34px，没有可辨认的层级规律；</li>
+        <li>8 种圆角——4px、6px、8px、10px……每个组件都在重新发明圆角。</li>
+      </ul>
+
+      <h2 id="sec-three">三层令牌架构</h2>
+      <p>解药不是「少用几个颜色」这种自律口号——自律会过期。真正可持续的做法是建立一套三层结构，让每一层只回答一个问题。</p>
+
+      <h3 id="sec-raw">原始层（Primitive）</h3>
+      <p>最底层只描述「事实」，不带任何意图。它是一张调色板和一把尺子：<code>orange-500: #D9743F</code>、<code>teal-500: #2A8C82</code>、<code>space-4: 16px</code>。这一层只管「世界上存在哪些值」，不管它们用在哪里。命名按色相 + 明度阶梯，机械而可预测。</p>
+
+      <h3 id="sec-semantic">语义层（Semantic）</h3>
+      <p>第二层把原始值映射到「角色」上：<code>--color-primary</code> 指向 <code>orange-500</code>，<code>--color-link</code> 指向 <code>teal-500</code>。这一层是设计意图的落点——当你想把主色从橙换成红，只改这一处指向，全站跟着变。组件永远不该直接碰原始层，只跟语义层对话。</p>
+
+      <h3 id="sec-alias">组件别名层（Component Alias）</h3>
+      <p>最上层是给具体组件的「方言」：<code>--button-bg</code>、<code>--card-border</code>。默认它们继承自语义层，但保留了「就这一个组件要破例」的余地，而不必污染全局。三层之间是单向引用：组件 → 语义 → 原始，绝不反向。</p>
+
+      <blockquote>
+        <p>令牌不是为了让颜色变少，而是为了让每一次改色都只发生在一个地方。约束的价值，从来不在限制本身，而在它让改变变得便宜。</p>
+        <cite>—— 关于设计系统的一点体会</cite>
+      </blockquote>
+
+      <p>落到代码上，语义层用一组 CSS 变量承载，明暗主题各覆盖一份即可。下面是收敛后的核心片段：</p>
+
+      <div class="codeblock">
+        <div class="codeblock__bar">
+          <span class="codeblock__dot r"></span>
+          <span class="codeblock__dot y"></span>
+          <span class="codeblock__dot g"></span>
+          <span class="codeblock__name">tokens.css</span>
+        </div>
+<pre><span class="tok-com">/* 原始层：只描述事实 */</span>
+<span class="tok-sel">:root</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">--orange-500</span><span class="tok-punc">:</span> <span class="tok-val">#D9743F</span><span class="tok-punc">;</span>
+  <span class="tok-prop">--teal-500</span><span class="tok-punc">:</span>   <span class="tok-val">#2A8C82</span><span class="tok-punc">;</span>
+  <span class="tok-prop">--space-4</span><span class="tok-punc">:</span>    <span class="tok-val">16px</span><span class="tok-punc">;</span>
+  <span class="tok-com">/* 语义层：映射到角色 */</span>
+  <span class="tok-prop">--color-primary</span><span class="tok-punc">:</span> <span class="tok-val">var(--orange-500)</span><span class="tok-punc">;</span>
+  <span class="tok-prop">--color-link</span><span class="tok-punc">:</span>    <span class="tok-val">var(--teal-500)</span><span class="tok-punc">;</span>
+<span class="tok-punc">}</span></pre>
+      </div>
+
+      <p>有了这套结构，组件里写的不再是某个具体颜色，而是一个意图：按钮背景永远是 <code>var(--color-primary)</code>，链接永远是 <code>var(--color-link)</code>。换肤、换主题、改品牌色，都收敛成对语义层的一次编辑。</p>
+
+      <!-- 文内图：三层令牌关系示意（调色板占位） -->
+      <figure class="figure">
+        <div class="figure__img" role="img" aria-label="三层令牌关系示意（调色板占位）">
+          <span>原始 → 语义 → 组件别名</span>
+        </div>
+        <figcaption>图：三层令牌关系示意（单向引用，组件永不直连原始层）</figcaption>
+      </figure>
+
+      <h2 id="sec-migrate">迁移：零破坏地替换</h2>
+      <p>没人能在一个 PR 里把上百个硬编码值全换掉，也不该那样做。零破坏迁移的关键，是让新旧体系在一段时间内并存：</p>
+      <ol>
+        <li><strong>建层不动业务。</strong>先把原始层与语义层的变量定义好，此时它们没有任何引用方，不影响现有页面。</li>
+        <li><strong>按模块逐步替换。</strong>从最稳定、改动最少的组件开始，把硬编码值替换成 <code>var(--color-*)</code>，每替换一个就视觉回归一次。</li>
+        <li><strong>用 lint 守住成果。</strong>替换完成后，加一条规则禁止在组件里直接写颜色字面量，让新代码无法再绕过令牌——熵增就此被堵在门外。</li>
+      </ol>
+
+      <div class="endmark">
+        <p>设计令牌的回报不在某一天，而在之后的每一天：当产品要换主题、当设计师说「主色再暖一点」、当你要支持暗色模式时，你改的是一处定义，而不是一场考古。CSS 从未真正失控，只是一直在等一套能让它收敛的名字。</p>
+        <p class="endmark__sig">—— 子不语，写于一次主题重构之后</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- ====================== 侧栏 ====================== -->
+  <aside class="sidebar">
+    <nav class="toc" id="toc" aria-label="目录">
+      <p class="toc__title">目录</p>
+      <ul class="toc__list">
+        <li><a href="#sec-chaos">问题：CSS 是怎么失控的</a></li>
+        <li><a href="#sec-three">三层令牌架构</a></li>
+        <li class="lv3"><a href="#sec-raw">原始层</a></li>
+        <li class="lv3"><a href="#sec-semantic">语义层</a></li>
+        <li class="lv3"><a href="#sec-alias">组件别名层</a></li>
+        <li><a href="#sec-migrate">迁移：零破坏地替换</a></li>
+      </ul>
+    </nav>
+
+    <div class="widget author">
+      <img class="author__avatar" src="../assets/user_avatar.png" alt="子不语 头像">
+      <h3 class="author__name">子不语</h3>
+      <p class="author__bio">写代码，也写字。<br>前端 / AI / 偶尔读点旧书。</p>
+      <div class="author__links">
+        <a href="#" aria-label="GitHub" title="GitHub"><img src="../assets/github.png" alt="GitHub"></a>
+        <a href="#" aria-label="Bilibili" title="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili"></a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ====================== 页脚 ====================== -->
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <div class="footer__brand">子不语<span class="dot">.</span></div>
+      <div class="footer__meta">
+        © 2026 子不语 · 子不语怪力乱神，唯记代码与思考<br>
+        京ICP备 2026000000 号-1 · 备案信息占位
+      </div>
+    </div>
+    <div class="footer__social">
+      <a href="#" aria-label="GitHub" title="GitHub"><img src="../assets/github.png" alt="GitHub"></a>
+      <a href="#" aria-label="Bilibili" title="Bilibili"><img src="../assets/bilibili.png" alt="Bilibili"></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* —— 昼夜主题（与首页一致） —— */
+(function () {
+  var root = document.documentElement;
+  var KEY = 'ziblog-theme';
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (saved === 'dark' || saved === 'light') {
+    root.setAttribute('data-theme', saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    root.setAttribute('data-theme', 'dark');
+  }
+  document.getElementById('themeToggle').addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+  });
+})();
+
+/* —— TOC 当前章节高亮：IntersectionObserver —— */
+(function () {
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  if (!tocLinks.length || !('IntersectionObserver' in window)) return;
+
+  var map = {};
+  tocLinks.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+
+  var headings = tocLinks
+    .map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); })
+    .filter(Boolean);
+
+  var visible = new Set();
+
+  function setActive(id) {
+    tocLinks.forEach(function (a) { a.classList.remove('is-active'); });
+    if (map[id]) map[id].classList.add('is-active');
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) visible.add(e.target.id);
+      else visible.delete(e.target.id);
+    });
+    // 取当前可见标题中最靠上的那个
+    if (visible.size) {
+      var topId = null, topY = Infinity;
+      visible.forEach(function (id) {
+        var el = document.getElementById(id);
+        var y = el.getBoundingClientRect().top;
+        if (y < topY) { topY = y; topId = id; }
+      });
+      if (topId) setActive(topId);
+    } else {
+      // 没有标题在视口内时：高亮最后一个滚过顶部的
+      var passed = headings.filter(function (h) { return h.getBoundingClientRect().top < 96; });
+      if (passed.length) setActive(passed[passed.length - 1].id);
+    }
+  }, { rootMargin: '-84px 0px -62% 0px', threshold: [0, 1] });
+
+  headings.forEach(function (h) { observer.observe(h); });
+})();
+</script>
+</body>
+</html>
