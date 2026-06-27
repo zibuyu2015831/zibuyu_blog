@@ -5,7 +5,7 @@ import useUserInfo from "@/stores/userInfo";
 import { getLocalStorageValueWithExpiration } from "@/utils/uselocalStorage";
 import { throttle } from "@/utils/throttle";
 
-import { onMounted, onBeforeUnmount, ref, onBeforeMount, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, onBeforeMount, watch } from "vue";
 
 import DialogLogin from "@/content/DialogLogin.vue";
 import DialogReward from "@/content/DialogReward.vue";
@@ -108,15 +108,15 @@ onBeforeMount(() => {
 const isShowDoor = ref(true);
 
 const isRouterViewReady = ref(false);
-const allReady = computed(() => {
-  if (isRouterViewReady.value) {
-    // 动画效果设置为1秒，1秒之后，遮罩真正去除（组件加载完成时只是变透明了）
+
+// 路由组件挂载完成后，遮罩先变透明（CSS 过渡），1 秒后真正移除 DOM。
+// 用 watch 承载副作用，避免在 computed 内写副作用（vue/no-async-in-computed-properties）。
+watch(isRouterViewReady, (ready) => {
+  if (ready) {
     setTimeout(() => {
       isShowDoor.value = false;
     }, 1000);
   }
-
-  return isRouterViewReady.value;
 });
 
 const isRouterViewMounted = () => {
@@ -129,10 +129,10 @@ const isRouterViewMounted = () => {
 <template>
   <el-row :gutter="0" class="container" v-if="isShowDoor">
     <el-col :span="12">
-      <div class="door left-door" :class="{ 'left-door-dispear': allReady }"></div>
+      <div class="door left-door" :class="{ 'left-door-dispear': isRouterViewReady }"></div>
     </el-col>
     <el-col :span="12">
-      <div class="door right-door" :class="{ 'right-door-dispear': allReady }"></div>
+      <div class="door right-door" :class="{ 'right-door-dispear': isRouterViewReady }"></div>
     </el-col>
   </el-row>
 
