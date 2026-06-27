@@ -17,7 +17,9 @@ module.exports = {
     // 允许以 _ 开头的参数表示「有意未使用」
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     // 允许空的 catch 块（部分流式协议噪声需静默吞掉）
-    'no-empty': ['warn', { allowEmptyCatch: true }]
+    'no-empty': ['warn', { allowEmptyCatch: true }],
+    // 允许 while(true) 流式读取循环（reader.read() 后再 break 是规范写法）
+    'no-constant-condition': ['error', { checkLoops: false }]
   },
   overrides: [
     {

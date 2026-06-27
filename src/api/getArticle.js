@@ -1,4 +1,4 @@
- function getArticle(article_id){
+ function getArticle(_article_id){
   return `# \`Anaconda\` 安装与使用
 
   **虚拟环境**是一个可以隔离项目的\`python\`解释器和安装模块的工具，
@@ -150,19 +150,21 @@
   const h2Pattern = /^## (.*)/;
   const h3Pattern = /^### (.*)/;
   lines.forEach(line => {
-    let match;
-    if (match = h1Pattern.exec(line)) {
-      currentH1 = { title: match[1], level: 1, children: [] };
+    const h1Match = h1Pattern.exec(line);
+    const h2Match = h2Pattern.exec(line);
+    const h3Match = h3Pattern.exec(line);
+    if (h1Match) {
+      currentH1 = { title: h1Match[1], level: 1, children: [] };
       titles.push(currentH1);
       currentH2 = null;  // Reset currentH2 when a new H1 is encountered
-    } else if (match = h2Pattern.exec(line)) {
+    } else if (h2Match) {
       if (currentH1) {  // Ensure there is an H1 to attach this H2 to
-        currentH2 = { title: match[1], level: 2, children: [] };
+        currentH2 = { title: h2Match[1], level: 2, children: [] };
         currentH1.children.push(currentH2);
       }
-    } else if (match = h3Pattern.exec(line)) {
+    } else if (h3Match) {
       if (currentH2) {  // Ensure there is an H2 to attach this H3 to
-        const currentH3 = { title: match[1], level: 3 };
+        const currentH3 = { title: h3Match[1], level: 3 };
         currentH2.children.push(currentH3);
       }
     }
