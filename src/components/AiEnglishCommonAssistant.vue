@@ -30,7 +30,6 @@ const {
   requestModel,
   requestTemperature,
   requestTop_p,
-  requestMax_tokens,
   requestHistoryCount,
 } = storeToRefs(aiEnglishStore);
 
@@ -391,19 +390,19 @@ const currentTop_p = ref("");
 const currentMaxTokens = ref("");
 const currentHistoryCount = ref("");
 
-watch(currentUrl, (newVal, oldVal) => {
+watch(currentUrl, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url = newVal;
 });
 
-watch(currentKey, (newVal, oldVal) => {
+watch(currentKey, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].key = newVal;
 });
 
-watch(currentModel, (newVal, oldVal) => {
+watch(currentModel, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].model = newVal;
 });
 
-watch(currentTemperature, (newVal, oldVal) => {
+watch(currentTemperature, (newVal) => {
   if (newVal == 0) {
     newVal = 0.1;
   }
@@ -413,7 +412,7 @@ watch(currentTemperature, (newVal, oldVal) => {
   ].temperature = newVal;
 });
 
-watch(currentTop_p, (newVal, oldVal) => {
+watch(currentTop_p, (newVal) => {
   if (newVal == 0) {
     newVal = 0.1;
   }
@@ -421,11 +420,11 @@ watch(currentTop_p, (newVal, oldVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p = newVal;
 });
 
-watch(currentMaxTokens, (newVal, oldVal) => {
+watch(currentMaxTokens, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].max_tokens = newVal;
 });
 
-watch(currentHistoryCount, (newVal, oldVal) => {
+watch(currentHistoryCount, (newVal) => {
   aiEnglishStore.customized_infos[
     aiEnglishStore.currentSettingIndex
   ].history_count = newVal;

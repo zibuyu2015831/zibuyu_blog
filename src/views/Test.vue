@@ -71,10 +71,6 @@ function draw() {
   if (texts.length < 50) {
     //背景文字数量少于50则插入新背景文字
 
-    const width = Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetWidth;
-    const height =
-      Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetHeight;
-
     texts.push({
       str: words[parseInt(Math.random() * words.length)], //随机选择菜名
       sx: Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetWidth, //随机起始位置

@@ -23,11 +23,6 @@ const displayText = ref("");
 const typingIndex = ref(0);
 const isTyping = ref(true); // 用于控制光标闪烁
 
-// 生成随机数字（1~4）
-function randomNumber() {
-  return Math.floor(Math.random() * 4) + 1;
-}
-
 // 打字机定时器（递归 setTimeout）与光标闪烁定时器，均需在卸载时清理（#05）
 let typeTimer = null;
 let cursorTimer = null;

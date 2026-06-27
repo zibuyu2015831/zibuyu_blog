@@ -66,19 +66,6 @@ onMounted(() => {
     },
   });
 
-  const buttonVNode = h(
-    ElButton,
-    {
-      type: "primary",
-      class: "btn",
-      btn_name: "sdsa", // 自定义属性
-      onClick: () => {
-        console.log("Button clicked!");
-      },
-    },
-    "Click Me"
-  );
-
   const container = document.querySelector(".container");
 
   const buttonApp = createApp({
@@ -97,23 +84,6 @@ onMounted(() => {
     buttonApp.mount(buttonContainer);
   }
 });
-
-const nav = [
-  { url: "/home", content: "主页" },
-  { url: "/home", content: "主页" },
-  { url: "/home", content: "主页" },
-];
-
-
-const handleReward= ()=>{
-  deviceInfoStore.isShowReawrdDialog=true
-}
-
-const options  = ref([
-  '口语陪练',
-  '作文批改',
-  '百科问答',
-])
 
 const handler = (content)=>{
   console.log('用户输入的是：',content)
