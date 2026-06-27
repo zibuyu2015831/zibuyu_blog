@@ -1,0 +1,6 @@
+{
+  "globals": {
+    "ElButton": "readonly",
+    "ElImage": "readonly"
+  }
+}

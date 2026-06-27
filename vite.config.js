@@ -7,17 +7,19 @@ import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 
-// const AutoImport = require('unplugin-auto-import/webpack')
-// const Components = require('unplugin-vue-components/webpack')
-// const { ElementPlusResolver } = require('unplugin-vue-components/resolvers')
-
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     vue(),
     AutoImport({
       resolvers: [ElementPlusResolver()],
+      // 生成 ESLint 全局变量声明，消除 ElMessage/ElImage 等自动导入 API 的 no-undef 误报（#08）
+      eslintrc: {
+        enabled: true,
+        filepath: './.eslintrc-auto-import.json',
+        globalsPropValue: 'readonly',
+      },
     }),
     Components({
       resolvers: [ElementPlusResolver()],
@@ -27,6 +29,10 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  // 仅在生产构建（vite build）时移除 console / debugger；开发模式保留，便于调试（#08）
+  esbuild: {
+    drop: command === 'build' ? ['console', 'debugger'] : [],
   },
   server: {
     port: 3000,           // 客户端的运行端口，此处也可以绑定vue运行的端口，当然也可以写在pycharm下
@@ -56,8 +62,8 @@ export default defineConfig({
       },
     },
   },
-  define:{
-    'SERVER_URL':JSON.stringify('http://8.138.106.241/'),
+  define: {
+    'SERVER_URL': JSON.stringify('http://8.138.106.241/'),
   }
   // publicPath:'./'
-})
+}))

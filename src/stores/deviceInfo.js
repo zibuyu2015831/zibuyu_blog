@@ -80,7 +80,6 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
         // 当用户向下滑动时，阅读界面的右侧板块固定在视口
         isEnglishWebShowLeft(state) {
-            console.log('屏幕宽度:', state.userScreenWidth)
             return state.userScreenWidth > 900;
         },
 
