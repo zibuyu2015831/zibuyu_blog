@@ -123,8 +123,12 @@ const useDeviceInfo = defineStore('deviceInfo', {
             return state.userScreenHeight * 0.725
         },
 
-        // 当用户向下滑动时，主界面的顶栏显示背景
+        // 顶栏背景条显隐：
+        // 仅首页有昼夜 Hero 大图——暗色主题下顶栏先透明地浮在图上，滚过一段（>350）再出背景条，
+        // 避免一进首页就压一条背景在 Hero 上、破坏沉浸感；
+        // 其余页面（已无封面大图，如阅读页）顶栏恒显背景条，避免透明顶栏遮挡正文文字。
         isShowNavBackground(state) {
+            if (state.currentPath !== '/home') return true;
             return state.theme !== 'dark' || state.scrollTop > 350;
         },
 
