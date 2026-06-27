@@ -16,6 +16,11 @@ dist-ssr
 coverage
 *.local
 
+# 环境变量（保留 .env.example 作为模板）
+.env
+.env.*
+!.env.example
+
 /cypress/videos/
 /cypress/screenshots/
 
