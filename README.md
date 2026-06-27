@@ -35,3 +35,7 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## License
+
+本项目基于 [MIT License](./LICENSE) 开源，你可以自由地使用、修改和分发。
