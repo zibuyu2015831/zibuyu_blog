@@ -1,6 +1,6 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { storeToRefs } from "pinia";
 import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
 import InputBar from "@/content/InputBar.vue";
@@ -117,8 +117,14 @@ function draw() {
   }
 }
 
+// 画布动画定时器：本组件是路由页面（/test），离开后须清理，否则仍持续重绘（#05）
+let drawTimer = null;
 onMounted(() => {
-  setInterval(draw, 100); // 每50ms调用一次draw函数
+  drawTimer = setInterval(draw, 100); // 每100ms调用一次draw函数
+});
+
+onBeforeUnmount(() => {
+  if (drawTimer) clearInterval(drawTimer);
 });
 
 </script>
