@@ -106,10 +106,13 @@ async function submitUserSuggestion() {
 <style scoped>
 /* ↓ 代码块 ↓ */
 
+/* 静止内容卡：悬浮仅柔和浮起一层阴影，不缩放不位移（去假可点暗示） */
+.card {
+  transition: box-shadow var(--motion-normal) var(--ease-standard);
+}
+
 .card:hover {
-  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
-  transform: scale(1.02);
-  transition: transform 0.3s;
+  box-shadow: var(--shadow-md);
 }
 
 .title {

@@ -161,11 +161,7 @@ const {
 .right_card {
   margin-top: 25px;
 }
-
-.right_card:hover {
-  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
-  transform: scale(1.02);
-}
+/* 悬浮效果交由各卡片自身（仅柔和阴影），此处不再叠加缩放，避免双重 scale */
 
 .right_title {
   font-size: 20px;
