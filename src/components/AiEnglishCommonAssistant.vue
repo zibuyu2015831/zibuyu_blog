@@ -2,6 +2,7 @@
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 import { sanitizeAIResponse } from "@/utils/sanitize";
+import { handleUnauthorized } from "@/utils/auth";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, nextTick, onMounted, watch } from "vue";
@@ -633,6 +634,10 @@ async function defaultConversation() {
   });
 
   if (!response.ok) {
+    // token 被服务端拒绝（撤销 / 触发监控）：统一清理登录态并提示重新登录
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
@@ -719,6 +724,10 @@ async function customizedConversation() {
   });
 
   if (!response.ok) {
+    // token 被服务端拒绝（撤销 / 触发监控）：统一清理登录态并提示重新登录
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
