@@ -6,6 +6,7 @@ import { ElMessage } from "element-plus";
 import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { base64Encode } from "@/utils/encoding";
+import { handleError } from "@/utils/errorHandler";
 
 const userInfoStore = useUserInfo();
 const deviceInfoStore = useDeviceInfo();
@@ -151,11 +152,7 @@ function commitLogin() {
       }
     })
     .catch((error) => {
-      ElMessage({
-        message: "未知错误，登录失败",
-        type: "error",
-      });
-      console.error("There was a problem with the login fetch operation:", error);
+      handleError(error, { message: "未知错误，登录失败" });
     });
 }
 

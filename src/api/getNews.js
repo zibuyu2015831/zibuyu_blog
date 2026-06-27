@@ -1,4 +1,5 @@
 import axios from "axios";
+import { handleError } from "@/utils/errorHandler";
 
 export function getNews() {
   return axios
@@ -22,7 +23,8 @@ export function getNews() {
         );
     })
     .catch((error) => {
-      console.log("请求新闻时出现了错误： ", error);
+      // 资讯获取失败属非关键路径：静默处理（不打扰用户），降级返回空数组
+      handleError(error, { showMessage: false });
       return [];
     });
 }

@@ -3,6 +3,7 @@ import { reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
 import { base64Encode } from "@/utils/encoding";
+import { handleError } from "@/utils/errorHandler";
 
 const deviceInfoStore = useDeviceInfo();
 
@@ -119,11 +120,7 @@ function commitRegister() {
       }
     })
     .catch((error) => {
-      ElMessage({
-        message: "未知错误，注册失败",
-        type: "error",
-      });
-      console.error("There was a problem with the register fetch operation:", error);
+      handleError(error, { message: "未知错误，注册失败" });
     });
 }
 
