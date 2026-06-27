@@ -6,6 +6,8 @@ import { ref, onMounted, onBeforeUnmount, createApp, h } from "vue";
 
 import InputBar from "@/content/InputBar.vue";
 
+defineOptions({ name: "AboutView" });
+
 const deviceInfoStore = useDeviceInfo();
 const {
   isShowHeaderComponent,

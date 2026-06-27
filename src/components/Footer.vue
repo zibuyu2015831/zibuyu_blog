@@ -2,6 +2,8 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { calculateTime } from "@/utils/handle_date";
 
+defineOptions({ name: "AppFooter" });
+
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
 

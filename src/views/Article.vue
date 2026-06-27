@@ -12,6 +12,8 @@ import { v4 as uuidv4 } from "uuid";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
+defineOptions({ name: "ArticleView" });
+
 // // // // // ↓ 状态管理 ↓ // // // // //
 
 const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store

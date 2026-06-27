@@ -5,6 +5,8 @@ import { storeToRefs } from "pinia";
 import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
 import InputBar from "@/content/InputBar.vue";
 
+defineOptions({ name: "TestView" });
+
 
 const deviceInfoStore = useDeviceInfo();
 

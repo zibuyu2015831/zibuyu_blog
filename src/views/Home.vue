@@ -8,6 +8,8 @@ import postSuggestion from "@/content/postSuggestion.vue";
 import Advertising from "@/content/Advertising.vue";
 import RewardList from "@/content/RewardList.vue";
 import MyInfo from "@/content/MyInfo.vue";
+
+defineOptions({ name: "HomeView" });
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //

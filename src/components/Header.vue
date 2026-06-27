@@ -3,6 +3,8 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
+defineOptions({ name: "AppHeader" });
+
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
