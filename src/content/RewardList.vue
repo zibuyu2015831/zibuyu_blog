@@ -55,7 +55,7 @@ const rewardTableData = [
       <div class="card-header">
         <span class="title">打赏列表</span>
         <span class="sub_title">
-          <el-button type="primary" link @click="deviceInfoStore.isShowReawrdDialog = true">
+          <el-button class="auth-btn-text" @click="deviceInfoStore.isShowReawrdDialog = true">
             我也要打赏
           </el-button>
         </span>

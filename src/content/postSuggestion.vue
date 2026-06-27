@@ -96,8 +96,8 @@ async function submitUserSuggestion() {
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitUserSuggestion">提交</el-button>
-        <el-button @click="resetUserSuggestion">重置</el-button>
+        <el-button class="auth-btn-primary" @click="submitUserSuggestion">提交</el-button>
+        <el-button class="auth-btn-ghost" @click="resetUserSuggestion">重置</el-button>
       </el-form-item>
     </el-form>
   </el-card>
