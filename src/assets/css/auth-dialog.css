@@ -90,11 +90,35 @@
   color: var(--color-primary);
 }
 
+/* 双码并排（打赏：微信 / 支付宝） */
+.auth-dialog .auth-qr--pair {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-7);
+  margin-bottom: var(--space-5);
+}
+
+.auth-dialog .auth-qr__item {
+  text-align: center;
+}
+
+.auth-dialog .auth-qr__label {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
 /* ---------- 页脚布局 ---------- */
 .auth-dialog .dialog_footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* 无三级操作时（如打赏）：取消/确定靠右 */
+.auth-dialog .dialog_footer.is-end {
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 
 /* ---------- 按钮：朱砂单色体系，去彩虹 ---------- */
