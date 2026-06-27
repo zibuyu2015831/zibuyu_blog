@@ -381,15 +381,6 @@ const scrollToAnchor = (headId) => {
 // // // // // ↓ 评论输入框 ↓ // // // // //
 
 const textarea = ref();
-const TextareaColor = ref("var(--color-bg-elevated)");
-
-function textOnBlur() {
-  TextareaColor.value = "var(--color-bg-elevated)";
-}
-
-function textOnFocus() {
-  TextareaColor.value = "var(--color-primary-subtle)";
-}
 
 // // // // // ↑ 评论输入框 ↑ // // // // //
 </script>
@@ -429,21 +420,26 @@ function textOnFocus() {
 
       <el-divider />
 
-      <div class="comment_input" :style="{ backgroundColor: TextareaColor }">
-        <el-row>
+      <section class="comment-section">
+        <h3 class="comment-title">
+          <span class="mark-dot"></span>留言
+        </h3>
+
+        <div class="comment-composer">
           <el-input
-            class="comment_input_area"
+            class="comment-textarea"
             v-model="textarea"
-            :rows="6"
+            :rows="5"
             type="textarea"
-            placeholder="留下您宝贵的评论"
+            placeholder="留下你的想法，与作者交流……"
             resize="none"
-            @blur="textOnBlur"
-            @focus="textOnFocus"
           />
-          <el-button type="primary" class="comment_submit">提 交 评 论</el-button>
-        </el-row>
-      </div>
+          <div class="comment-actions">
+            <span class="comment-hint">理性交流，文明发言</span>
+            <el-button class="comment-submit">发表评论</el-button>
+          </div>
+        </div>
+      </section>
     </el-col>
 
     <el-col
@@ -550,27 +546,95 @@ function textOnFocus() {
 .main {
   background-color: var(--home_background);
 }
-/* 用户评论样式 */
+/* 用户评论样式（方向A·子曰·墨：宋体小标题 + 朱砂点 + 纸面输入卡） */
 
-.comment_input {
-  background-color: var(--color-bg-elevated);
-  padding: 20px;
+.comment-section {
+  margin: 8px 0 56px;
+}
+
+.mark-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+  vertical-align: middle;
+}
+
+.comment-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+}
+
+.comment-composer {
+  background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-default);
-  margin-bottom: 50px;
-  border-radius: 15px;
-  position: relative;
-  transition: border-color var(--motion-fast, 150ms) var(--ease-standard, ease);
+  border-radius: 14px;
+  padding: 14px 16px 16px;
+  transition: border-color var(--motion-fast, 180ms) var(--ease-standard, ease),
+    box-shadow var(--motion-fast, 180ms) var(--ease-standard, ease);
 }
 
-.comment_input:focus-within {
+.comment-composer:focus-within {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
-.comment_input .comment_submit {
-  position: absolute;
-  right: 20px;
-  bottom: 10px;
-  margin-top: 20px;
+/* 内层 textarea 去掉 Element 默认边框/蓝色聚焦环，融入纸面卡片 */
+.comment-textarea :deep(.el-textarea__inner) {
+  background: transparent;
+  border: none;
+  box-shadow: none !important;
+  padding: 2px 4px;
+  color: var(--color-text-primary);
+  font-family: var(--font-body, inherit);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.comment-textarea :deep(.el-textarea__inner)::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.comment-hint {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.comment-submit.el-button {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fbf7ef;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: background-color 0.22s ease, border-color 0.22s ease;
+}
+
+.comment-submit.el-button:hover,
+.comment-submit.el-button:focus {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #fbf7ef;
 }
 
 /* 右侧文章目录下方按钮样式 */
