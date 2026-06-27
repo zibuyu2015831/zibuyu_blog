@@ -287,23 +287,26 @@ const handleCommand = async (command) => {
   height: 60px;
 }
 
-/* 图标式昼夜切换按钮（对齐原型：方框 + hover 朱砂描边） */
+/* 图标式昼夜切换按钮：幽灵风格，透明无框只留图标，
+   避免在透明顶栏（深色主题浮于 Hero 上）出现突兀的深色方块；
+   hover 时才浮出朱砂淡底 + 朱砂图标，给出点击反馈 */
 .theme-toggle {
   display: inline-grid;
   place-items: center;
   width: 38px;
   height: 38px;
   padding: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--color-bg-elevated) 75%, transparent);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--header_font, var(--color-text-primary));
   cursor: pointer;
-  transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+  transition: color 0.25s ease, background-color 0.25s ease;
 }
 
 .theme-toggle:hover {
-  border-color: var(--color-primary);
+  /* 半透明朱砂晕：在浅/深底、以及透明顶栏浮于 Hero 上时都自然 */
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
   color: var(--color-primary);
 }
 
