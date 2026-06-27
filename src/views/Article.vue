@@ -383,6 +383,9 @@ const scrollToAnchor = (headId) => {
 const textarea = ref();
 
 // // // // // ↑ 评论输入框 ↑ // // // // //
+
+// 侧边作者头像（本地资源，避免依赖远端路径）
+const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).href;
 </script>
 
 <template>
@@ -449,24 +452,17 @@ const textarea = ref();
       :offset="1"
       :class="{ isfixed: isArticleRightBlockFixed }"
     >
-      <el-card style="max-width: 100%" class="right_card author_info">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">作者信息</span>
-          </div>
-        </template>
+      <div class="aside-block author-card">
+        <div class="author-avatar-wrap">
+          <img class="author-avatar" :src="userAvatar" alt="子不语的头像" />
+          <span class="author-seal">思</span>
+        </div>
+        <p class="author-name">子不语</p>
+        <p class="author-bio">全栈开发工程师 · 现居广州</p>
+      </div>
 
-        <div class="card_item">子不语</div>
-        <div class="card_item">全栈开发工程师</div>
-        <div class="card_item">现居广州</div>
-      </el-card>
-
-      <el-card style="max-width: 100%" class="right_card right_toc">
-        <template #header>
-          <div class="card-header">
-            <span class="right_title">文章目录</span>
-          </div>
-        </template>
+      <div class="aside-block toc-block">
+        <p class="aside-title"><span class="mark-dot"></span>目录</p>
         <div class="toc">
           <div
             v-for="item in tocItems"
@@ -477,7 +473,7 @@ const textarea = ref();
             {{ item.text }}
           </div>
         </div>
-        <el-divider />
+        <div class="aside-divider"></div>
         <div class="toc_icon">
           <el-tooltip
             class="box-item"
@@ -528,7 +524,7 @@ const textarea = ref();
             <span class="iconfont icon-arrow-to-top" @click="backToTop"></span>
           </el-tooltip>
         </div>
-      </el-card>
+      </div>
     </el-col>
   </el-row>
 
@@ -637,15 +633,108 @@ const textarea = ref();
   color: #fbf7ef;
 }
 
-/* 右侧文章目录下方按钮样式 */
+/* ↓ 侧边栏卡片（方向A·子曰·墨：纸面卡 + 朱砂印章作者卡 + 宋体小标题） ↓ */
+
+.right .aside-block {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  padding: 22px 20px;
+  margin-bottom: 20px;
+}
+
+/* 作者卡 */
+.author-card {
+  text-align: center;
+}
+
+.author-avatar-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+}
+
+.author-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
+}
+
+.author-seal {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fbf7ef;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.author-name {
+  margin: 0 0 6px;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-primary);
+}
+
+.author-bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+/* 侧边小标题：宋体 + 字距 + 朱砂点 */
+.aside-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-secondary);
+}
+
+/* 目录卡内分隔线 + 动作图标行 */
+.aside-divider {
+  height: 1px;
+  background: var(--color-border-default);
+  margin: 16px 0 14px;
+}
 
 .toc_icon {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  padding: 0 2px;
 }
 
 .toc_icon span {
-  font-size: 25px;
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color var(--motion-fast, 180ms) var(--ease-standard, ease),
+    transform var(--motion-fast, 180ms) var(--ease-standard, ease);
+}
+
+.toc_icon span:hover {
+  color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 .toc_icon .icon-good1 {
@@ -654,15 +743,11 @@ const textarea = ref();
 
 .toc_icon .icon-arrow-to-bottom,
 .toc_icon .icon-arrow-to-top {
-  font-size: 23px;
-}
-
-.right_card {
-  margin-bottom: 20px;
+  font-size: 18px;
 }
 
 .toc {
-  margin-left: 4px;
+  margin-left: 2px;
 }
 
 .toc > div {
@@ -735,10 +820,6 @@ const textarea = ref();
 }
 
 /* 右侧板块设置 */
-
-.right_card {
-  margin-top: 20px;
-}
 
 .main {
   position: relative;
