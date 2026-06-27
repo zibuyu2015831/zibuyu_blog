@@ -525,8 +525,10 @@ const email = "hello@example.com";
 }
 
 /* 暗色下让深色 PNG 图标提亮 */
-:global(html.dark) .author-links img,
-:global(html.dark) .contact-card img {
+/* 整段写进 :global()，否则 scoped 编译器会把 `:global(html.dark) .xxx img`
+   塌缩成 `html.dark`，导致 invert 滤镜误加到整个 <html>，全站昼夜反相。 */
+:global(html.dark .author-links img),
+:global(html.dark .contact-card img) {
   filter: invert(0.9) brightness(1.1);
 }
 
