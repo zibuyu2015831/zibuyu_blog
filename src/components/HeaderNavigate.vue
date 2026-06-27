@@ -75,7 +75,6 @@ const handleCommand = async (command) => {
 
       <div class="not_login" v-if="!isLogin">
         <el-button
-          type="warning"
           round
           size="large"
           class="login_button button"
@@ -85,7 +84,6 @@ const handleCommand = async (command) => {
         </el-button>
 
         <el-button
-          type="info"
           round
           size="large"
           class="register_button button"
@@ -214,7 +212,31 @@ const handleCommand = async (command) => {
   font-size: 15px;
 }
 
-.button:hover {
-  color: black;
+/* 登录：朱砂主操作 */
+.login_button.el-button {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.login_button.el-button:hover,
+.login_button.el-button:focus {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: var(--color-text-inverse);
+}
+
+/* 注册：描边次操作 */
+.register_button.el-button {
+  background-color: transparent;
+  border-color: var(--color-border-default);
+  color: var(--color-text-primary);
+}
+
+.register_button.el-button:hover,
+.register_button.el-button:focus {
+  background-color: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 </style>
