@@ -3,7 +3,7 @@ import useDeviceInfo from '@/stores/deviceInfo'; // 引入 Pinia store
 import { setLocalStorageWithExpiration } from "@/utils/uselocalStorage";
 
 export default {
-  install(app) {
+  install(_app) {
     const deviceInfo = useDeviceInfo(); // 获取 Pinia store 实例
 
     deviceInfo.$subscribe((mutation, state) => {

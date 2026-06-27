@@ -53,6 +53,16 @@ const useDeviceInfo = defineStore('deviceInfo', {
         theme_store_key: 'webTheme',  // 向$store存储主题时的key，一般不用改
         ScreenWidthLimit: 880,// 屏幕宽度限制，小于此限制，顶部导航改为底部导航
 
+        // 响应式断点常量（#13）：收敛此前散落在各 getter 中的魔法数字，便于统一调整
+        // 行为保持不变，仅做命名常量化
+        breakpoints: {
+            dialogFull: 500,      // dialogWidth / isEnglishButtonSmall / isPaginationmall
+            rightBox: 1050,       // isShowRightBox（首页右侧栏）
+            hideArticleImg: 1300, // isShowArticleImageInSmallScreen（列表图）
+            articleRight: 1400,   // isArticleShowRightBox（博文右侧栏）
+            bigScreen: 1650,      // isBigScreen（新闻独占一行）
+        },
+
     }),
 
     getters: {
@@ -67,20 +77,19 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
         // 页面弹窗宽度，当屏幕宽度小于500时占据全部宽度，最大500
         dialogWidth(state) {
-            if (state.userScreenWidth < 500) {
+            if (state.userScreenWidth < state.breakpoints.dialogFull) {
                 return state.userScreenWidth
             } else {
-                return 500
+                return state.breakpoints.dialogFull
             }
         },
 
         isEnglishButtonSmall(state) {
-            return state.userScreenWidth <= 500;
+            return state.userScreenWidth <= state.breakpoints.dialogFull;
         },
 
         // 当用户向下滑动时，阅读界面的右侧板块固定在视口
         isEnglishWebShowLeft(state) {
-            console.log('屏幕宽度:', state.userScreenWidth)
             return state.userScreenWidth > 900;
         },
 
@@ -126,27 +135,27 @@ const useDeviceInfo = defineStore('deviceInfo', {
 
         // 根据屏幕宽度决定布局，小于1650时，新闻独占一行
         isBigScreen(state) {
-            return state.userScreenWidth > 1650
+            return state.userScreenWidth > state.breakpoints.bigScreen
         },
 
         // 当屏幕宽度小于1300时，文章列表不显示图片
         isShowArticleImageInSmallScreen(state) {
-            return state.userScreenWidth > 1300
+            return state.userScreenWidth > state.breakpoints.hideArticleImg
         },
 
         // 当屏幕宽度小于500时，缩小页码显示
         isPaginationmall(state) {
-            return state.userScreenWidth < 500
+            return state.userScreenWidth < state.breakpoints.dialogFull
         },
 
         // 当屏幕宽度小于1050时，首页不显示右侧板块
         isShowRightBox(state) {
-            return state.userScreenWidth > 1050
+            return state.userScreenWidth > state.breakpoints.rightBox
         },
 
         // 当屏幕宽度小于1400时，博文界面不显示右侧板块
         isArticleShowRightBox(state) {
-            return state.userScreenWidth > 1400
+            return state.userScreenWidth > state.breakpoints.articleRight
         },
 
         // 判断是否显示顶部导航栏

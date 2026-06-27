@@ -1,7 +1,9 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
+
+defineOptions({ name: "AppHeader" });
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
@@ -23,19 +25,18 @@ const displayText = ref("");
 const typingIndex = ref(0);
 const isTyping = ref(true); // 用于控制光标闪烁
 
-// 生成随机数字（1~4）
-function randomNumber() {
-  return Math.floor(Math.random() * 4) + 1;
-}
+// 打字机定时器（递归 setTimeout）与光标闪烁定时器，均需在卸载时清理（#05）
+let typeTimer = null;
+let cursorTimer = null;
 
 const typeText = () => {
   if (typingIndex.value < header_slogen.length) {
     displayText.value += header_slogen[typingIndex.value];
     typingIndex.value++;
 
-    setTimeout(typeText, 300); // 每个字符显示的间隔时间（毫秒）
+    typeTimer = setTimeout(typeText, 300); // 每个字符显示的间隔时间（毫秒）
   } else {
-    setTimeout(() => {
+    typeTimer = setTimeout(() => {
       displayText.value = "";
       typingIndex.value = 0;
       isTyping.value = false;
@@ -46,9 +47,14 @@ const typeText = () => {
 
 onMounted(() => {
   typeText();
-  setInterval(() => {
+  cursorTimer = setInterval(() => {
     isTyping.value = !isTyping.value; // 切换光标状态
   }, 500); // 光标闪烁的间隔时间
+});
+
+onBeforeUnmount(() => {
+  if (typeTimer) clearTimeout(typeTimer);
+  if (cursorTimer) clearInterval(cursorTimer);
 });
 
 // // // // // // // // // // ↑ 首页标语-打字机效果 ↑ // // // // // // // // // //

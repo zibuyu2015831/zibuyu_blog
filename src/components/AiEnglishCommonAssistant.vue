@@ -1,6 +1,8 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
+import { sanitizeAIResponse } from "@/utils/sanitize";
+import { handleUnauthorized } from "@/utils/auth";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, nextTick, onMounted, watch } from "vue";
@@ -28,7 +30,6 @@ const {
   requestModel,
   requestTemperature,
   requestTop_p,
-  requestMax_tokens,
   requestHistoryCount,
 } = storeToRefs(aiEnglishStore);
 
@@ -389,19 +390,19 @@ const currentTop_p = ref("");
 const currentMaxTokens = ref("");
 const currentHistoryCount = ref("");
 
-watch(currentUrl, (newVal, oldVal) => {
+watch(currentUrl, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].url = newVal;
 });
 
-watch(currentKey, (newVal, oldVal) => {
+watch(currentKey, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].key = newVal;
 });
 
-watch(currentModel, (newVal, oldVal) => {
+watch(currentModel, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].model = newVal;
 });
 
-watch(currentTemperature, (newVal, oldVal) => {
+watch(currentTemperature, (newVal) => {
   if (newVal == 0) {
     newVal = 0.1;
   }
@@ -411,7 +412,7 @@ watch(currentTemperature, (newVal, oldVal) => {
   ].temperature = newVal;
 });
 
-watch(currentTop_p, (newVal, oldVal) => {
+watch(currentTop_p, (newVal) => {
   if (newVal == 0) {
     newVal = 0.1;
   }
@@ -419,11 +420,11 @@ watch(currentTop_p, (newVal, oldVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].top_p = newVal;
 });
 
-watch(currentMaxTokens, (newVal, oldVal) => {
+watch(currentMaxTokens, (newVal) => {
   aiEnglishStore.customized_infos[aiEnglishStore.currentSettingIndex].max_tokens = newVal;
 });
 
-watch(currentHistoryCount, (newVal, oldVal) => {
+watch(currentHistoryCount, (newVal) => {
   aiEnglishStore.customized_infos[
     aiEnglishStore.currentSettingIndex
   ].history_count = newVal;
@@ -632,6 +633,10 @@ async function defaultConversation() {
   });
 
   if (!response.ok) {
+    // token 被服务端拒绝（撤销 / 触发监控）：统一清理登录态并提示重新登录
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
@@ -718,6 +723,10 @@ async function customizedConversation() {
   });
 
   if (!response.ok) {
+    // token 被服务端拒绝（撤销 / 触发监控）：统一清理登录态并提示重新登录
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
@@ -797,6 +806,7 @@ async function customizedConversation() {
               <el-dropdown-item
                 :disabled="key === aiEnglishStore.currentConmand"
                 v-for="(value, key) in aiEnglishStore.commands"
+                :key="key"
                 @click="changeCommand(key)"
                 trigger="click"
                 divided
@@ -810,8 +820,8 @@ async function customizedConversation() {
     </div>
 
     <div class="message_area" ref="messageAreaRef">
+      <template v-if="aiEnglishStore.assistant_messages.data.length !== 0">
       <div
-        v-if="aiEnglishStore.assistant_messages.data.length !== 0"
         class="message_parent clear-fix"
         v-for="(item, index) in aiEnglishStore.assistant_messages.data"
         :key="index"
@@ -827,7 +837,7 @@ async function customizedConversation() {
           <div @mouseenter="show_button">
             <div :id="index" class="content">
               <div
-                v-html="item.content"
+                v-html="sanitizeAIResponse(item.content)"
                 :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>
@@ -906,6 +916,7 @@ async function customizedConversation() {
           </div>
         </div>
       </div>
+      </template>
 
       <div v-else>
         <div class="react_content_ai">

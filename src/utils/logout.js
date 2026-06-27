@@ -1,5 +1,6 @@
 import { ElMessage } from "element-plus";
 import useUserInfo from "@/stores/userInfo";
+import { handleError } from "@/utils/errorHandler";
 
 const userInfoStore = useUserInfo(); // 执行函数，拿到Store
 
@@ -44,11 +45,7 @@ async function logout() {
       });
     }
   } catch (error) {
-    ElMessage({
-      message: "发送了未知错误，请报告管理员~",
-      type: "error",
-    });
-    console.error("There was a problem with the logout fetch operation:", error);
+    handleError(error, { message: "退出登录失败，请稍后重试" });
   }
 }
 

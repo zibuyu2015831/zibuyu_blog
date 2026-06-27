@@ -6,6 +6,14 @@
 
 ---
 
+> ### 🔍 复审结论（复核于 2026-06-27）
+>
+> **成立度**：🟢 **成立**
+>
+> - **属实**：错误处理分散于各组件 / store / api，提示不统一。`catch` 分布于 11 个文件（grep 实测），`ElMessage` 调用分布于 11 个文件。`serverRequest.js` 在 `then` 内直接 `ElMessage.error('Response data is not JSON format')` 等原始英文信息；`getNews.js`、AI 组件 `fetch` 的 `catch` 多为 `console.log` 吞错。
+> - **结论**：统一 `errorHandler` 封装合理，建议采纳（敏感信息脱敏部分价值较高）。具体散落点见下方「涉及文件路径」。
+
+
 ## 问题概述
 
 项目当前错误处理机制不完善，存在以下问题：错误信息显示过于详细可能导致敏感信息泄露，错误处理逻辑分散且不统一，用户体验不一致。
@@ -14,15 +22,39 @@
 
 ## 涉及文件路径
 
+> ⚠️ 复审修正后的真实散落清单（按 `grep "catch"` / `grep "ElMessage"` 实测）。
+
+**网络/请求层（最值得收敛）：**
+
 ```
-d:\06_program_code\zibuyu_blog\src\server\serverRequest.js
-d:\06_program_code\zibuyu_blog\src\content\DialogLogin.vue
-d:\06_program_code\zibuyu_blog\src\content\DialogRegister.vue
-d:\06_program_code\zibuyu_blog\src\views\Article.vue
-d:\06_program_code\zibuyu_blog\src\stores\aiEnglish_demo.js
-d:\06_program_code\zibuyu_blog\src\components\AiEnglishSpokenCoach.vue
-d:\06_program_code\zibuyu_blog\src\components\AiEnglishCommonAssistant.vue
+src/server/serverRequest.js      # then 内多处 ElMessage.error 原始英文信息（'Response data is not JSON format' 等）；catch 仅 reject，未分级
+src/api/getNews.js:24            # .catch 内 console.log('请求新闻时出现了错误： ', error) 并返回 []，错误被吞
 ```
+
+**鉴权/账户组件（手写 try/catch + ElMessage，模式各异）：**
+
+```
+src/content/DialogLogin.vue:164      # .catch 内 ElMessage + console.error，文案各自硬编码
+src/content/DialogRegister.vue        # 同型：1 处 catch，10 处 ElMessage
+src/content/ResetPassword.vue         # 同型：1 处 catch，11 处 ElMessage
+src/utils/logout.js:46                # catch 内 ElMessage.error + console.error
+```
+
+**AI 对话组件（原生 fetch，错误处理最薄弱）：**
+
+```
+src/components/AiEnglishSpokenCoach.vue   # 4 处 catch、6 处 ElMessage；流式解析 catch 内仅 console.log(jsonLine) 吞错（约 line 302）
+src/components/AiEnglishCommonAssistant.vue  # 6 处 catch、15 处 ElMessage；fetch !response.ok 时仅写入 'AI回复获取失败0.0' 文案
+```
+
+**其它：**
+
+```
+src/content/DialogReward.vue          # 2 处 ElMessage、3 处 console.*
+src/utils/remindLogin.js              # ElMessageBox 弹窗（重新登录提示），属正常交互不算错误处理
+```
+
+> 共性问题：① 各处自行拼 `ElMessage.error(原始信息)`，无统一文案/分级；② `serverRequest.js` 直接把后端/解析层英文报错弹给用户；③ AI 组件的 `fetch` 错误多被 `console.log` 吞掉，用户侧无反馈或仅一句通用提示；④ 无敏感信息脱敏。
 
 ---
 
@@ -40,7 +72,7 @@ d:\06_program_code\zibuyu_blog\src\components\AiEnglishCommonAssistant.vue
 
 ### 步骤 1: 创建统一错误处理工具
 
-创建文件: `src/utils/errorHandler.js`
+创建文件: `src/utils/errorHandler.js`（仓库当前 `src/utils/` 下无此文件，需新建）
 
 ```javascript
 import { ElMessage, ElNotification, ElDialog } from 'element-plus'
@@ -209,12 +241,14 @@ export function wrapAsync(fn, errorHandler = null) {
 }
 ```
 
-### 步骤 2: 更新serverRequest.js
+### 步骤 2: 接入 `src/server/serverRequest.js`
+
+**现状对照**：当前文件第 2 行 `import useAiEnglish from '@/stores/aiEnglish'` 实际**并未在文件内使用**（且真实 store 文件名为 `aiEnglish_demo.js`），可顺手删除该无用 import。`then` 内三处 `ElMessage.error(...)` 改为抛 `AppError` 交由统一处理；`catch` 内统一 `handleError(err)`。下方为改造后形态：
 
 ```javascript
 import axios from 'axios'
 import { handleError, AppError } from '@/utils/errorHandler'
-import useAiEnglish from '@/stores/aiEnglish';
+// 删除原第 2 行无用 import：useAiEnglish from '@/stores/aiEnglish'
 
 class MyRequest {
   constructor(baseURL, timeout = 10000) {
@@ -333,6 +367,20 @@ button {
 </style>
 ```
 
+### 步骤 4: 各散落点接入清单（按真实文件）
+
+| 文件 | 当前写法 | 改造为 |
+|------|---------|--------|
+| `src/server/serverRequest.js` | `then` 内 `ElMessage.error('Response data is not JSON format')` 等；`catch` 仅 `reject` | 抛 `AppError`；`catch` 调 `handleError(err)` |
+| `src/api/getNews.js:24` | `.catch` 内 `console.log(...)` 并 `return []` | `handleError(error, { showMessage: false })` 后再 `return []`（保持降级返回空数组的行为） |
+| `src/content/DialogLogin.vue:164` | `.catch` 内自拼 `ElMessage` + `console.error` | `handleError(error, { message: '登录失败，请稍后重试' })` |
+| `src/content/DialogRegister.vue` / `ResetPassword.vue` | 多处硬编码 `ElMessage` | 同上，统一经 `handleError` |
+| `src/utils/logout.js:46` | `catch` 内 `ElMessage.error` + `console.error` | `handleError(error, { message: '退出登录失败，请稍后重试' })` |
+| `src/components/AiEnglishSpokenCoach.vue`（约 line 302） | 流式解析 `catch` 内仅 `console.log(jsonLine)` 吞错 | 静默项可保留 `console`（属流式协议噪声），但 `fetch` 的 `!response.ok` 分支应改为 `handleError` 给出统一提示 |
+| `src/components/AiEnglishCommonAssistant.vue` | `!response.ok` 仅写入 `'AI回复获取失败0.0'` | 经 `handleError` 输出统一文案，并保留占位内容 |
+
+> 优先级：先接 `serverRequest.js`（覆盖所有 axios 请求），再统一账户类组件文案，最后处理 AI `fetch` 分支。
+
 ---
 
 ## 重要补充说明
@@ -432,7 +480,6 @@ export function getUserFriendlyMessage(code) {
 
 - [架构说明与职责划分](./overview.md) - 前后端分离架构说明
 - [README汇总](../README.md) - 所有优化文档索引
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 

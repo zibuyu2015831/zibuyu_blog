@@ -1,5 +1,7 @@
 <script setup>
 
+defineOptions({ name: "AdvertisingCard" });
+
 // // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
 const props = defineProps({
   width: {

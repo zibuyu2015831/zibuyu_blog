@@ -31,16 +31,6 @@ function goHomeClick() {
   });
 }
 
-function goBackClick() {
-  // 函数写法
-  // router.back()
-  // router.forward()
-
-  // 数字写法：go(delta)
-  // go(1) -> forward()
-  // go(-1) -> back()
-  router.go(-1);
-}
 
 // // // // // // // // // // ↑ 路径导航 ↑ // // // // // // // // // //
 

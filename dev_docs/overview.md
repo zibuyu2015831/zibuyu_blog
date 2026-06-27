@@ -96,8 +96,6 @@ graph TD
 - [11. 代码重构](./11-code-duplication.md) - 消除重复代码
 - [12. 输入验证加强](./12-input-validation.md) - 数据校验完善
 - [13. 响应式设计优化](./13-responsive-design.md) - 布局适配改进
-- [修复优先级](./priority.md) - 实施计划建议
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 

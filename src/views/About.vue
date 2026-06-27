@@ -2,9 +2,11 @@
 import useDeviceInfo from "@/stores/deviceInfo";
 
 import { storeToRefs } from "pinia";
-import { ref, onMounted, createApp, h } from "vue";
+import { ref, onMounted, onBeforeUnmount, createApp, h } from "vue";
 
 import InputBar from "@/content/InputBar.vue";
+
+defineOptions({ name: "AboutView" });
 
 const deviceInfoStore = useDeviceInfo();
 const {
@@ -21,13 +23,17 @@ const displayText = ref("");
 const typingIndex = ref(0);
 const isTyping = ref(true); // 用于控制光标闪烁
 
+// 打字机与光标定时器：本组件是路由页面，离开后须清理，否则定时器仍在后台触发（#05）
+let typeTimer = null;
+let cursorTimer = null;
+
 const typeText = () => {
   if (typingIndex.value < message.length) {
     displayText.value += message[typingIndex.value];
     typingIndex.value++;
-    setTimeout(typeText, 500); // 每个字符显示的间隔时间（毫秒）
+    typeTimer = setTimeout(typeText, 500); // 每个字符显示的间隔时间（毫秒）
   } else {
-    setTimeout(() => {
+    typeTimer = setTimeout(() => {
       displayText.value = "";
       typingIndex.value = 0;
       typeText();
@@ -37,9 +43,14 @@ const typeText = () => {
 
 onMounted(() => {
   typeText();
-  setInterval(() => {
+  cursorTimer = setInterval(() => {
     isTyping.value = !isTyping.value; // 切换光标状态
   }, 500); // 光标闪烁的间隔时间
+});
+
+onBeforeUnmount(() => {
+  if (typeTimer) clearTimeout(typeTimer);
+  if (cursorTimer) clearInterval(cursorTimer);
 });
 
 // // // // // // // // // // ↑ 测试代码 ↑ // // // // // // // // // //
@@ -56,19 +67,6 @@ onMounted(() => {
       console.log("Image failed to load!");
     },
   });
-
-  const buttonVNode = h(
-    ElButton,
-    {
-      type: "primary",
-      class: "btn",
-      btn_name: "sdsa", // 自定义属性
-      onClick: () => {
-        console.log("Button clicked!");
-      },
-    },
-    "Click Me"
-  );
 
   const container = document.querySelector(".container");
 
@@ -88,23 +86,6 @@ onMounted(() => {
     buttonApp.mount(buttonContainer);
   }
 });
-
-const nav = [
-  { url: "/home", content: "主页" },
-  { url: "/home", content: "主页" },
-  { url: "/home", content: "主页" },
-];
-
-
-const handleReward= ()=>{
-  deviceInfoStore.isShowReawrdDialog=true
-}
-
-const options  = ref([
-  '口语陪练',
-  '作文批改',
-  '百科问答',
-])
 
 const handler = (content)=>{
   console.log('用户输入的是：',content)

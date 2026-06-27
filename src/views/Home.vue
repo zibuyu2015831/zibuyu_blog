@@ -1,15 +1,15 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { getNews } from "@/api/getNews";
-import { ElNotification } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
-import useUserInfo from "@/stores/userInfo";
 
 import postSuggestion from "@/content/postSuggestion.vue";
 import Advertising from "@/content/Advertising.vue";
 import RewardList from "@/content/RewardList.vue";
 import MyInfo from "@/content/MyInfo.vue";
+
+defineOptions({ name: "HomeView" });
 // // // // // // // // // // ↓ 测试代码块 ↓ // // // // // // // // // //
 
 // // // // // // // // // // ↑ 测试代码块 ↑ // // // // // // // // // //
@@ -18,7 +18,6 @@ import MyInfo from "@/content/MyInfo.vue";
 
 // 执行函数，拿到Store
 const deviceInfoStore = useDeviceInfo();
-const userInfoStore = useUserInfo();
 
 // 读取状态
 const {
@@ -31,8 +30,6 @@ const {
   isShowArticleImageInSmallScreen,
   isBigScreen,
 } = storeToRefs(deviceInfoStore);
-
-const { username } = storeToRefs(userInfoStore); // 读取状态
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
 
@@ -62,107 +59,6 @@ setTimeout(() => {
 });
 
 // // // // // // // // // // ↑ 异步获取顶部新闻 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 右侧打赏列表 ↓ // // // // // // // // // //
-
-const rewardTableData = [
-  {
-    count: "5",
-    name: "小明",
-    note: "博主有源码吗？",
-  },
-  {
-    count: "9",
-    name: "小红",
-    note: "太喜欢这个样式了",
-  },
-  {
-    count: "24",
-    name: "小黑",
-    note: "很棒~支持",
-  },
-];
-
-// // // // // // // // // // ↑ 右侧打赏列表 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 右侧板块：意见反馈 ↓ // // // // // // // // // //
-
-const userSuggestion = reactive({
-  note: "",
-  contact: "",
-});
-
-function resetUserSuggestion() {
-  userSuggestion.note = "";
-  userSuggestion.contact = "";
-
-  ElNotification({
-    title: "意见反馈",
-    message: "已重置反馈信息",
-    position: "bottom-right",
-    type: "info",
-  });
-}
-
-function submitUserSuggestion() {
-  if (!userSuggestion.note) {
-    ElNotification({
-      title: "意见反馈",
-      message: "您好像忘记填写反馈内容了 0.0",
-      position: "bottom-right",
-      type: "warning",
-    });
-
-    return;
-  }
-
-  console.log("意见反馈-联系方式：", userSuggestion.contact);
-  console.log("意见反馈-具体内容：", userSuggestion.note);
-
-  userSuggestion.note = "";
-  userSuggestion.contact = "";
-
-  ElNotification({
-    title: "意见反馈",
-    message: "您的意见反馈已提交",
-    position: "bottom-right",
-    type: "success",
-  });
-}
-
-// // // // // // // // // // ↑ 右侧板块：意见反馈 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 右侧板块：用户打赏 ↓ // // // // // // // // // //
-
-const userRewardDialogVisible = ref(false); // 打赏提示框
-
-const userRewardMessage = reactive({
-  name: "",
-  note: "",
-  contact: "",
-});
-
-function resetUserRewardMessage() {
-  userRewardDialogVisible.value = false;
-  userRewardMessage.name = "";
-  userRewardMessage.note = "";
-  userRewardMessage.contact = "";
-}
-
-function submitUserRewardMessage() {
-  userRewardDialogVisible.value = false;
-
-  console.log(userRewardMessage.name);
-  console.log(userRewardMessage.note);
-  console.log(userRewardMessage.contact);
-  console.log("submit!");
-
-  userRewardMessage.name = "";
-  userRewardMessage.note = "";
-  userRewardMessage.contact = "";
-}
-
-// // // // // // // // // // ↑ 右侧板块：用户打赏 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -221,6 +117,7 @@ function submitUserRewardMessage() {
               class="article_image"
               src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
               fit="fill"
+              lazy
             />
 
             <div class="article_intro">
@@ -344,6 +241,7 @@ function submitUserRewardMessage() {
                 class="article_image"
                 src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png"
                 fit="fill"
+                lazy
               />
 
               <div class="article_intro">

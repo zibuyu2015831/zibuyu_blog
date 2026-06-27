@@ -1,9 +1,11 @@
 <script setup>
 import useDeviceInfo from "@/stores/deviceInfo";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { storeToRefs } from "pinia";
 import AiEnglishLeftMenu from "@/components/AiEnglishLeftMenu.vue";
 import InputBar from "@/content/InputBar.vue";
+
+defineOptions({ name: "TestView" });
 
 
 const deviceInfoStore = useDeviceInfo();
@@ -71,10 +73,6 @@ function draw() {
   if (texts.length < 50) {
     //背景文字数量少于50则插入新背景文字
 
-    const width = Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetWidth;
-    const height =
-      Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetHeight;
-
     texts.push({
       str: words[parseInt(Math.random() * words.length)], //随机选择菜名
       sx: Math.random() * rightRef.value.offsetWidth + leftRef.value.offsetWidth, //随机起始位置
@@ -117,8 +115,14 @@ function draw() {
   }
 }
 
+// 画布动画定时器：本组件是路由页面（/test），离开后须清理，否则仍持续重绘（#05）
+let drawTimer = null;
 onMounted(() => {
-  setInterval(draw, 100); // 每50ms调用一次draw函数
+  drawTimer = setInterval(draw, 100); // 每100ms调用一次draw函数
+});
+
+onBeforeUnmount(() => {
+  if (drawTimer) clearInterval(drawTimer);
 });
 
 </script>

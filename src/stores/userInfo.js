@@ -18,7 +18,7 @@ const useUserInfo = defineStore('userInfo', {
 
             if (state.userToken == '') {
                 return 0;
-            };
+            }
 
             const parts = state.userToken.split('.');
             if (parts.length !== 3) {
@@ -61,7 +61,7 @@ const useUserInfo = defineStore('userInfo', {
                 
                 this.userToken = userToken
                 this.isLogin = true
-            };
+            }
         }
     }
 })

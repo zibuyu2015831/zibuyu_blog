@@ -2,6 +2,8 @@
 import useDeviceInfo from "@/stores/deviceInfo";
 import useAiEnglish from "@/stores/aiEnglish";
 import useUserInfo from "@/stores/userInfo";
+import { sanitizeAIResponse } from "@/utils/sanitize";
+import { handleUnauthorized } from "@/utils/auth";
 
 import { storeToRefs } from "pinia";
 import { ref, computed, reactive, nextTick, onMounted } from "vue";
@@ -248,6 +250,10 @@ async function conversation() {
   });
 
   if (!response.ok) {
+    // token 被服务端拒绝（撤销 / 触发监控）：统一清理登录态并提示重新登录
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     lastData.content = "AI回复获取失败0.0";
 
     // 将滚动条拉到最后
@@ -355,6 +361,7 @@ const changeCommand = (command) => {
               <el-dropdown-item
                 :disabled="key === aiEnglishStore.currentConmand"
                 v-for="(value, key) in aiEnglishStore.commands"
+                :key="key"
                 @click="changeCommand(key)"
                 trigger="click"
                 divided
@@ -384,7 +391,7 @@ const changeCommand = (command) => {
           <div @mouseenter="show_button">
             <div :id="index" class="content">
               <div
-                v-html="item.content"
+                v-html="sanitizeAIResponse(item.content)"
                 :class="{ hidden_text: item.role === 'assistant' && item.isHidden }"
                 @click="showText($event, index)"
               ></div>

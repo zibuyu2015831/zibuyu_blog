@@ -4,12 +4,15 @@ import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
 import { markedHighlight } from "marked-highlight";
+import { sanitizeArticleContent } from "@/utils/sanitize";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
 import "@/assets/css/zibuyu-markdown.css";
 
 import { v4 as uuidv4 } from "uuid";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
+
+defineOptions({ name: "ArticleView" });
 
 // // // // // ↓ 状态管理 ↓ // // // // //
 
@@ -87,7 +90,7 @@ marked.use({
       });
 
       return `<p style="text-align:center" id="${pId}" >
-        <img id="${imageId}" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
+        <img id="${imageId}" loading="lazy" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
         <span style="color: gray; font-size: 16px;"> ↑ ${title} ↑ </span>
         </p>`;
     },
@@ -129,7 +132,8 @@ const generateimageIdList = () => {
 
 onBeforeMount(async () => {
   const markdownTEXT = await getArticle(132156);
-  article.value = marked.parse(markdownTEXT);
+  // 渲染前做 XSS 净化（保留代码高亮所需标签/类，见 utils/sanitize.js）
+  article.value = sanitizeArticleContent(marked.parse(markdownTEXT));
   tocItems.value = generateTOC();
 });
 

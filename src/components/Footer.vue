@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { calculateTime } from "@/utils/handle_date";
+
+defineOptions({ name: "AppFooter" });
 
 // // // // // // // // // // ↓ 测试代码 ↓ // // // // // // // // // //
 
@@ -12,9 +14,19 @@ import { calculateTime } from "@/utils/handle_date";
 
 const createTimeStamp = "1718804766";
 let timeString = ref("");
-setInterval(() => {
-  timeString.value = calculateTime(createTimeStamp);
-}, 1000);
+
+// 运行时长计时器：保存 id 并在卸载时清理，避免内存泄漏（#05）
+let runtimeTimer = null;
+onMounted(() => {
+  timeString.value = calculateTime(createTimeStamp); // 立即渲染一次，避免首帧空白
+  runtimeTimer = setInterval(() => {
+    timeString.value = calculateTime(createTimeStamp);
+  }, 1000);
+});
+
+onBeforeUnmount(() => {
+  if (runtimeTimer) clearInterval(runtimeTimer);
+});
 
 // // // // // // // // // // ↑ 运行时间计算 ↑ // // // // // // // // // //
 </script>

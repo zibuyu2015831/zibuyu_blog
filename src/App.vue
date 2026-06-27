@@ -3,8 +3,9 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
 
 import { getLocalStorageValueWithExpiration } from "@/utils/uselocalStorage";
+import { throttle } from "@/utils/throttle";
 
-import { onMounted, onBeforeUnmount, ref, onBeforeMount, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, onBeforeMount, watch } from "vue";
 
 import DialogLogin from "@/content/DialogLogin.vue";
 import DialogReward from "@/content/DialogReward.vue";
@@ -23,16 +24,16 @@ const deviceInfoStore = useDeviceInfo();
 
 // // // // // // // ↓ 响应式布局：获取用户屏幕尺寸，添加监听 ↓ // // // // // // //
 
-// 实时监控屏幕尺寸，存入状态管理
-const updateScreenWidth = () => {
+// 实时监控屏幕尺寸，存入状态管理（节流，降低拖拽窗口时的高频写入，#10）
+const updateScreenWidth = throttle(() => {
   deviceInfoStore.userScreenWidth = window.innerWidth;
   deviceInfoStore.userScreenHeight = window.innerHeight;
-};
+}, 100);
 
-// 实时监控用户滚动，存入状态管理
-const handleScroll = () => {
+// 实时监控用户滚动，存入状态管理（节流）
+const handleScroll = throttle(() => {
   deviceInfoStore.scrollTop = document.documentElement.scrollTop;
-};
+}, 100);
 
 // 挂载组件时添加屏幕尺寸变化监听函数
 onMounted(() => {
@@ -107,15 +108,15 @@ onBeforeMount(() => {
 const isShowDoor = ref(true);
 
 const isRouterViewReady = ref(false);
-const allReady = computed(() => {
-  if (isRouterViewReady.value) {
-    // 动画效果设置为1秒，1秒之后，遮罩真正去除（组件加载完成时只是变透明了）
+
+// 路由组件挂载完成后，遮罩先变透明（CSS 过渡），1 秒后真正移除 DOM。
+// 用 watch 承载副作用，避免在 computed 内写副作用（vue/no-async-in-computed-properties）。
+watch(isRouterViewReady, (ready) => {
+  if (ready) {
     setTimeout(() => {
       isShowDoor.value = false;
     }, 1000);
   }
-
-  return isRouterViewReady.value;
 });
 
 const isRouterViewMounted = () => {
@@ -128,10 +129,10 @@ const isRouterViewMounted = () => {
 <template>
   <el-row :gutter="0" class="container" v-if="isShowDoor">
     <el-col :span="12">
-      <div class="door left-door" :class="{ 'left-door-dispear': allReady }"></div>
+      <div class="door left-door" :class="{ 'left-door-dispear': isRouterViewReady }"></div>
     </el-col>
     <el-col :span="12">
-      <div class="door right-door" :class="{ 'right-door-dispear': allReady }"></div>
+      <div class="door right-door" :class="{ 'right-door-dispear': isRouterViewReady }"></div>
     </el-col>
   </el-row>
 

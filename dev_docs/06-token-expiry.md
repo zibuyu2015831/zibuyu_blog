@@ -6,6 +6,15 @@
 
 ---
 
+> ### 🔍 复审结论（复核于 2026-06-27）
+>
+> **成立度**：🟢 **方向成立（重度依赖后端）**
+>
+> - **属实**：当前**无 token 刷新 / 静默续期机制**，也**无统一的 401 响应拦截器**。前端仅做客户端 JWT 过期判断。
+> - **真实现状（原文未写清）**：token 以 `localStorage('token')` + Pinia `userInfo` store 的 `userToken` 双份保存；`userInfo.js` 的 `token` getter 已在本地解码 JWT 的 `exp` 做过期判断，过期即清空并返回 `-1`（见下文）。token 并非由 `serverRequest.js` 统一注入——该文件的 `Authorization: 'Bearer your_token_here'` 是**写死的占位符**，真实 token 由各 AI 组件用 `fetch` 手动拼接。
+> - **结论**：合理改进，但需后端提供 `refresh token` 接口配合。**本仓库当前不存在任何 refresh / 续期端点**，刷新机制无法在纯前端落地；中优先级恰当，非紧急。
+
+
 ## 问题概述
 
 项目当前Token过期处理不完善，用户可能在操作过程中突然被登出，或者Token过期后没有合理的刷新和重试机制，影响用户体验和系统可用性。
@@ -14,11 +23,36 @@
 
 ## 涉及文件路径
 
+> ⚠️ 复审修正后的真实清单（逐一 Read 核对）。
+
 ```
-d:\06_program_code\zibuyu_blog\src\stores\aiEnglish_demo.js
-d:\06_program_code\zibuyu_blog\src\server\serverRequest.js
-d:\06_program_code\zibuyu_blog\src\content\DialogLogin.vue
+src/stores/userInfo.js          # token 真正的存放与过期判断处（getter `token` + action `loadTokenFromLocalStorage`）
+src/content/DialogLogin.vue:148  # 登录成功：userInfoStore.userToken = data.token
+src/content/DialogLogin.vue:155  # 登录成功：localStorage.setItem('token', data.token)
+src/utils/logout.js:15           # POST /api/account/logout/，成功后 removeItem('token') 并清空 store
+src/utils/remindLogin.js         # remindLogin / remindReLogin 弹窗（未登录 / token 失效时提示重新登录）
+src/server/serverRequest.js:14   # Authorization 为写死占位符 'Bearer your_token_here'（并未注入真实 token）
+src/components/AiEnglishCommonAssistant.vue:623  # fetch 手动拼 Authorization: `Bearer ${userInfoStore.token}`
+src/components/AiEnglishSpokenCoach.vue:231      # 同上，手动拼 Bearer
 ```
+
+### 当前真实 token 流（复审实测）
+
+1. **登录写入**：`DialogLogin.vue` 拿到响应后 `userInfoStore.userToken = data.token`（line 148）并 `localStorage.setItem('token', data.token)`（line 155）。token 为标准三段式 JWT。
+2. **启动恢复**：`userInfo.js` 的 action `loadTokenFromLocalStorage()` 从 `localStorage` 读回 token，解码 `parts[1]` 取 `payload.exp` 与当前秒级时间比较，**已过期则直接丢弃**，否则写入 `userToken` 并置 `isLogin = true`。
+3. **读取与过期判断**：组件通过 getter `token` 取值——
+   - `userToken === ''` → 返回 `0`（无 token）；
+   - JWT 段数 ≠ 3 → 返回 `0`；
+   - `payload.exp < 当前时间` → 清空 `userToken`、`removeItem('token')`，返回 `-1`（已过期）；
+   - 否则返回 token 字符串。
+   AI 组件据此判断：如 `AiEnglishCommonAssistant.vue:525` 判 `token == 0`（未登录）、`:530` 判 `token == -1`（过期）后触发提示。
+4. **请求携带**：**没有统一拦截器**。`serverRequest.js`（axios 封装）的公共头里 `Authorization` 是占位符，真实需要鉴权的 AI 接口由各组件直接用原生 `fetch` 拼 `Bearer ${userInfoStore.token}`（`AiEnglishCommonAssistant.vue:623`、`AiEnglishSpokenCoach.vue:231`），并自行处理 `response.ok === false`。
+5. **登出**：`logout.js` 调 `POST /api/account/logout/`，`code === 0` 时清 `localStorage` 与 store。
+
+### 401 / 刷新需要触碰的位置
+
+- **拦截层缺位**：`serverRequest.js` 的 `request()` 目前只在 `then` 里检查业务 `code`（如 `3001` 限流），`catch` 仅 `reject(err)`，**未对 HTTP 401 做处理**。要做统一 401 处理，需在此处的 axios 实例上加 `response` 拦截器；但走原生 `fetch` 的 AI 接口不经过 axios，需另行在各 `fetch` 处补 `response.status === 401` 分支。
+- **过期判断已在前端**：续期/刷新若要落地，依赖后端新增 refresh 端点 —— **本仓库现无此端点**。
 
 ---
 
@@ -26,7 +60,7 @@ d:\06_program_code\zibuyu_blog\src\content\DialogLogin.vue
 
 - **风险等级**: 中
 - **潜在影响**:
-  - 用户体验下降
+  - 用户体验下降（token 过期后下次操作才被发现，无静默续期）
   - 操作中断
   - 安全风险
 
@@ -34,7 +68,11 @@ d:\06_program_code\zibuyu_blog\src\content\DialogLogin.vue
 
 ## 修复方案
 
-### 步骤 1: 创建Token管理工具
+> ⚠️ **落地前提**：下方步骤 1/2 的 `refreshAccessToken()` 与拦截器依赖一个**后端 refresh 端点**（示例用 `/api/auth/refresh`）。**本仓库当前不存在该端点，也无 refresh_token 概念**（登录响应只返回单一 `data.token`，见 `DialogLogin.vue:148/155`）。因此：
+> - 在后端提供 refresh 接口之前，**步骤 1/2 仅作为目标设计**，不能直接启用。
+> - **可立即落地的最小改进**：① 把现状中分散在各组件的「客户端 JWT 过期判断」收敛复用 `userInfo.js` 的 getter `token`（已实现，避免重复解码逻辑）；② 在 `serverRequest.js` 的 axios 响应拦截 / `catch` 中统一处理 HTTP 401，触发 `remindReLogin()`（`src/utils/remindLogin.js` 已有此函数）并清理 token；③ 修掉 `serverRequest.js:14` 写死的 `Bearer your_token_here`，改为请求拦截器里注入 `userInfoStore.token`，使 axios 路径也能自动带 token（当前仅 AI 组件的 `fetch` 手动带）。
+
+### 步骤 1: 创建Token管理工具（依赖后端 refresh，暂为目标设计）
 
 创建文件: `src/utils/tokenManager.js`
 
@@ -239,79 +277,53 @@ function handleAuthError() {
 }
 ```
 
-### 步骤 3: 更新serverRequest.js
+### 步骤 3: 改造 `src/server/serverRequest.js`（可立即落地的部分）
+
+**当前真实文件**（`src/server/serverRequest.js`）关键点：构造函数里 `commonHeaders.Authorization = 'Bearer your_token_here'`（line 14，写死占位符）；`request()` 在 `then` 内校验 `res.data` 是否为对象、是否含 `code`、`code === 3001` 限流提示；`catch` 仅 `reject(err)`，**对 401 无任何处理**。
+
+改造目标（两步，均不依赖 refresh 端点）：
+
+1. **请求拦截注入真实 token**，替换写死的占位符：
 
 ```javascript
 import axios from 'axios'
-import { setupTokenRefreshInterceptor } from '@/utils/tokenRefreshInterceptor'
-import useAiEnglish from '@/stores/aiEnglish';
+import useUserInfo from '@/stores/userInfo'
+import { remindReLogin } from '@/utils/remindLogin'
 import { ElMessage } from 'element-plus'
 
 class MyRequest {
   constructor(baseURL, timeout = 10000) {
-    this.instance = axios.create({
-      baseURL,
-      timeout
+    this.instance = axios.create({ baseURL, timeout });
+    this.commonHeaders = { 'Content-Type': 'application/json' }; // ← 删除写死的 Authorization
+
+    // 请求拦截器：动态注入当前 token（getter 已含过期判断，过期返回 -1）
+    this.instance.interceptors.request.use((config) => {
+      const userInfoStore = useUserInfo();
+      const token = userInfoStore.token; // 0=未登录 / -1=已过期 / string=有效
+      if (typeof token === 'string') {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+      return config;
     });
-
-    this.commonHeaders = {
-      'Content-Type': 'application/json',
-    };
-    
-    setupTokenRefreshInterceptor(this.instance)
   }
+```
 
-  request(config) {
-    if (config.headers && config.headers.Authorization) {
-      config.headers = {
-        ...this.commonHeaders,
-        ...config.headers
-      };
-    } else {
-      config.headers = this.commonHeaders;
-    }
+2. **响应/异常里统一处理 401**（在现有 `catch` 中补分支）：
 
-    return new Promise((resolve, reject) => {
-      this.instance.request(config).then(res => {
-        if (typeof res.data !== 'object' || res.data === null) {
-          ElMessage.error('Response data is not JSON format')
-          reject('Response data is not JSON format');
-          return;
-        }
-
-        if (!res.data.hasOwnProperty('code')) {
-          ElMessage.error('JSON data does not contain "code" field')
-          reject('JSON data does not contain "code" field');
-          return;
-        }
-
-        if (res.data.code === 3001) {
-          ElMessage({
-            message: '操作太频繁了，喝口水休息一下吧~',
-            type: 'warning',
-          })
-          reject('Requests are too frequent');
-          return;
-        }
-
-        resolve(res.data)
+```javascript
       }).catch(err => {
+        if (err.response && err.response.status === 401) {
+          const userInfoStore = useUserInfo();
+          userInfoStore.userToken = '';
+          localStorage.removeItem('token');
+          remindReLogin();           // src/utils/remindLogin.js 已有
+        }
         reject(err)
       })
-    })
-  }
-
-  get(config) {
-    return this.request({ ...config, method: "get" })
-  }
-
-  post(config) {
-    return this.request({ ...config, method: "post" })
-  }
-}
-
-export default new MyRequest(SERVER_URL)
 ```
+
+> 现有 `then` 内对 `res.data` 结构和 `code === 3001` 限流的处理**保持不变**。
+> 注意：走原生 `fetch` 的 AI 接口（`AiEnglishCommonAssistant.vue:623`、`AiEnglishSpokenCoach.vue:231`）**不经过本 axios 实例**，其 401 处理需在各自 `fetch` 的 `if (!response.ok)` 分支内单独补 `response.status === 401` → `remindReLogin()`。
 
 ### 步骤 4: 后端接口协调
 
@@ -442,7 +454,6 @@ export function checkLoginStatus() {
 
 - [架构说明与职责划分](./overview.md) - 前后端分离架构说明
 - [README汇总](../README.md) - 所有优化文档索引
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 

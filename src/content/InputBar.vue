@@ -60,16 +60,17 @@ const handlerHeight = (e) => {
 };
 
 function Submit(){
+  // 不发送空白消息（#12 输入校验）
+  if (!inputContent.value.trim()) return;
   props.handleSubmit(inputContent.value); // 提交表单
   inputContent.value = ''
-} 
+}
 
 // 处理键盘事件
 const handleKeyDown = (e) => {
   if (e.key === "Enter" && !e.ctrlKey) {
     e.preventDefault(); // 阻止默认的换行行为
-    props.handleSubmit(inputContent.value); // 提交表单
-    inputContent.value = "";
+    Submit(); // 复用提交逻辑（含空白校验）
   } else if (e.key === "Enter" && e.ctrlKey) {
     // 阻止默认的换行行为
     e.preventDefault();

@@ -1,37 +1,52 @@
 # 04. CSRF防护 - 跨站请求伪造保护
 
-**问题严重程度**: 🔴 严重  
-**修复优先级**: 第三优先级（需要后端配合）  
-**依赖后端**: 是 - 需要后端提供token接口
+**问题严重程度**: 🟢 低（当前 token-in-header 架构基本免疫 CSRF，详见复审结论）  
+**修复优先级**: 低（仅当后端改用 Cookie 会话时才需要）  
+**依赖后端**: 是 - 仅在改用 Cookie 会话后才需要 token 接口
 
 ---
 
+> ### 🔍 复审结论（复核于 2026-06-27）
+>
+> **成立度**：🟡 **部分成立（严重度高估）**
+>
+> - **关键背景**：本项目鉴权使用 `Authorization: Bearer <token>` **请求头**，token 来自前端 `userInfoStore.token`（登录后由 `DialogLogin.vue:155` 写入 `localStorage`）。逐处核对：`AiEnglishSpokenCoach.vue:231`、`AiEnglishCommonAssistant.vue:623` 用 `` `Bearer ${userInfoStore.token}` ``，`AiEnglishCommonAssistant.vue:703` 用 `requestKey.value`。鉴权**并不依赖**浏览器自动携带的 Cookie。
+> - **纠正**：CSRF 的前提是「Cookie 被浏览器在跨站请求时自动附加」。本项目的 token 存在 `localStorage` 且需 JS 显式放入请求头，跨站页面无法读取并附加它，因此 **token-in-header 架构天然基本免疫 CSRF**。原文「严重」定级明显偏高。
+> - **唯一的 Cookie 痕迹**：`src/server/defaultChat.js:12` 有 `withCredentials: true // 确保携带cookies`，但该文件**未被任何模块 import**（`grep -rn "defaultChat" src/` 无结果），属死代码，不构成实际 CSRF 面。`src/server/serverRequest.js` 未设置 `withCredentials`，默认不带 Cookie。
+> - **结论**：当前架构下本项优先级应下调为**低**。仅当后端**改用 Cookie/Session 会话**时，才需要实施下文的 CSRF Token 方案。
+
+
 ## 问题概述
 
-项目目前缺乏CSRF（Cross-Site Request Forgery，跨站请求伪造）保护机制，攻击者可以诱导已登录用户在不知情的情况下执行非授权操作。
+CSRF（Cross-Site Request Forgery，跨站请求伪造）攻击的成立前提是：服务端**用 Cookie 识别会话**，而浏览器在跨站请求时会**自动附加** Cookie。本项目当前**不满足**该前提——鉴权 token 存于 `localStorage` 并由 JS 显式写入 `Authorization` 请求头，跨站页面无法读取、也无法让浏览器自动附加它，因此当前架构基本免疫 CSRF。本文档保留为「**预案**」：仅在后端将来改用 Cookie/Session 会话时启用。
 
 ---
 
 ## 涉及文件路径
 
 ```
-d:\06_program_code\zibuyu_blog\src\server\serverRequest.js
-d:\06_program_code\zibuyu_blog\src\server\defaultChat.js
+src/server/serverRequest.js        # 实际生效的请求封装，未设置 withCredentials（不带 Cookie）
+src/server/defaultChat.js:12        # 唯一含 withCredentials: true 的文件，但未被 import，是死代码
 ```
+
+> 真实鉴权注入点（供对照，说明为何免疫 CSRF）：
+> `src/components/AiEnglishSpokenCoach.vue:231`、`src/components/AiEnglishCommonAssistant.vue:623`（`Bearer ${userInfoStore.token}`）、`src/components/AiEnglishCommonAssistant.vue:703`（`requestKey.value`）。
 
 ---
 
 ## 风险评估
 
-- **风险等级**: 高
-- **潜在影响**:
-  - 账户被恶意操作
-  - 数据被篡改
-  - 执行未授权的请求
+- **风险等级**: 低（当前 token-in-header 架构下）
+- **现状说明**:
+  - 请求未携带可被跨站自动附加的会话 Cookie，攻击者无法伪造“带凭据”的跨站请求。
+  - `defaultChat.js` 的 `withCredentials: true` 是未被引用的死代码，建议随 01 号文档一并清理。
+- **何时风险升高**: 若后端改为 `Set-Cookie` 会话且未配置 `SameSite`，则需立即实施本文方案。
 
 ---
 
-## 修复方案
+## 修复方案（仅在改用 Cookie 会话后实施）
+
+> ⚠️ 前置判断：在动手前先确认后端是否真的用 Cookie 维持会话。若仍是 `Authorization: Bearer` 头部鉴权，**无需实施本节**，否则只是增加无用复杂度。下面的 `csrf.js`/`csrfInterceptor.js` 均为**新增预案文件**，当前仓库尚未存在。
 
 ### 步骤 1: 创建CSRF Token管理工具
 
@@ -176,79 +191,40 @@ async function fetchCsrfToken() {
 }
 ```
 
-### 步骤 3: 更新 serverRequest.js
+### 步骤 3: 在 serverRequest.js 接入拦截器（最小改动）
+
+本仓库 `src/server/serverRequest.js` 的 `MyRequest` 构造函数当前为（第 5-17 行）：
 
 ```javascript
-import axios from 'axios'
-import { setupCsrfInterceptor } from '@/utils/csrfInterceptor'
-import useAiEnglish from '@/stores/aiEnglish';
-import { ElMessage } from 'element-plus'
-
-class MyRequest {
-  constructor(baseURL, timeout = 10000) {
-    this.instance = axios.create({
-      baseURL,
-      timeout
-    });
-
-    this.commonHeaders = {
-      'Content-Type': 'application/json',
-    };
-    
-    setupCsrfInterceptor(this.instance)
-  }
-
-  request(config) {
-    if (config.headers && config.headers.Authorization) {
-      config.headers = {
-        ...this.commonHeaders,
-        ...config.headers
-      };
-    } else {
-      config.headers = this.commonHeaders;
-    }
-
-    return new Promise((resolve, reject) => {
-      this.instance.request(config).then(res => {
-        if (typeof res.data !== 'object' || res.data === null) {
-          ElMessage.error('Response data is not JSON format')
-          reject('Response data is not JSON format');
-          return;
-        }
-
-        if (!res.data.hasOwnProperty('code')) {
-          ElMessage.error('JSON data does not contain "code" field')
-          reject('JSON data does not contain "code" field');
-          return;
-        }
-
-        if (res.data.code === 3001) {
-          ElMessage({
-            message: '操作太频繁了，喝口水休息一下吧~',
-            type: 'warning',
-          })
-          reject('Requests are too frequent');
-          return;
-        }
-
-        resolve(res.data)
-      }).catch(err => {
-        reject(err)
-      })
-    })
-  }
-
-  get(config) {
-    return this.request({ ...config, method: "get" })
-  }
-
-  post(config) {
-    return this.request({ ...config, method: "post" })
-  }
+// 现状
+constructor(baseURL, timeout = 10000) {
+  this.instance = axios.create({ baseURL, timeout });
+  this.commonHeaders = {
+    'Authorization': 'Bearer your_token_here',   // 占位符（见 01 号文档）
+    "Content-Type": "application/json",
+  };
 }
-
-export default new MyRequest(SERVER_URL)
 ```
+
+仅需在创建 `this.instance` 后挂上拦截器即可，**不需要重写 `request()`/`get()`/`post()` 等其余逻辑**：
+
+```javascript
+import { setupCsrfInterceptor } from '@/utils/csrfInterceptor'   // 顶部新增 import
+
+constructor(baseURL, timeout = 10000) {
+  this.instance = axios.create({
+    baseURL,
+    timeout,
+    withCredentials: true,   // 改用 Cookie 会话时才需要
+  });
+  this.commonHeaders = {
+    "Content-Type": "application/json",
+  };
+  setupCsrfInterceptor(this.instance)   // 新增这一行
+}
+```
+
+> 说明：现有 `request()` 中 `config.headers = { ...this.commonHeaders, ...config.headers }` 的合并逻辑保持不变；CSRF 头由拦截器在请求阶段注入，不影响调用方传入的 `Authorization`。
 
 ### 步骤 4: 后端接口协调
 
@@ -403,10 +379,9 @@ describe('CSRF Protection', () => {
 
 - [架构说明与职责划分](./overview.md) - 前后端分离架构说明
 - [README汇总](../README.md) - 所有优化文档索引
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 
-**文档版本**: 1.0  
+**文档版本**: 1.1（代码级复审）  
 **创建日期**: 2026-01-07  
-**最后更新**: 2026-01-07
+**最后更新**: 2026-06-27
