@@ -1,7 +1,8 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
+import { base64Encode } from "@/utils/encoding";
 
 const deviceInfoStore = useDeviceInfo();
 
@@ -13,18 +14,6 @@ const registerInfo = reactive({
   again_password: "",
   inviteCode: "",
 });
-
-function base64Encode(str) {
-  // 将字符串转换为UTF-8编码的二进制数据
-  const utf8Bytes = encodeURIComponent(str).replace(
-    /%([0-9A-F]{2})/g,
-    function (match, p1) {
-      return String.fromCharCode("0x" + p1);
-    }
-  );
-  // 使用btoa进行Base64编码
-  return btoa(utf8Bytes);
-}
 
 function cancelRegister() {
   deviceInfoStore.isShowRegisterDialog = false;
@@ -84,7 +73,7 @@ function commitRegister() {
     Referer: document.referrer, // 自动获取 Referer
   };
 
-  const response = fetch("/api/account/register/", {
+  fetch("/api/account/register/", {
     method: "POST",
     headers: headers,
     body: JSON.stringify({

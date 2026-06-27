@@ -2,6 +2,7 @@
 import { reactive } from "vue";
 import { ElMessage } from "element-plus";
 import useDeviceInfo from "@/stores/deviceInfo";
+import { base64Encode } from "@/utils/encoding";
 
 const deviceInfoStore = useDeviceInfo();
 
@@ -13,18 +14,6 @@ const userInfo = reactive({
   again_password: "",
   authenticateCode: "",
 });
-
-function base64Encode(str) {
-  // 将字符串转换为UTF-8编码的二进制数据
-  const utf8Bytes = encodeURIComponent(str).replace(
-    /%([0-9A-F]{2})/g,
-    function (match, p1) {
-      return String.fromCharCode("0x" + p1);
-    }
-  );
-  // 使用btoa进行Base64编码
-  return btoa(utf8Bytes);
-}
 
 function cancelResetPassword() {
   deviceInfoStore.isShowResetPasswordDialog = false;
@@ -83,7 +72,7 @@ function commitResetPassword() {
     Referer: document.referrer, // 自动获取 Referer
   };
 
-  const response = fetch("/api/account/reset_pwd/", {
+  fetch("/api/account/reset_pwd/", {
     method: "POST",
     headers: headers,
     body: JSON.stringify({

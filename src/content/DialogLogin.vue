@@ -5,6 +5,7 @@ import { ElMessage } from "element-plus";
 
 import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
+import { base64Encode } from "@/utils/encoding";
 
 const userInfoStore = useUserInfo();
 const deviceInfoStore = useDeviceInfo();
@@ -38,18 +39,6 @@ function loginfailed(msg) {
     message: msg,
     type: "error",
   });
-}
-
-function base64Encode(str) {
-  // 将字符串转换为UTF-8编码的二进制数据
-  const utf8Bytes = encodeURIComponent(str).replace(
-    /%([0-9A-F]{2})/g,
-    function (match, p1) {
-      return String.fromCharCode("0x" + p1);
-    }
-  );
-  // 使用btoa进行Base64编码
-  return btoa(utf8Bytes);
 }
 
 function generateRandomString(length) {
@@ -123,7 +112,7 @@ function commitLogin() {
     Referer: document.referrer, // 自动获取 Referer
   };
 
-  const response = fetch("/api/account/login/", {
+  fetch("/api/account/login/", {
     method: "POST",
     headers: headers,
     body: JSON.stringify({
