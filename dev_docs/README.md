@@ -203,9 +203,12 @@ npm run lint
 
 ### 验证基线
 
-- 单元测试：**43 通过**；`vite build`：**通过**。
-- ESLint 全量问题：60 → 46（减少的为本轮触及文件；剩余 46 项均为**与本次无关的 pre-existing 结构性问题**，
-  如单词组件名、`while(true)`、正则 `if(match=...)` 等，未在 13 篇文档范围内，故未改动）。
+- 单元测试：**46 通过**；`vite build`：**通过**。
+- ESLint 全量问题：**60 → 0（全项目零 lint 问题）**。在完成 13 篇文档的修复后，又分 5 个批次
+  清理了全部历史 lint 问题：①配置 `no-constant-condition`（while(true) 流式读取）+ 琐碎修复；
+  ②模板真实问题（v-for key、v-if+v-for、prop 变更）；③移除死代码（Home/About 等废弃脚手架、
+  未使用变量/形参）；④为单词组件名补 `defineOptions({ name })`；⑤App.vue 开屏动画副作用移出 computed。
+  并为 `getArticleHeads`、`deviceInfo` 断点等补充回归测试。
 
 ## 🤝 后端协作
 
