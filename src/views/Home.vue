@@ -1,11 +1,9 @@
 <script setup>
-import { ref } from "vue";
-import { getNews } from "@/api/getNews";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import { storeToRefs } from "pinia";
 
 import postSuggestion from "@/content/postSuggestion.vue";
-import Advertising from "@/content/Advertising.vue";
+import FeaturedPosts from "@/content/FeaturedPosts.vue";
 import RewardList from "@/content/RewardList.vue";
 import MyInfo from "@/content/MyInfo.vue";
 import ArticleCard from "@/content/ArticleCard.vue";
@@ -34,33 +32,6 @@ const {
 } = storeToRefs(deviceInfoStore);
 
 // // // // // // // // // // ↑ 状态管理 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 新闻轮播图 ↓ // // // // // // // // // //
-const news_num = ref(0);
-
-function carouselChange(num) {
-  news_num.value = num;
-}
-// // // // // // // // // // ↑ 新闻轮播图 ↑ // // // // // // // // // //
-
-// // // // // // // // // // ↓ 异步获取顶部新闻 ↓ // // // // // // // // // //
-
-let news = ref([
-  {
-    name: "",
-    title: "正在获取网络新闻...",
-    link: "#",
-    titleTag: "",
-  },
-]);
-
-setTimeout(() => {
-  getNews().then((res) => {
-    news.value = res;
-  }, 0);
-});
-
-// // // // // // // // // // ↑ 异步获取顶部新闻 ↑ // // // // // // // // // //
 </script>
 
 <template>
@@ -70,45 +41,7 @@ setTimeout(() => {
 
   <el-row class="main" justify="center" v-if="isBigScreen">
     <el-col :span="11" class="left">
-      <el-row justify="center">
-        <el-col class="news">
-          <el-carousel
-            height="200px"
-            direction="vertical"
-            type="card"
-            :autoplay="true"
-            :loop="true"
-            indicator-position="none"
-            @change="carouselChange"
-          >
-            <el-carousel-item
-              v-for="(item, index) in news"
-              :key="index"
-              :class="{
-                news_activate: index === news_num,
-                news_deactivate: index !== news_num,
-              }"
-            >
-              <h3 text="1xl" justify="center" class="news_content">
-                <a
-                  target="_blank"
-                  :href="item.link"
-                  :class="{ news_activate: index === news_num }"
-                  :id="index"
-                >
-                  <span
-                    >{{
-                      item.name.slice(0, -2) != "B站排"
-                        ? "【 " + item.name.slice(0, -2) + " 】"
-                        : "【 B站 】"
-                    }}{{ item.title }}</span
-                  >
-                </a>
-              </h3>
-            </el-carousel-item>
-          </el-carousel>
-        </el-col>
-      </el-row>
+      <FeaturedPosts />
 
       <el-divider />
 
@@ -132,10 +65,6 @@ setTimeout(() => {
 
     <el-col :span="5" :offset="1" class="right">
       <div class="right_card">
-        <Advertising> </Advertising>
-      </div>
-
-      <div class="right_card">
         <MyInfo> </MyInfo>
       </div>
 
@@ -151,42 +80,8 @@ setTimeout(() => {
 
   <div class="main" v-if="!isBigScreen">
     <el-row justify="center">
-      <el-col class="news" :span="20">
-        <el-carousel
-          height="200px"
-          direction="vertical"
-          type="card"
-          :autoplay="true"
-          :loop="true"
-          indicator-position="none"
-          @change="carouselChange"
-        >
-          <el-carousel-item
-            v-for="(item, index) in news"
-            :key="index"
-            :class="{
-              news_activate: index === news_num,
-              news_deactivate: index !== news_num,
-            }"
-          >
-            <h3 text="1xl" justify="center" class="news_content">
-              <a
-                target="_blank"
-                :href="item.link"
-                :class="{ news_activate: index === news_num }"
-                :id="index"
-              >
-                <span
-                  >{{
-                    item.name.slice(0, -2) != "B站排"
-                      ? "【 " + item.name.slice(0, -2) + " 】"
-                      : "【 B站 】"
-                  }}{{ item.title }}</span
-                >
-              </a>
-            </h3>
-          </el-carousel-item>
-        </el-carousel>
+      <el-col :span="20">
+        <FeaturedPosts />
       </el-col>
     </el-row>
 
@@ -217,10 +112,6 @@ setTimeout(() => {
 
       <el-col :span="6" class="right" v-if="isShowRightBox">
         <div class="right_card">
-          <Advertising> </Advertising>
-        </div>
-
-        <div class="right_card">
           <MyInfo> </MyInfo>
         </div>
 
@@ -248,12 +139,6 @@ setTimeout(() => {
 
 .dialog_input .input {
   margin-top: 10px;
-}
-
-/* ↓ 顶部滚动屏 ↓ */
-
-.news {
-  padding-top: 30px;
 }
 
 /* ↓ 文章列表设置 ↓ */
@@ -310,41 +195,6 @@ setTimeout(() => {
 }
 
 /* ↓ element 样式 ↓ */
-
-.el-carousel__item h3 {
-  opacity: 0.75;
-  line-height: 100px;
-  margin: 0;
-  text-align: center;
-}
-
-.el-carousel__item.news_deactivate {
-  opacity: 0.3;
-  border-radius: 20px;
-  font-size: clamp(8px, 3.8vw, 18px); /* 设置字体大小的最小值、自适应值和最大值 */
-
-  background-color: var(--news_deactivate_background);
-}
-
-.el-carousel__item.news_activate {
-  opacity: 1;
-  border-radius: 20px;
-  font-size: clamp(10px, 4vw, 20px); /* 设置字体大小的最小值、自适应值和最大值 */
-  overflow: hidden; /* 超出部分隐藏 */
-
-  background-color: var(--news_activate_background);
-}
-
-.el-carousel__item .news_content {
-  color: var(--news_content);
-  padding: auto 10px;
-  display: inline-block; /* 使span可以设置宽度和高度 */
-  word-wrap: break-word; /* 长单词换行 */
-  white-space: nowrap; /* 文本不换行 */
-  overflow: hidden; /* 超出部分隐藏 */
-  text-overflow: ellipsis; /* 使用省略号表示被修剪的文本 */
-  width: 100%;
-}
 
 .el-divider__text {
   background-color: var(--color-bg-default);

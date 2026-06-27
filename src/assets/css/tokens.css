@@ -123,11 +123,6 @@ html.dark {
   --watermarkColor:      var(--color-text-tertiary);
   --el-bg-color:         var(--color-bg-elevated);
 
-  /* 首页新闻轮播 */
-  --news_activate_background:   var(--color-bg-elevated);
-  --news_deactivate_background: var(--color-bg-subtle);
-  --news_content:               var(--color-text-primary);
-
   /* 移动端菜单 */
   --small_screen_menu_bg:            var(--color-bg-elevated);
   --small_screen_menu_font:          var(--color-text-secondary);
