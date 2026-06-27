@@ -4,21 +4,23 @@
 
 ## 📋 优化点列表
 
-| 编号 | 优化点 | 优先级 | 状态 | 文件 |
+> 📌 **复审说明（2026-06-27）**：下表「优先级」一列已根据真实源码核查结果修正，与各文档顶部的「🔍 复审结论」一致。原索引中 07–13 的文件名有误，已对齐到磁盘实际文件。
+
+| 编号 | 优化点 | 原定级 | 复审后优先级 | 文件 |
 |-----|--------|--------|------|------|
-| 01 | 敏感信息管理 | 🔴 高 | 待实施 | [01-sensitive-info.md](./01-sensitive-info.md) |
-| 02 | XSS攻击防护 | 🔴 高 | 待实施 | [02-xss-protection.md](./02-xss-protection.md) |
-| 03 | 密码传输安全 | 🔴 高 | 待实施 | [03-password-security.md](./03-password-security.md) |
-| 04 | CSRF攻击防护 | 🔴 高 | 待实施 | [04-csrf-protection.md](./04-csrf-protection.md) |
-| 05 | 内存泄漏修复 | 🟡 中 | 待实施 | [05-memory-leak.md](./05-memory-leak.md) |
-| 06 | 错误处理优化 | 🟡 中 | 待实施 | [06-error-handling.md](./06-error-handling.md) |
-| 07 | 敏感数据缓存安全 | 🟡 中 | 待实施 | [07-cache-security.md](./07-cache-security.md) |
-| 08 | HTTPS安全传输 | 🔴 高 | 待实施 | [08-https-security.md](./08-https-security.md) |
-| 09 | 代码质量与安全 | 🟢 低 | 待实施 | [09-code-quality.md](./09-code-quality.md) |
-| 10 | 路由与组件加载优化 | 🟢 低 | 待实施 | [10-routing-optimization.md](./10-routing-optimization.md) |
-| 11 | 请求优化与防抖节流 | 🟢 低 | 待实施 | [11-request-optimization.md](./11-request-optimization.md) |
-| 12 | 第三方服务安全 | 🟡 中 | 待实施 | [12-third-party-security.md](./12-third-party-security.md) |
-| 13 | 响应式设计优化 | 🟢 低 | 待实施 | [13-responsive-design.md](./13-responsive-design.md) |
+| 01 | 敏感信息管理 | 🔴 高 | 🟡 中（占位符非真实密钥，按工程规范处理） | [01-sensitive-info.md](./01-sensitive-info.md) |
+| 02 | XSS攻击防护 | 🔴 高 | 🟠 中-高（AI 回复渲染处优先） | [02-xss-protection.md](./02-xss-protection.md) |
+| 03 | 密码传输安全 | 🔴 高 | 🟠 中-高（依赖 HTTPS+后端哈希，非前端加密） | [03-password-security.md](./03-password-security.md) |
+| 04 | CSRF攻击防护 | 🔴 高 | 🟢 低（Bearer 头鉴权天然较少受 CSRF 影响） | [04-csrf-protection.md](./04-csrf-protection.md) |
+| 05 | 内存泄漏修复 | 🟡 中 | 🟡 中（文件清单已重写：Footer/Header/About/Test） | [05-memory-leak.md](./05-memory-leak.md) |
+| 06 | Token 过期处理 | 🟡 中 | 🟡 中（依赖后端 refresh 接口） | [06-token-expiry.md](./06-token-expiry.md) |
+| 07 | 错误处理改进 | 🟡 中 | 🟢 推荐（统一封装，低风险） | [07-error-handling.md](./07-error-handling.md) |
+| 08 | 调试代码清理 | 🔴 高 | 🟢 推荐（注意需安装 terser） | [08-debug-code.md](./08-debug-code.md) |
+| 09 | 安全存储方案 | 🟢 低 | ⚪ 不建议（前端加密属安全表演） | [09-secure-storage.md](./09-secure-storage.md) |
+| 10 | 性能优化 | 🟢 低 | 🟢 低（按需选用） | [10-performance.md](./10-performance.md) |
+| 11 | 代码重构（去重） | 🟢 低 | ✅ 优先（低风险高收益） | [11-code-duplication.md](./11-code-duplication.md) |
+| 12 | 输入验证加强 | 🟡 中 | 🟢 低（渐进改进） | [12-input-validation.md](./12-input-validation.md) |
+| 13 | 响应式设计优化 | 🟢 低 | ⚪ 谨慎（原方案有 CSS 语法错误与架构错配） | [13-responsive-design.md](./13-responsive-design.md) |
 
 ## 🚀 快速开始
 
@@ -36,31 +38,29 @@ npm install
 cp .env.example .env.local
 ```
 
-### 实施顺序建议
+### 实施顺序建议（已按复审结论重排）
 
-建议按照以下优先级顺序实施各优化点：
+**第一阶段：低风险高收益，建议先做**
 
-**第一阶段：紧急修复（高优先级）**
+1. [11-code-duplication.md](./11-code-duplication.md) - 抽取重复的 `base64Encode` 到 `utils/encoding.js`
+2. [08-debug-code.md](./08-debug-code.md) - 生产构建移除 console（注意需安装 `terser`）
+3. [07-error-handling.md](./07-error-handling.md) - 统一错误处理封装
+4. [01-sensitive-info.md](./01-sensitive-info.md) - 接口地址改为环境变量（工程规范）
 
-1. [01-sensitive-info.md](./01-sensitive-info.md) - 移除硬编码敏感信息
-2. [02-xss-protection.md](./02-xss-protection.md) - 实现XSS防护
-3. [03-password-security.md](./03-password-security.md) - 加密密码传输
-4. [04-csrf-protection.md](./04-csrf-protection.md) - 防止CSRF攻击
-5. [08-https-security.md](./08-https-security.md) - 强制HTTPS
+**第二阶段：安全加固（部分依赖后端/HTTPS）**
 
-**第二阶段：稳定性提升（中优先级）**
+5. [02-xss-protection.md](./02-xss-protection.md) - 对 `v-html`（尤其 AI 回复）做 DOMPurify 净化
+6. [03-password-security.md](./03-password-security.md) - 确认 HTTPS + 后端哈希（前端加密非首选）
+7. [06-token-expiry.md](./06-token-expiry.md) - Token 续期（需后端 refresh 接口）
+8. [12-input-validation.md](./12-input-validation.md) - 完善表单输入校验
 
-6. [05-memory-leak.md](./05-memory-leak.md) - 修复内存泄漏
-7. [06-error-handling.md](./06-error-handling.md) - 优化错误处理
-8. [07-cache-security.md](./07-cache-security.md) - 保护敏感缓存
-9. [12-third-party-security.md](./12-third-party-security.md) - 第三方服务安全
+**第三阶段：按需/谨慎**
 
-**第三阶段：代码优化（低优先级）**
-
-10. [09-code-quality.md](./09-code-quality.md) - 提升代码质量
-11. [10-routing-optimization.md](./10-routing-optimization.md) - 路由加载优化
-12. [11-request-optimization.md](./11-request-optimization.md) - 请求性能优化
-13. [13-responsive-design.md](./13-responsive-design.md) - 响应式设计完善
+9. [05-memory-leak.md](./05-memory-leak.md) - 清理 Footer/Header/About/Test 的 `setInterval`
+10. [10-performance.md](./10-performance.md) - 防抖节流 / 懒加载（按需）
+11. [04-csrf-protection.md](./04-csrf-protection.md) - ⚠️ 当前 Bearer 头鉴权，优先级低
+12. [09-secure-storage.md](./09-secure-storage.md) - ⚠️ 不建议前端加密存储
+13. [13-responsive-design.md](./13-responsive-design.md) - ⚠️ 原方案有 CSS 语法错误，谨慎
 
 ## 📁 文档结构说明
 
@@ -81,41 +81,31 @@ cp .env.example .env.local
 部分优化点之间存在依赖关系，实施时请注意：
 
 ```
-01-sensitive-info.md (敏感信息配置)
+01-sensitive-info.md (环境变量配置)
     │
-    ├──► 03-password-security.md (密码加密需要配置项)
-    │
-    └──► 08-https-security.md (环境变量配置)
+    └──► 06-token-expiry.md / 02-xss-protection.md 共用 API 基础地址配置
 
-02-xss-protection.md (XSS防护)
+11-code-duplication.md (utils/encoding.js)
     │
-    └──► 需要配合 [03-password-security.md] 的加密工具
+    └──► 03-password-security.md / 12-input-validation.md 复用编码与校验工具
 
-04-csrf-protection.md (CSRF防护)
+07-error-handling.md (统一错误处理)
     │
-    └──► 依赖 [01-sensitive-info.md] 的API基础URL配置
-
-06-error-handling.md (错误处理)
-    │
-    └──► 依赖 [04-csrf-protection.md] 的token管理工具
-
-07-cache-security.md (缓存安全)
-    │
-    └──► 依赖 [03-password-security.md] 的加密工具
+    └──► 06-token-expiry.md 的 401 处理复用同一错误通道
 ```
 
 ## 🔧 配套工具文件
 
-项目中需要创建以下工具文件来支持各优化点的实施：
+> 📌 **复审说明（2026-06-27）**：下表已按真实代码复审结论调整。✅ 为推荐新建、与现网代码直接对接的工具；⚠️ 为原方案建议、但复审认定价值有限或属「安全表演」的工具（仅在后端方案确定后按需创建，切勿作为主要安全手段）。
 
-| 文件路径 | 用途 | 相关优化点 |
-|---------|------|-----------|
-| `src/utils/sanitize.js` | HTML净化处理 | XSS防护 |
-| `src/utils/crypto.js` | 加密解密工具 | 密码传输、缓存安全 |
-| `src/utils/csrf.js` | CSRF token管理 | CSRF防护 |
-| `src/utils/csrfInterceptor.js` | CSRF请求拦截器 | CSRF防护 |
-| `src/utils/errorHandler.js` | 统一错误处理 | 错误处理 |
-| `src/utils/secureStorage.js` | 安全存储封装 | 缓存安全 |
+| 文件路径 | 用途 | 相关优化点 | 复审建议 |
+|---------|------|-----------|---------|
+| `src/utils/encoding.js` | 抽取重复的 `base64Encode` | 11 代码去重 | ✅ 优先（三处重复，低风险高收益） |
+| `src/utils/errorHandler.js` | 统一错误处理 | 07 错误处理 | ✅ 推荐 |
+| `src/utils/sanitize.js` | HTML 净化（DOMPurify 封装） | 02 XSS 防护 | ✅ 推荐（重点用于 AI 回复渲染处） |
+| `src/utils/crypto.js` | 加密解密工具 | 03 密码传输 | ⚠️ 不首选（应依赖 HTTPS + 后端哈希） |
+| `src/utils/secureStorage.js` | 安全存储封装 | 09 缓存安全 | ⚠️ 不建议（密钥存前端 = 安全表演） |
+| `src/utils/csrf.js` / `csrfInterceptor.js` | CSRF token 管理 | 04 CSRF 防护 | ⚠️ 暂不需要（当前 Bearer 头鉴权） |
 
 ## 🧪 测试验证
 
@@ -125,10 +115,7 @@ cp .env.example .env.local
 # 启动开发服务器
 npm run dev
 
-# 运行类型检查
-npm run type-check
-
-# 运行代码规范检查
+# 运行代码规范检查与自动修复
 npm run lint
 ```
 
@@ -155,24 +142,26 @@ npm run lint
 
 ## 📝 实施检查清单
 
-- [ ] 已配置环境变量文件 `.env.local`
-- [ ] 已移除所有硬编码的敏感信息
-- [ ] 已安装并配置 DOMPurify
-- [ ] 已实现HTML内容净化
-- [ ] 已集成加密工具库 (CryptoJS, jsencrypt)
-- [ ] 已实现密码加密传输
-- [ ] 已配置CSRF token管理
-- [ ] 已添加CSRF请求拦截器
-- [ ] 已修复所有定时器未清理的问题
-- [ ] 已实现统一错误处理
-- [ ] 已配置错误边界组件
-- [ ] 已实现敏感数据加密存储
-- [ ] 已强制使用HTTPS
-- [ ] 已移除调试代码
-- [ ] 已实现路由懒加载
-- [ ] 已添加请求防抖节流
-- [ ] 已审核第三方服务配置
-- [ ] 已完善响应式设计
+> 已按复审结论调整：✅ 推荐项；⚠️ 复审认定不首选/不需要的项；路由懒加载经核查**已实现**，故移出待办。
+
+**优先（低风险高收益）**
+- [ ] 抽取重复的 `base64Encode` 到 `src/utils/encoding.js`（11）
+- [ ] 生产构建移除 `console`（08，esbuild `drop` 或安装 terser）
+- [ ] 统一错误处理 `src/utils/errorHandler.js`（07）
+- [ ] 接口地址/占位 token 改为环境变量，删除死文件 `customizedChat copy.js`（01）
+
+**安全加固**
+- [ ] 对 `v-html`（尤其 AI 回复处）接入 DOMPurify 净化（02）
+- [ ] 确认 HTTPS 传输 + 后端哈希（03，前端加密非首选）
+- [ ] 补充表单 `:rules` 输入校验（12）
+- [ ] Token 续期 / 401 统一处理（06，依赖后端 refresh 接口）
+
+**按需 / 谨慎**
+- [ ] 清理 Footer/Header/About/Test 的 `setInterval`（05）
+- [ ] 图片懒加载 + resize 节流（10，路由懒加载已实现）
+- [ ] ⚠️ CSRF token：当前 Bearer 头鉴权，暂不需要（04）
+- [ ] ⚠️ 前端加密存储：不建议作为主要手段（09）
+- [ ] ⚠️ 响应式：原方案有 CSS 语法错误，仅做安全增量改动（13）
 
 ## 🤝 后端协作
 
@@ -203,3 +192,4 @@ npm run lint
 ## 📅 更新日志
 
 - **2024-01-07**: 初始版本，拆分13个优化点文档
+- **2026-06-27**: 基于真实源码的逐条复审。修正各文档严重度与优先级、重写与现网代码脱节的修复方案（重点：05 内存泄漏文件清单、06 token 流程、08 console 清理方案），补充每个问题的真实代码文件路径与行号、可落地的修复步骤；修正索引文件名、依赖关系、配套工具与检查清单。

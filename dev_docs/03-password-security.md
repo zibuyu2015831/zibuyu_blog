@@ -1,10 +1,23 @@
 # 03. 密码传输安全 - 加密方案实现
 
-**问题严重程度**: 🔴 严重  
+**问题严重程度**: 🟡 中（取决于生产是否已启用 HTTPS，详见复审结论）  
 **修复优先级**: 第三优先级（需要后端配合）  
-**依赖后端**: 是 - 需要后端配合解密
+**依赖后端**: 是 - 真正的安全保障在后端（HTTPS + 哈希）
 
 ---
+
+> ### 🔍 复审结论（复核于 2026-06-27）
+>
+> **成立度**：🟡 **观察成立，但首选方案需调整**
+>
+> - **属实**：登录/注册/改密确实仅用各文件内自带的 `base64Encode`（`btoa` 包装，编码≠加密）。逐文件核对：
+>   - `DialogLogin.vue:43` 定义 `base64Encode`；`:107-108` `base64Encode(loginInfo.username/password)`，再用 `generateRandomString(10)` 生成随机分隔符（`:106`），按 `isDigitOdd` 结果拼成 `用户名+分隔符+密码` 或反序（`:113-117`）。
+>   - `DialogRegister.vue:17` 定义；`:76-77` 同样 base64 编码用户名/密码。
+>   - `ResetPassword.vue:17` 定义；`:77` `base64Encode(userInfo.password)`，POST 到 `/api/account/reset_pwd/`（`:86`）。
+> - **纠正**：原文“首选”的「前端 AES，密钥存 `localStorage`」属**安全表演**——`getEncryptionKey()` 把密钥写进 `localStorage`，与密文同处，攻击者可同时读到密钥和密文，等于没加密。原文末尾「局限性」已自认这一点。
+> - **补充**：随机分隔符 + base64 拼接只是**轻度混淆**，不是加密，任何人 base64 解码即得明文密码。
+> - **结论**：正确优先级为 **① 全站 HTTPS → ② 后端 bcrypt/argon2 哈希**；前端加密不可替代前两者。严重度取决于生产环境是否已启用 HTTPS（已启用则为低-中，未启用则为高）。
+
 
 ## 问题概述
 
@@ -15,20 +28,24 @@
 ## 涉及文件路径
 
 ```
-d:\06_program_code\zibuyu_blog\src\content\DialogLogin.vue
-d:\06_program_code\zibuyu_blog\src\content\DialogRegister.vue
-d:\06_program_code\zibuyu_blog\src\content\ResetPassword.vue
+src/content/DialogLogin.vue:43,107-108     # base64Encode 定义 + 登录密码编码
+src/content/DialogRegister.vue:17,76-77    # base64Encode 定义 + 注册密码编码
+src/content/ResetPassword.vue:17,77        # base64Encode 定义 + 改密密码编码
 ```
+
+> 三个文件各自**重复定义**了一份完全相同的 `base64Encode`（`btoa` + UTF-8 处理），存在代码重复（参见 11-code-duplication.md）。`btoa` 是 Base64 编码，可逆，**不是加密**。
 
 ---
 
 ## 风险评估
 
-- **风险等级**: 极高
+- **风险等级**: 中（前提：生产环境若已启用 HTTPS，则 base64 明文在传输层已被 TLS 保护，风险降为低；若仍走 HTTP，则为高）
+- **当前真实行为**:
+  - 密码经 `base64Encode`（`btoa`）编码后，与用户名按随机分隔符拼接（登录/注册）或单独编码（改密）发送，**全程可逆，等同明文**。
+  - 是否安全完全取决于**传输层是否为 HTTPS** 与**后端是否做哈希存储**。
 - **潜在影响**:
-  - 密码被截获
-  - 账户被盗用
-  - 用户隐私泄露
+  - 若传输为 HTTP，密码可被中间人 base64 解码后直接获取。
+  - 若后端明文/可逆存储密码，数据库泄露即等于密码泄露。
 
 ---
 
@@ -44,13 +61,28 @@ d:\06_program_code\zibuyu_blog\src\content\ResetPassword.vue
 
 ## 修复方案
 
-### 步骤 1: 安装加密库
+> **正确优先级（务必按此顺序）：**
+> 1. **全站强制 HTTPS**（后端 / 部署层）——这是密码传输安全的根本，能覆盖本文绝大部分风险。
+> 2. **后端 bcrypt / argon2 哈希存储**——杜绝可逆存储。
+> 3. **（可选）前端 RSA 公钥加密**——仅当确有“防止运维/日志侧看到明文”这类额外诉求，且后端提供公钥时才做。
+>
+> ⚠️ **不要采用「前端 AES + 密钥存 localStorage」方案**：密钥与密文同处客户端，可被一并读取，属于安全表演（本文步骤 2 的 `getEncryptionKey()`/`localStorage` 写法即为反例，仅作演示，**不建议落地**）。
+
+### 步骤 0（首选，最重要）: 确认 HTTPS 与后端哈希
+
+- 与运维/后端确认生产环境已部署 SSL 证书并将 HTTP 强制跳转 HTTPS。
+- 与后端确认登录/注册接口对收到的密码使用 bcrypt 或 argon2 哈希后存储。
+- 完成这两点后，本文后续“前端加密”步骤即非必需。前端可保留现有 `base64Encode`（或直接发送明文由 HTTPS 保护），重点应放在后端。
+
+### 步骤 1: （仅在确需前端加密时）安装加密库
 
 ```bash
 npm install crypto-js jsencrypt
 ```
 
-### 步骤 2: 创建加密工具
+### 步骤 2: （演示/可选）创建加密工具
+
+> 以下 `crypto.js` 仅作参考。其中 `getEncryptionKey()` 把 AES 密钥写入 `localStorage`，**是反例**，落地时应改为后端下发的 RSA **公钥**加密（私钥仅后端持有），不要使用对称密钥本地存储方案。
 
 创建文件: `src/utils/crypto.js`
 
@@ -167,42 +199,28 @@ export function getEncryptionKey() {
 }
 ```
 
-### 步骤 3: 更新登录组件
+### 步骤 3: 与真实代码对齐（DialogLogin.vue 的 `commitLogin`）
 
-在 `DialogLogin.vue` 中使用新的加密方式：
+本仓库登录逻辑在 `src/content/DialogLogin.vue` 的 `commitLogin()`（第 89 行起）。当前实现：
 
 ```javascript
-import { encryptWithAES, getEncryptionKey, validatePasswordStrength } from '@/utils/crypto'
+// DialogLogin.vue:106-117（现状）
+const splitChar = generateRandomString(10);
+const encodedUsername = base64Encode(loginInfo.username);
+const encodedPassword = base64Encode(loginInfo.password);
 
-const handleLogin = async () => {
-  const passwordValidation = validatePasswordStrength(loginInfo.password)
-  if (!passwordValidation.valid) {
-    ElMessage.error(passwordValidation.message)
-    return
-  }
-  
-  try {
-    const key = getEncryptionKey()
-    const encryptedPassword = encryptWithAES(loginInfo.password, key)
-    const encodedUsername = base64Encode(loginInfo.username)
-    
-    const response = await login({
-      username: encodedUsername,
-      password: encryptedPassword
-    })
-    
-    if (response.code === 200) {
-      ElMessage.success('登录成功')
-      // 处理登录成功逻辑
-    } else {
-      ElMessage.error(response.message || '登录失败')
-    }
-  } catch (error) {
-    ElMessage.error('登录失败，请检查网络连接')
-    console.error('Login error:', error)
-  }
+const user_data = ref("");
+const check_result = isDigitOdd(splitChar);
+if (check_result) {
+  user_data.value = `${encodedUsername}${splitChar}${encodedPassword}`;
+} else {
+  user_data.value = `${encodedPassword}${splitChar}${encodedUsername}`;
 }
 ```
+
+**推荐做法（在 HTTPS 已就绪的前提下）：** 不必引入前端加密，保持现有 `base64Encode` 拼接逻辑即可，安全由 TLS + 后端哈希保证。若要前端做密码强度校验，可在 `commitLogin` 的 `if (!loginInfo.password)` 校验（第 98-104 行）之后插入 `validatePasswordStrength(loginInfo.password)`。
+
+**若后端确认支持 RSA 公钥加密：** 仅把 `encodedPassword` 改为对密码做一次 RSA 公钥加密（`encryptWithRSA(loginInfo.password, publicKey)`，公钥从后端接口拉取），再按现有 `splitChar` 拼接规则组装 `user_data`，**不要**使用 `getEncryptionKey()`/`encryptWithAES`（本地密钥方案）。`DialogRegister.vue:76-77`、`ResetPassword.vue:77` 同理调整。
 
 ### 步骤 4: 后端接口协调
 
@@ -313,10 +331,9 @@ const handleLogin = async () => {
 
 - [架构说明与职责划分](./overview.md) - 前后端分离架构说明
 - [README汇总](../README.md) - 所有优化文档索引
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 
-**文档版本**: 1.0  
+**文档版本**: 1.1（代码级复审）  
 **创建日期**: 2026-01-07  
-**最后更新**: 2026-01-07
+**最后更新**: 2026-06-27

@@ -1,10 +1,20 @@
 # 01. 敏感信息管理 - 硬编码问题修复
 
-**问题严重程度**: 🔴 严重  
+**问题严重程度**: 🟡 中危（原“严重”系高估，详见复审结论）  
 **修复优先级**: 第一优先级（可独立完成）  
 **依赖后端**: 否
 
 ---
+
+> ### 🔍 复审结论（复核于 2026-06-27）
+>
+> **成立度**：🟡 **部分成立（严重度高估）**
+>
+> - **属实**：`vite.config.js:48`（proxy `/api` target）与 `vite.config.js:60`（`SERVER_URL` define）内 `8.138.106.241` 的 IP 为硬编码；`serverRequest.js:14`、`defaultChat.js:17`、`aiEnglish_demo.js:232` 确有硬编码字符串（已逐行核对）。
+> - **纠正**：`serverRequest.js:14` / `defaultChat.js:17` 的 `'Bearer your_token_here'`、`aiEnglish_demo.js:232` 的 `'Bearer xxxxxxx'` 均为**占位符**，并非真实泄露的密钥。运行时真实 token 由各组件单独注入：`AiEnglishSpokenCoach.vue:231`、`AiEnglishCommonAssistant.vue:623` 用 `` `Bearer ${userInfoStore.token}` `` 覆盖；`AiEnglishCommonAssistant.vue:703` 用 `requestKey.value`（来自 `aiEnglish_demo.js:228` getter，取 `customized_infos[].key`）覆盖。因此 `commonHeaders` 里的占位 Authorization 在真实请求中会被 `config.headers` 展开覆盖。原文“API密钥被盗用 / 极高风险”**夸大**，实际为「公开服务器 IP 硬编码 + 占位串」，定级**中危**更准确。
+> - **补充**：`src/server/customizedChat copy.js` 是含相同占位符（`:13`）的重复死文件，未被任何模块 import，建议直接删除。
+> - **结论**：环境变量化（`.env`）建议**采纳**，作为工程规范而非紧急安全修复。
+
 
 ## 问题概述
 
@@ -15,11 +25,15 @@
 ## 涉及文件路径
 
 ```
-d:\06_program_code\zibuyu_blog\vite.config.js
-d:\06_program_code\zibuyu_blog\src\server\serverRequest.js
-d:\06_program_code\zibuyu_blog\src\server\defaultChat.js
-d:\06_program_code\zibuyu_blog\src\stores\aiEnglish_demo.js
+vite.config.js:48          # proxy /api → http://8.138.106.241/api（硬编码 IP）
+vite.config.js:60          # SERVER_URL define → http://8.138.106.241/（硬编码 IP）
+src/server/serverRequest.js:14   # 'Authorization': 'Bearer your_token_here'（占位符）
+src/server/defaultChat.js:17     # 'Authorization': 'Bearer your_token_here'（占位符）
+src/server/customizedChat copy.js:13  # 同上占位符，死文件，建议删除
+src/stores/aiEnglish_demo.js:232 # return "Bearer xxxxxxx"（占位符，requestKey getter 的兜底分支）
 ```
+
+> 说明：以上路径与行号均已逐个打开核对。`vite.config.js` 同时还有 `/elem10`、`/elem`、`/xunfei` 三个第三方代理目标（公开 CDN / 讯飞星火 API 网关），属公开地址，非密钥。
 
 ---
 
@@ -49,22 +63,37 @@ target: 'http://8.138.106.241/api',
 'Authorization': 'Bearer your_token_here',
 ```
 
-### 5. aiEnglish_demo.js:232 - 硬编码的token
+### 5. aiEnglish_demo.js:232 - requestKey getter 的占位兜底
 
 ```javascript
-return "Bearer xxxxxxx"
+requestKey() {
+  if (this.useCustomizedInfo) {
+    return `Bearer ${this.customized_infos[this.currentSettingIndex].key}`
+  } else {
+    return "Bearer xxxxxxx"   // 占位符，仅在未配置自定义 key 时返回
+  }
+}
 ```
+
+### 6. customizedChat copy.js:13 - 重复死文件中的占位符
+
+```javascript
+'Authorization': 'Bearer your_token_here',
+```
+
+该文件（`src/server/customizedChat copy.js`）与 `serverRequest.js` 内容几乎一致，未被任何模块引用，属遗留死文件，**建议直接删除**。
 
 ---
 
 ## 风险评估
 
-- **风险等级**: 极高
+- **风险等级**: 中（原文“极高”系高估）
+- **实际情况**:
+  - 硬编码的 `Bearer your_token_here` / `Bearer xxxxxxx` 是**占位符**，运行时被各组件的真实 token 覆盖（见复审结论），不构成密钥泄露。
+  - 真正的硬编码项是**公开服务器 IP** `8.138.106.241` 及对外 CDN/API 地址，泄露的是“部署地址”而非“凭据”。
 - **潜在影响**:
-  - 服务器被攻击
-  - API密钥被盗用
-  - 数据泄露
-  - 中间人攻击
+  - 切换部署环境（开发/测试/生产）时需改动源码，易出错（工程规范问题）。
+  - 服务器 IP 直接写死，暴露后端基础设施地址，便于针对性扫描（信息暴露，非直接接管）。
 
 ---
 
@@ -118,8 +147,20 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0',
       proxy: {
+        // 以下两个为公开 CDN，可保留硬编码
+        '/elem10': {
+          target: 'https://fuss10.elemecdn.com/',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/elem10/, '')
+        },
+        '/elem': {
+          target: 'https://cube.elemecdn.com',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/elem/, '')
+        },
+        // 仅这一项需要环境变量化（原硬编码 http://8.138.106.241/api）
         '/api': {
-          target: env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+          target: env.VITE_API_BASE_URL || 'http://8.138.106.241/api',
           changeOrigin: true,
           rewrite: path => path.replace(/^\/api/, '')
         },
@@ -131,93 +172,48 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      'SERVER_URL': JSON.stringify(env.VITE_SERVER_URL || 'http://localhost:8000/')
-    },
-    build: {
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
-        }
-      }
+      // 原硬编码 http://8.138.106.241/
+      'SERVER_URL': JSON.stringify(env.VITE_SERVER_URL || 'http://8.138.106.241/')
     }
   }
 })
 ```
 
-### 步骤 3: 更新 serverRequest.js
+> 注意：本仓库 `vite.config.js` 实际共有 4 个 proxy（`/elem10`、`/elem`、`/api`、`/xunfei`），上面已全部保留；仅 `/api` 与 `SERVER_URL` 涉及内部服务器 IP，需要环境变量化。`/elem10`、`/elem`、`/xunfei` 是公开第三方地址，可不动。
+
+### 步骤 3: 移除 serverRequest.js / defaultChat.js 里的占位 Authorization
+
+`src/server/serverRequest.js` 当前的 `commonHeaders`（第 13-16 行）为：
 
 ```javascript
-import axios from 'axios'
-import useAiEnglish from '@/stores/aiEnglish';
-import { ElMessage } from 'element-plus'
-
-class MyRequest {
-  constructor(baseURL, timeout = 10000) {
-    this.instance = axios.create({
-      baseURL,
-      timeout
-    });
-
-    this.commonHeaders = {
-      'Content-Type': 'application/json',
-    };
-  }
-
-  request(config) {
-    if (config.headers && config.headers.Authorization) {
-      config.headers = {
-        ...this.commonHeaders,
-        ...config.headers
-      };
-    } else {
-      config.headers = this.commonHeaders;
-    }
-
-    return new Promise((resolve, reject) => {
-      this.instance.request(config).then(res => {
-        if (typeof res.data !== 'object' || res.data === null) {
-          ElMessage.error('Response data is not JSON format')
-          reject('Response data is not JSON format');
-          return;
-        }
-
-        if (!res.data.hasOwnProperty('code')) {
-          ElMessage.error('JSON data does not contain "code" field')
-          reject('JSON data does not contain "code" field');
-          return;
-        }
-
-        if (res.data.code === 3001) {
-          ElMessage({
-            message: '操作太频繁了，喝口水休息一下吧~',
-            type: 'warning',
-          })
-          reject('Requests are too frequent');
-          return;
-        }
-
-        resolve(res.data)
-      }).catch(err => {
-        reject(err)
-      })
-    })
-  }
-
-  get(config) {
-    return this.request({ ...config, method: "get" })
-  }
-
-  post(config) {
-    return this.request({ ...config, method: "post" })
-  }
-}
-
-export default new MyRequest(SERVER_URL)
+// 当前代码
+this.commonHeaders = {
+  'Authorization': 'Bearer your_token_here',   // ← 占位符，删除
+  "Content-Type": "application/json",
+};
 ```
 
-### 步骤 4: 更新 .gitignore
+实际请求中，真实 token 由调用方通过 `config.headers` 注入并覆盖（见
+`AiEnglishSpokenCoach.vue:231`、`AiEnglishCommonAssistant.vue:623/703`）。因此该占位行可安全删除，避免误导：
+
+```javascript
+// 修改后
+this.commonHeaders = {
+  "Content-Type": "application/json",
+};
+```
+
+`src/server/defaultChat.js` 第 16-19 行同理处理。`request()` 内 `config.headers = { ...this.commonHeaders, ...config.headers }` 的合并逻辑保持不变（调用方传入的 Authorization 仍会覆盖公共头）。
+
+### 步骤 4: 删除死文件 `src/server/customizedChat copy.js`
+
+```bash
+git rm "src/server/customizedChat copy.js"
+```
+
+该文件未被任何模块 import（可用 `grep -rn "customizedChat copy" src` 确认无引用），内容与 `serverRequest.js` 重复，仅多一份占位 token，删除无副作用。
+
+### 步骤 5: 更新 .gitignore
 
 ```gitignore
 # 环境变量文件
@@ -274,10 +270,9 @@ secrets/
 
 - [架构说明与职责划分](./overview.md) - 前后端分离架构说明
 - [README汇总](../README.md) - 所有优化文档索引
-- [修复检查清单](./checklist.md) - 验收标准
 
 ---
 
-**文档版本**: 1.0  
+**文档版本**: 1.1（代码级复审）  
 **创建日期**: 2026-01-07  
-**最后更新**: 2026-01-07
+**最后更新**: 2026-06-27
