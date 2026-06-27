@@ -3,6 +3,7 @@ import useDeviceInfo from "@/stores/deviceInfo";
 import useUserInfo from "@/stores/userInfo";
 
 import { getLocalStorageValueWithExpiration } from "@/utils/uselocalStorage";
+import { throttle } from "@/utils/throttle";
 
 import { onMounted, onBeforeUnmount, ref, onBeforeMount, computed } from "vue";
 
@@ -23,16 +24,16 @@ const deviceInfoStore = useDeviceInfo();
 
 // // // // // // // ↓ 响应式布局：获取用户屏幕尺寸，添加监听 ↓ // // // // // // //
 
-// 实时监控屏幕尺寸，存入状态管理
-const updateScreenWidth = () => {
+// 实时监控屏幕尺寸，存入状态管理（节流，降低拖拽窗口时的高频写入，#10）
+const updateScreenWidth = throttle(() => {
   deviceInfoStore.userScreenWidth = window.innerWidth;
   deviceInfoStore.userScreenHeight = window.innerHeight;
-};
+}, 100);
 
-// 实时监控用户滚动，存入状态管理
-const handleScroll = () => {
+// 实时监控用户滚动，存入状态管理（节流）
+const handleScroll = throttle(() => {
   deviceInfoStore.scrollTop = document.documentElement.scrollTop;
-};
+}, 100);
 
 // 挂载组件时添加屏幕尺寸变化监听函数
 onMounted(() => {

@@ -88,7 +88,7 @@ marked.use({
       });
 
       return `<p style="text-align:center" id="${pId}" >
-        <img id="${imageId}" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
+        <img id="${imageId}" loading="lazy" style="border-radius: 1%;margin: 0 auto 5px;display: block;" src="${img_url}" alt="图片加载失败">
         <span style="color: gray; font-size: 16px;"> ↑ ${title} ↑ </span>
         </p>`;
     },
