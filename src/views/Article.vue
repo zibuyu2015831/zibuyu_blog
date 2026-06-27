@@ -351,12 +351,17 @@ function textOnFocus() {
 /* 用户评论样式 */
 
 .comment_input {
-  background-color: #ffffff;
+  background-color: var(--color-bg-elevated);
   padding: 20px;
-  border: 2px solid green;
+  border: 1px solid var(--color-border-default);
   margin-bottom: 50px;
   border-radius: 15px;
   position: relative;
+  transition: border-color var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.comment_input:focus-within {
+  border-color: var(--color-primary);
 }
 
 .comment_input .comment_submit {

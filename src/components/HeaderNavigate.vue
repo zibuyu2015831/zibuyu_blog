@@ -69,8 +69,8 @@ const handleCommand = async (command) => {
         <el-radio-group
           v-model="deviceInfoStore.theme"
           size="small"
-          fill="#3170a7"
-          text-color="#fff"
+          :fill="'var(--color-primary)'"
+          :text-color="'var(--color-text-inverse)'"
         >
           <el-radio-button label="&#xe71c;&nbsp;夜晚" value="dark" class="iconfont" />
           <el-radio-button label="&#xe60d;&nbsp;白天" value="light" class="iconfont" />

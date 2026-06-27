@@ -1,4 +1,5 @@
 import 'normalize.css'
+import '@/assets/css/tokens.css' // 设计令牌（常驻，必须在 reset 之前，主题变量永远就绪）
 import './assets/css/reset.css'
 import '@/assets/css/iconfont.css'
 import 'element-plus/dist/index.css'

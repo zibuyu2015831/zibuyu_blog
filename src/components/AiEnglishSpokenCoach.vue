@@ -846,11 +846,10 @@ const changeCommand = (command) => {
   display: flex;
   flex-direction: column;
 
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 Q25,20 50,10 Q75,0 100,10 Z" fill="skyblue"/></svg>');
-  background-repeat: no-repeat;
-  background-position: bottom;
-  background-size: 100% 20px; /* 调整SVG的高度 */
-  padding-bottom: 20px; /* 确保内容不会被背景图像遮挡 */
+  /* 原 skyblue 装饰波浪 SVG 已移除（硬编码色、明暗不适配）；
+     底部改用主题感知的细分隔线，统一视觉。 */
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 20px;
 }
 
 .setting_item {
@@ -882,7 +881,7 @@ const changeCommand = (command) => {
 }
 
 .message_area::-webkit-scrollbar-button:hover {
-  background-color: #999999;
+  background-color: var(--color-text-tertiary);
 }
 
 /* ↑ 滚动条设置 ↑ */

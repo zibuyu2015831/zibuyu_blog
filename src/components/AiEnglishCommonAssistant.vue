@@ -1364,8 +1364,8 @@ async function customizedConversation() {
 }
 
 .new_message:hover {
-  color: #007aff;
-  border: 1px solid #007aff;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .react_content_button span {
@@ -1409,7 +1409,7 @@ async function customizedConversation() {
   padding: 20px;
   margin: 0 10px;
   border-radius: 12px;
-  border: 1px solid black;
+  border: 1px solid var(--color-border-default);
 }
 
 .setting_item {
@@ -1459,7 +1459,7 @@ async function customizedConversation() {
 }
 
 .message_area::-webkit-scrollbar-button:hover {
-  background-color: #999999;
+  background-color: var(--color-text-tertiary);
 }
 
 /* ↑ 滚动条设置 ↑ */

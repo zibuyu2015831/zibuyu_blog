@@ -2,9 +2,10 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #f0eeee;
-  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
-  'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  background-color: var(--color-bg-default, #FBF7EF);
+  color: var(--color-text-primary, #2B2620);
+  font-family: var(--font-body, Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+  'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif);
 }
 
 * {

@@ -419,17 +419,17 @@ setTimeout(() => {
 }
 
 .article_intro .date .article_icon {
-  color: red;
+  color: var(--color-text-tertiary);
   top: 2px;
 }
 
 .article_intro .view_data .article_icon {
-  color: green;
+  color: var(--color-text-tertiary);
   top: 2px;
 }
 
 .article_intro .like_data .article_icon {
-  color: rgb(233, 177, 9);
+  color: var(--color-primary);
   top: 2px;
 }
 
@@ -440,7 +440,7 @@ setTimeout(() => {
 }
 
 .right_card:hover {
-  box-shadow: 1px 2px 2px 2px #b8b2b3;
+  box-shadow: 1px 2px 2px 2px var(--home_hover_shadow);
   transform: scale(1.02);
 }
 
@@ -509,6 +509,6 @@ setTimeout(() => {
 }
 
 .el-divider__text {
-  background-color: #f0eeee;
+  background-color: var(--color-bg-default);
 }
 </style>

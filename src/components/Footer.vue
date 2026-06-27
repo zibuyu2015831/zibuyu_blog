@@ -101,16 +101,16 @@ onBeforeUnmount(() => {
 .version .version_title {
   padding: 10px;
   font-size: 15px;
-  background-color: #165dff;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
   border-radius: 5px 0 0 5px;
 }
 
 .version .version_num {
   padding: 10px;
   font-size: 15px;
-  background-color: #adb4c5;
-  color: #fff;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
   border-radius: 0 5px 5px 0;
 }
 

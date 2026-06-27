@@ -25,21 +25,7 @@ const props = defineProps({
 
 const inputContent = ref("");
 
-// // // // // // // // // // ↓ 代码块 ↓ // // // // // // // // // //
-
-// 边框颜色
-const borderColor = ref("#333ce1");
-
-// 聚焦时加重边框颜色
-function heavierBorder() {
-  borderColor.value = "#333ce1";
-}
-
-// 失去聚焦时减轻边框颜色
-function lighterBorder() {
-  borderColor.value = "#989cea";
-}
-// // // // // // // // // // ↑ 代码块 ↑ // // // // // // // // // //
+// 边框颜色改由 CSS :focus-within + 设计令牌驱动，无需 JS（见 <style>）。
 
 // 文本输入框自动调整行数
 const handlerHeight = (e) => {
@@ -93,8 +79,6 @@ const handleKeyDown = (e) => {
       @input="handlerHeight"
       placeholder="Enter发送; Ctrl+Enter换行"
       autofocus
-      @focus="heavierBorder"
-      @blur="lighterBorder"
       v-model="inputContent"
       @keydown="handleKeyDown"
     ></textarea>
@@ -129,7 +113,13 @@ const handleKeyDown = (e) => {
   justify-content: center;
   border-radius: 25px;
   background-color: var(--english_input_area_bg);
-  outline: 2px solid v-bind(borderColor);
+  outline: 2px solid var(--english_input_area_border);
+  transition: outline-color var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+/* 聚焦时边框转主色（替代原 JS 硬编码 #333ce1/#989cea） */
+.input_form:focus-within {
+  outline-color: var(--english_input_area_border_focus);
 }
 
 /* 重置表单元素的默认样式 */
