@@ -172,7 +172,15 @@ function forget_pwd() {
     v-model="deviceInfoStore.isShowLoginDialog"
     :width="deviceInfoStore.dialogWidth"
     :lock-scroll="false"
+    class="auth-dialog"
   >
+    <template #header>
+      <div class="auth-head">
+        <span class="auth-seal">登</span>
+        <h2 class="auth-title">登录</h2>
+      </div>
+    </template>
+
     <el-form
       ref="loginFormRef"
       :label-position="'top'"
@@ -192,26 +200,21 @@ function forget_pwd() {
     <template #footer>
       <div class="dialog_footer">
         <span>
-          <el-button type="warning" class="register_now" @click="register_now">
+          <el-button class="auth-btn-text" @click="register_now">
             注册
           </el-button>
-          <el-button type="danger" class="login_now" @click="forget_pwd">
+          <el-button class="auth-btn-text" @click="forget_pwd">
             忘记密码
           </el-button>
         </span>
 
         <span>
-          <el-button @click="cancelLogin">取消</el-button>
-          <el-button type="primary" @click="commitLogin"> 登录 </el-button>
+          <el-button class="auth-btn-ghost" @click="cancelLogin">取消</el-button>
+          <el-button class="auth-btn-primary" @click="commitLogin"> 登录 </el-button>
         </span>
       </div>
     </template>
   </el-dialog>
 </template>
 
-<style scoped>
-.dialog_footer {
-  display: flex;
-  justify-content: space-between;
-}
-</style>
+<!-- 弹窗主题样式见全局 src/assets/css/auth-dialog.css（.auth-dialog 命名空间） -->

@@ -1,0 +1,141 @@
+/* =============================================================
+ * auth-dialog.css · 登录 / 注册 / 重置密码 弹窗主题
+ * 方向 A · 子曰·墨（Quiet Ink）
+ *
+ * 背景：这三个弹窗原为 Element Plus 默认外观——彩虹按钮（黄/红/蓝
+ * 各一）、无标题、写死的红色文案，与全站纸墨基调相冲。
+ *
+ * el-dialog 默认 teleport 到 body，组件 scoped 样式触达不到 Element
+ * 内部节点，故这里以「全局样式 + 统一 .auth-dialog 命名空间」收口：
+ * 三个弹窗共用一套样式，消除彩虹按钮、补齐宋体标题与朱砂强调。
+ * 所有取值走语义令牌（tokens.css），明暗主题自动跟随。
+ * 由 main.js 在 element 样式之后引入，确保覆盖优先级。
+ * ============================================================= */
+
+/* ---------- 弹窗外壳：纸墨卡片质感 ---------- */
+.auth-dialog.el-dialog {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- 宋体标题 + 朱砂方印 ---------- */
+.auth-dialog .auth-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-dialog .auth-seal {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fbf7ef;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.auth-dialog .auth-title {
+  margin: 0;
+  font-family: var(--font-display, "Noto Serif SC", serif);
+  font-weight: 700;
+  font-size: var(--font-size-xl);
+  letter-spacing: 0.06em;
+  color: var(--color-text-primary);
+}
+
+/* ---------- 表单：标签 + 输入聚焦朱砂 ---------- */
+.auth-dialog .el-form-item__label {
+  color: var(--color-text-secondary);
+}
+
+.auth-dialog .el-form-item.is-required .el-form-item__label::before {
+  color: var(--color-primary);
+}
+
+/* 聚焦态以朱砂内描边，替换 Element 默认蓝 */
+.auth-dialog .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--color-primary) inset;
+}
+
+/* ---------- 二维码收纳卡：朱砂细描边，替换写死红 ---------- */
+.auth-dialog .auth-qr {
+  text-align: center;
+  margin-top: var(--space-1);
+}
+
+.auth-dialog .auth-qr img {
+  display: inline-block;
+  width: 104px;
+  height: 104px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-primary-subtle);
+  object-fit: cover;
+}
+
+.auth-dialog .auth-qr__cap {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.auth-dialog .auth-qr__cap em {
+  font-style: normal;
+  color: var(--color-primary);
+}
+
+/* ---------- 页脚布局 ---------- */
+.auth-dialog .dialog_footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- 按钮：朱砂单色体系，去彩虹 ---------- */
+
+/* 主操作（登录 / 注册 / 确定）：朱砂填充 */
+.auth-dialog .auth-btn-primary.el-button,
+.auth-dialog .auth-btn-primary.el-button:focus-visible {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fbf7ef;
+}
+
+.auth-dialog .auth-btn-primary.el-button:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #fbf7ef;
+}
+
+/* 次操作（取消）：描边幽灵按钮 */
+.auth-dialog .auth-btn-ghost.el-button {
+  background: transparent;
+  border-color: var(--color-border-default);
+  color: var(--color-text-secondary);
+}
+
+.auth-dialog .auth-btn-ghost.el-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+}
+
+/* 三级操作（注册 / 忘记密码 / 前往登录）：朱砂文字按钮 */
+.auth-dialog .auth-btn-text.el-button {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-primary);
+  padding: 8px 6px;
+}
+
+.auth-dialog .auth-btn-text.el-button:hover {
+  color: var(--color-primary-hover);
+  background: transparent;
+  border-color: transparent;
+}

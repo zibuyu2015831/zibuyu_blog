@@ -123,7 +123,15 @@ function login_now() {
     v-model="deviceInfoStore.isShowResetPasswordDialog"
     :width="deviceInfoStore.dialogWidth"
     :lock-scroll="false"
+    class="auth-dialog"
   >
+    <template #header>
+      <div class="auth-head">
+        <span class="auth-seal">改</span>
+        <h2 class="auth-title">重置密码</h2>
+      </div>
+    </template>
+
     <el-form
       ref="resetFormRef"
       :label-position="'top'"
@@ -155,12 +163,10 @@ function login_now() {
         />
       </el-form-item>
 
-      <div class="card_item">
-        <div class="block">
-          <img clsaa="card_img" src="@/assets/image/official_wechat.jpg" />
-          <div class="card_img_title">
-            扫码关注，获取<span style="color: red">授权码</span>
-          </div>
+      <div class="auth-qr">
+        <img src="@/assets/image/official_wechat.jpg" alt="思维兵工厂公众号二维码" />
+        <div class="auth-qr__cap">
+          扫码关注，获取<em>授权码</em>
         </div>
       </div>
     </el-form>
@@ -168,38 +174,18 @@ function login_now() {
     <template #footer>
       <div class="dialog_footer">
         <span>
-          <el-button type="warning" class="login_now" @click="login_now">
+          <el-button class="auth-btn-text" @click="login_now">
             前往登录
           </el-button>
         </span>
 
         <span>
-          <el-button @click="cancelResetPassword">取消</el-button>
-          <el-button type="primary" @click="commitResetPassword"> 确定 </el-button>
+          <el-button class="auth-btn-ghost" @click="cancelResetPassword">取消</el-button>
+          <el-button class="auth-btn-primary" @click="commitResetPassword"> 确定 </el-button>
         </span>
       </div>
     </template>
   </el-dialog>
 </template>
 
-<style scoped>
-.dialog_footer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.card_item {
-  margin: 5px 30px;
-  text-align: center;
-}
-
-.card_item img {
-  display: inline-block;
-  width: 100px;
-  height: 100px;
-}
-
-.card_item .card_img_title {
-  margin-top: 10px;
-}
-</style>
+<!-- 弹窗主题样式见全局 src/assets/css/auth-dialog.css（.auth-dialog 命名空间） -->
