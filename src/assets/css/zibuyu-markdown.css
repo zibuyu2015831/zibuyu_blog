@@ -1476,3 +1476,64 @@
  .markdown-body>*:first-child>.heading-element:first-child {
    margin-top: 0 !important;
  }
+
+ /* =============================================================
+  * P3 增强 · 代码块「复制」按钮（方向 A · 子曰·墨）
+  * 按钮由 Article.vue 在内容渲染后动态注入到每个 <pre> 右上角，
+  * 默认隐藏，hover 代码块时浮现；颜色全部走设计令牌，明暗自适配。
+  * ============================================================= */
+ .markdown-body pre.has-copy-btn {
+   position: relative;
+ }
+
+ .markdown-body pre .code-copy-btn {
+   position: absolute;
+   top: var(--space-2, 8px);
+   right: var(--space-2, 8px);
+   display: inline-flex;
+   align-items: center;
+   gap: var(--space-1, 4px);
+   padding: var(--space-1, 4px) var(--space-3, 12px);
+   font-family: var(--font-body, inherit);
+   font-size: var(--font-size-xs, 12px);
+   line-height: 1.4;
+   color: var(--color-text-secondary);
+   background-color: var(--color-bg-elevated);
+   border: 1px solid var(--color-border-default);
+   border-radius: var(--radius-sm, 4px);
+   cursor: pointer;
+   opacity: 0;
+   transform: translateY(-2px);
+   transition: opacity var(--motion-fast, 150ms) var(--ease-standard, ease),
+     transform var(--motion-fast, 150ms) var(--ease-standard, ease),
+     color var(--motion-fast, 150ms) var(--ease-standard, ease),
+     border-color var(--motion-fast, 150ms) var(--ease-standard, ease);
+ }
+
+ /* hover 代码块或聚焦按钮时显现（键盘可达） */
+ .markdown-body pre.has-copy-btn:hover .code-copy-btn,
+ .markdown-body pre .code-copy-btn:focus-visible {
+   opacity: 1;
+   transform: translateY(0);
+ }
+
+ .markdown-body pre .code-copy-btn:hover {
+   color: var(--color-primary);
+   border-color: var(--color-primary);
+ }
+
+ /* 复制成功态：朱砂强调 */
+ .markdown-body pre .code-copy-btn.copied {
+   color: var(--color-primary);
+   border-color: var(--color-primary);
+   opacity: 1;
+   transform: translateY(0);
+ }
+
+ /* 触屏 / 无 hover 环境：常驻显示，保证可用 */
+ @media (hover: none) {
+   .markdown-body pre .code-copy-btn {
+     opacity: 1;
+     transform: translateY(0);
+   }
+ }

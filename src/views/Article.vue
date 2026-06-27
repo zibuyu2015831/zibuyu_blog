@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeMount, onBeforeUnmount, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeMount, onBeforeUnmount, nextTick } from "vue";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
@@ -123,14 +123,6 @@ const generateTOC = () => {
   }));
 };
 
-const generateimageIdList = () => {
-  return imageIdList.map((item) => ({
-    parentId: item.parentId,
-    imageId: item.imageId,
-    imageUrl: item.imageUrl,
-  }));
-};
-
 // TOC 当前章节高亮：用 IntersectionObserver 监听各标题元素
 let tocObserver = null;
 const visibleHeadings = new Set();
@@ -191,30 +183,174 @@ onBeforeUnmount(() => {
     tocObserver.disconnect();
     tocObserver = null;
   }
+  // 移除阅读进度 / 键盘 / 图片委托监听，清理复制按钮，防止内存泄漏
+  window.removeEventListener("scroll", onScrollProgress);
+  window.removeEventListener("resize", onScrollProgress);
+  window.removeEventListener("keydown", onKeydown);
+  const body = articleBodyRef.value;
+  if (body) body.removeEventListener("click", onBodyClick);
+  clearCopyButtons();
 });
 
-// 设置图片点击放大功能
+// // // // // ↑ markdown渲染 ↑ // // // // //
+
+// // // // // ↓ P3 增强：正文容器引用 ↓ // // // // //
+// 正文容器引用（用于阅读进度、复制按钮注入、图片放大事件委托）
+const articleBodyRef = ref(null);
+// // // // // ↑ P3 增强：正文容器引用 ↑ // // // // //
+
+// // // // // ↓ A. 阅读进度条 ↓ // // // // //
+
+const readingProgress = ref(0);
+let progressTicking = false;
+
+// 以「正文区域」滚动百分比计算阅读进度（非整页），更贴合实际阅读位置
+const computeReadingProgress = () => {
+  const el = articleBodyRef.value;
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const viewportH = window.innerHeight || document.documentElement.clientHeight;
+  // 正文已滚出视口顶部的距离
+  const scrolled = -rect.top;
+  // 正文可滚动的总长度（正文高度超出视口的部分）
+  const scrollable = rect.height - viewportH;
+  if (scrollable <= 0) {
+    readingProgress.value = 100;
+    return;
+  }
+  const ratio = (scrolled / scrollable) * 100;
+  readingProgress.value = Math.min(100, Math.max(0, ratio));
+};
+
+// rAF 节流的 scroll 处理
+const onScrollProgress = () => {
+  if (progressTicking) return;
+  progressTicking = true;
+  window.requestAnimationFrame(() => {
+    computeReadingProgress();
+    progressTicking = false;
+  });
+};
+
+// // // // // ↑ A. 阅读进度条 ↑ // // // // //
+
+// // // // // ↓ B. 代码块复制按钮 ↓ // // // // //
+
+// 记录注入按钮的清理函数，内容更新/卸载时统一移除，避免重复注入与泄漏
+let copyButtonCleanups = [];
+
+const clearCopyButtons = () => {
+  copyButtonCleanups.forEach((fn) => fn());
+  copyButtonCleanups = [];
+};
+
+const injectCopyButtons = () => {
+  const root = articleBodyRef.value;
+  if (!root) return;
+  // 先清理旧的，保证幂等
+  clearCopyButtons();
+
+  const blocks = root.querySelectorAll("pre");
+  blocks.forEach((pre) => {
+    // 防御：避免对同一 pre 重复注入
+    if (pre.querySelector(":scope > .code-copy-btn")) return;
+
+    pre.classList.add("has-copy-btn");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "code-copy-btn";
+    btn.textContent = "复制";
+    btn.setAttribute("aria-label", "复制代码");
+
+    let resetTimer = null;
+
+    const onClick = async () => {
+      const codeEl = pre.querySelector("code") || pre;
+      const text = codeEl.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // 降级方案：clipboard API 不可用时用临时 textarea
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+        } catch {
+          // 静默失败
+        }
+        document.body.removeChild(ta);
+      }
+      btn.textContent = "已复制 ✓";
+      btn.classList.add("copied");
+      if (resetTimer) clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        btn.textContent = "复制";
+        btn.classList.remove("copied");
+      }, 1500);
+    };
+
+    btn.addEventListener("click", onClick);
+    pre.appendChild(btn);
+
+    copyButtonCleanups.push(() => {
+      if (resetTimer) clearTimeout(resetTimer);
+      btn.removeEventListener("click", onClick);
+      btn.remove();
+      pre.classList.remove("has-copy-btn");
+    });
+  });
+};
+
+// // // // // ↑ B. 代码块复制按钮 ↑ // // // // //
+
+// // // // // ↓ C. 图片 lightbox（事件委托） ↓ // // // // //
+
 const zoomedImage = ref(null);
 
 const closeZoom = () => {
   zoomedImage.value = null;
 };
 
-setTimeout(() => {
-  const images = generateimageIdList();
+// 事件委托：在正文容器统一监听 click，命中 img 即放大
+const onBodyClick = (e) => {
+  const target = e.target;
+  if (target && target.tagName === "IMG") {
+    zoomedImage.value = target.getAttribute("src");
+  }
+};
 
-  images.forEach((image) => {
-    const imageDOM = document.querySelector(`#${image.imageId}`);
-    if (imageDOM) {
-      imageDOM.addEventListener("click", () => {
-        zoomedImage.value = image.imageUrl;
-        console.log(`Image with id ${image.imageId} was clicked! ${image.imageUrl}`);
-      });
-    }
-  });
-}, 0);
+// ESC 关闭放大图
+const onKeydown = (e) => {
+  if (e.key === "Escape" && zoomedImage.value) closeZoom();
+};
 
-// // // // // ↑ markdown渲染 ↑ // // // // //
+// // // // // ↑ C. 图片 lightbox（事件委托） ↑ // // // // //
+
+// 内容渲染完成后（或内容变化时）重新注入复制按钮并刷新进度
+const refreshEnhancements = async () => {
+  await nextTick();
+  injectCopyButtons();
+  computeReadingProgress();
+};
+
+watch(article, () => {
+  refreshEnhancements();
+});
+
+onMounted(() => {
+  window.addEventListener("scroll", onScrollProgress, { passive: true });
+  window.addEventListener("resize", onScrollProgress, { passive: true });
+  window.addEventListener("keydown", onKeydown);
+  const body = articleBodyRef.value;
+  if (body) body.addEventListener("click", onBodyClick);
+  // 首屏内容可能已就绪
+  refreshEnhancements();
+});
 
 // // // // // ↓ 页面向上、向下跳动按钮 ↓ // // // // //
 
@@ -259,6 +395,11 @@ function textOnFocus() {
 </script>
 
 <template>
+  <!-- A. 阅读进度条：固定视口顶部细条，按正文滚动进度填充 -->
+  <div class="reading-progress" role="progressbar" :aria-valuenow="Math.round(readingProgress)" aria-valuemin="0" aria-valuemax="100">
+    <div class="reading-progress__bar" :style="{ width: readingProgress + '%' }"></div>
+  </div>
+
   <Header v-if="isShowHeaderComponent"></Header>
   <HeaderNavigate v-if="isShowHeaderNavigate"></HeaderNavigate>
   <SmallScreenMenu v-if="isShowBottomMenu"></SmallScreenMenu>
@@ -279,7 +420,12 @@ function textOnFocus() {
 
       <el-divider />
 
-      <div v-html="article" class="markdown-body article_body" :class="webTheme"></div>
+      <div
+        ref="articleBodyRef"
+        v-html="article"
+        class="markdown-body article_body"
+        :class="webTheme"
+      ></div>
 
       <el-divider />
 
@@ -390,12 +536,12 @@ function textOnFocus() {
     </el-col>
   </el-row>
 
-  <div>
-    <div class="overlay" :class="{ active: zoomedImage }" @click="closeZoom"></div>
-    <div v-if="zoomedImage" class="zoomed-image" @click="closeZoom">
-      <img :src="zoomedImage" />
+  <!-- C. 图片 lightbox：全屏遮罩居中放大，点击遮罩或按 ESC 关闭 -->
+  <Transition name="lightbox">
+    <div v-if="zoomedImage" class="lightbox-overlay" @click="closeZoom">
+      <img class="lightbox-image" :src="zoomedImage" alt="放大查看" />
     </div>
-  </div>
+  </Transition>
 
   <Footer v-if="isShowFooterComponent"></Footer>
 </template>
@@ -581,30 +727,68 @@ function textOnFocus() {
 
 /* ↑ 页面标题设置 ↑ */
 
-/* ↓ 图片点击之后的样式 ↓ */
-.zoomed-image {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: var(--z-overlay, 1000);
-  background: var(--color-bg-elevated);
-  padding: 5px;
-  border-radius: var(--radius-md, 8px);
-  box-shadow: var(--shadow-lg, 0 0 10px rgba(0, 0, 0, 0.5));
-}
-.overlay {
+/* ↓ A. 阅读进度条 ↓ */
+.reading-progress {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
+  height: 3px;
+  /* 高于内容、低于浮层；放在最顶层细条，与导航互不遮挡 */
+  z-index: var(--z-toast, 1200);
+  background: transparent;
+  pointer-events: none;
+}
+
+.reading-progress__bar {
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: none;
+  width: 0;
+  background: var(--color-primary);
+  border-radius: 0 var(--radius-full, 9999px) var(--radius-full, 9999px) 0;
+  transition: width var(--motion-fast, 150ms) var(--ease-out, ease);
 }
-.overlay.active {
-  display: block;
+/* ↑ A. 阅读进度条 ↑ */
+
+/* ↓ C. 图片 lightbox ↓ */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6, 32px);
+  background: rgba(0, 0, 0, 0.78);
+  z-index: var(--z-modal, 1100);
+  cursor: zoom-out;
 }
-/* ↑ 图片点击之后的样式 ↑ */
+
+.lightbox-image {
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-lg, 0 12px 30px rgba(0, 0, 0, 0.55));
+}
+
+/* 平滑淡入 */
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity var(--motion-normal, 250ms) var(--ease-standard, ease);
+}
+
+.lightbox-enter-from,
+.lightbox-leave-to {
+  opacity: 0;
+}
+
+.lightbox-enter-active .lightbox-image,
+.lightbox-leave-active .lightbox-image {
+  transition: transform var(--motion-normal, 250ms) var(--ease-out, ease);
+}
+
+.lightbox-enter-from .lightbox-image,
+.lightbox-leave-to .lightbox-image {
+  transform: scale(0.96);
+}
+/* ↑ C. 图片 lightbox ↑ */
 </style>

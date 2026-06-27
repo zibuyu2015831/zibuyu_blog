@@ -30,10 +30,13 @@
   --weight-normal: 400; --weight-medium: 500;
   --weight-semibold: 600; --weight-bold: 700;
 
-  /* 字体家族（方向 A） */
-  --font-display: "Noto Serif SC", "Songti SC", "STSong", SimSun, serif;
-  --font-body: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC",
-    "Microsoft YaHei", "Hiragino Sans GB", Arial, sans-serif;
+  /* 字体家族（方向 A · 系统字体优先，零下载、跨平台稳健）
+   * 决策：面向中文读者，不引入数 MB 中文 webfont（Google Fonts 在国内常被墙）；
+   * 衬线优先苹果 Songti SC / 思源宋体 / Win 宋体 / Android Noto，几乎全设备覆盖。*/
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong",
+    "SimSun", "Noto Serif CJK SC", serif;
+  --font-body: "Noto Sans SC", "Source Han Sans SC", -apple-system, BlinkMacSystemFont,
+    "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* 动效 */
@@ -114,7 +117,7 @@ html.dark {
   --door:               var(--color-bg-subtle);
   --header_background:   var(--color-bg-elevated);
   --header_font:         var(--color-text-primary);
-  --header_slogen_font:  var(--color-primary);     /* 标语朱砂（落在 Hero scrim 上） */
+  --header_slogen_font:  #FBF7EF;                  /* 标语暖白（落在 Hero 底部暗纱上，昼夜皆清晰） */
   --home_background:     var(--color-bg-default);
   --footer_background:   var(--color-bg-elevated);
   --watermarkColor:      var(--color-text-tertiary);

@@ -164,6 +164,11 @@ export const webSites = [
 /** 分类展示顺序 */
 export const categoryOrder = ["开发", "设计", "社区", "AI", "工具"];
 
+/** 实际存在站点的分类列表（供导航页筛选 chips 使用，遵循 categoryOrder 顺序） */
+export const categories = categoryOrder.filter((category) =>
+  webSites.some((site) => site.category === category)
+);
+
 /** 推荐站点（用于「推荐」分区） */
 export const recommendedSites = webSites.filter((site) => site.recommended);
 

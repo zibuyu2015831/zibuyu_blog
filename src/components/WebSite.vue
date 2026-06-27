@@ -26,7 +26,35 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  // 可选：命中关键词，用于标题/描述高亮（朱砂浅底）
+  highlight: {
+    type: String,
+    default: "",
+  },
 });
+
+// 把文本按关键词（忽略大小写）切成 { text, hit } 片段，供模板高亮渲染。
+// 不使用 v-html，避免注入风险。
+function toSegments(text) {
+  const keyword = props.highlight.trim();
+  if (!keyword || !text) return [{ text, hit: false }];
+  const lowerText = text.toLowerCase();
+  const lowerKey = keyword.toLowerCase();
+  const segments = [];
+  let from = 0;
+  let idx = lowerText.indexOf(lowerKey, from);
+  while (idx !== -1) {
+    if (idx > from) segments.push({ text: text.slice(from, idx), hit: false });
+    segments.push({ text: text.slice(idx, idx + keyword.length), hit: true });
+    from = idx + keyword.length;
+    idx = lowerText.indexOf(lowerKey, from);
+  }
+  if (from < text.length) segments.push({ text: text.slice(from), hit: false });
+  return segments;
+}
+
+const titleSegments = computed(() => toSegments(props.title));
+const descSegments = computed(() => toSegments(props.desc));
 
 // 取 URL 主机名，用于自动 favicon
 const host = computed(() => {
@@ -87,10 +115,20 @@ function handleKeydown(e) {
 
     <div class="web-card__body">
       <div class="web-card__head">
-        <h3 class="web-card__title">{{ title }}</h3>
+        <h3 class="web-card__title">
+          <template v-for="(seg, i) in titleSegments" :key="`t-${i}`">
+            <mark v-if="seg.hit" class="web-card__mark">{{ seg.text }}</mark>
+            <template v-else>{{ seg.text }}</template>
+          </template>
+        </h3>
         <span v-if="category" class="web-card__tag">{{ category }}</span>
       </div>
-      <p class="web-card__desc">{{ desc }}</p>
+      <p class="web-card__desc">
+        <template v-for="(seg, i) in descSegments" :key="`d-${i}`">
+          <mark v-if="seg.hit" class="web-card__mark">{{ seg.text }}</mark>
+          <template v-else>{{ seg.text }}</template>
+        </template>
+      </p>
     </div>
   </div>
 </template>
@@ -189,6 +227,14 @@ function handleKeydown(e) {
   font-size: var(--font-size-xs);
   line-height: 1.6;
   letter-spacing: 0.04em;
+}
+
+/* 命中关键词高亮：朱砂浅底 */
+.web-card__mark {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 0 1px;
 }
 
 .web-card__desc {
