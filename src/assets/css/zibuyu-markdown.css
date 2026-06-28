@@ -1537,3 +1537,124 @@
      transform: translateY(0);
    }
  }
+
+ /* =============================================================
+  * 提示框容器 · ::: tip / info / warning / danger / details
+  * （方向 A · 子曰·墨）由 markedAdmonition.js 产出 .custom-block。
+  * 左 3px 语义色边 + 极淡同色底 + 加粗标题，明暗经令牌自适配。
+  * ============================================================= */
+ .markdown-body .custom-block {
+   margin: var(--space-5, 20px) 0;
+   padding: var(--space-3, 12px) var(--space-4, 16px);
+   border-left: 3px solid var(--cb-accent, var(--color-primary));
+   border-radius: var(--radius-md, 8px);
+   background-color: color-mix(in srgb, var(--cb-accent, var(--color-primary)) 7%, transparent);
+   color: var(--color-text-secondary);
+ }
+
+ .markdown-body .custom-block>:first-child {
+   margin-top: 0;
+ }
+
+ .markdown-body .custom-block>:last-child {
+   margin-bottom: 0;
+ }
+
+ .markdown-body .custom-block .custom-block-title {
+   margin-bottom: var(--space-2, 8px);
+   font-family: var(--font-display, "Noto Serif SC", serif);
+   font-weight: 700;
+   font-size: var(--font-size-sm, 14px);
+   letter-spacing: 0.02em;
+   color: var(--cb-accent, var(--color-primary));
+ }
+
+ .markdown-body .custom-block.tip     { --cb-accent: var(--color-success); }
+ .markdown-body .custom-block.info    { --cb-accent: var(--color-info); }
+ .markdown-body .custom-block.warning { --cb-accent: var(--color-warning); }
+ .markdown-body .custom-block.danger  { --cb-accent: var(--color-danger); }
+
+ /* details：可折叠，summary 充当标题 */
+ .markdown-body .custom-block.details {
+   --cb-accent: var(--color-info);
+   padding: var(--space-3, 12px) var(--space-4, 16px);
+ }
+
+ .markdown-body .custom-block.details>summary {
+   cursor: pointer;
+   font-family: var(--font-display, "Noto Serif SC", serif);
+   font-weight: 700;
+   font-size: var(--font-size-sm, 14px);
+   color: var(--cb-accent);
+   list-style: none;
+   user-select: none;
+ }
+
+ .markdown-body .custom-block.details>summary::-webkit-details-marker {
+   display: none;
+ }
+
+ .markdown-body .custom-block.details>summary::before {
+   content: "▸";
+   display: inline-block;
+   margin-right: var(--space-2, 8px);
+   transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease);
+ }
+
+ .markdown-body .custom-block.details[open]>summary::before {
+   transform: rotate(90deg);
+ }
+
+ .markdown-body .custom-block.details[open]>summary {
+   margin-bottom: var(--space-2, 8px);
+ }
+
+ /* =============================================================
+  * Mermaid 图块 · 由 mermaid.js 挂载后注入 SVG
+  * ============================================================= */
+ .markdown-body .mermaid-block {
+   margin: var(--space-5, 20px) 0;
+   text-align: center;
+ }
+
+ .markdown-body .mermaid-block svg {
+   max-width: 100%;
+   height: auto;
+ }
+
+ /* 渲染前的源码占位：低调显示，避免「源码闪现」过于突兀 */
+ .markdown-body pre.mermaid-src {
+   opacity: 0.5;
+ }
+
+ /* 渲染失败降级：保留源码并加朱砂虚线框 + 角标提示 */
+ .markdown-body pre.mermaid-src.mermaid-error {
+   position: relative;
+   opacity: 1;
+   border: 1px dashed var(--color-danger);
+ }
+
+ .markdown-body pre.mermaid-src.mermaid-error::after {
+   content: attr(data-error);
+   position: absolute;
+   top: var(--space-1, 4px);
+   right: var(--space-2, 8px);
+   font-size: var(--font-size-xs, 12px);
+   color: var(--color-danger);
+ }
+
+ /* =============================================================
+  * 标题锚点「#」· 稳定 slug 锚点，hover 标题时朱砂显形
+  * ============================================================= */
+ .markdown-body :is(h1, h2, h3, h4, h5, h6) .heading-anchor {
+   margin-left: var(--space-2, 8px);
+   color: var(--color-primary);
+   text-decoration: none;
+   opacity: 0;
+   transition: opacity var(--motion-fast, 150ms) var(--ease-standard, ease);
+ }
+
+ .markdown-body :is(h1, h2, h3, h4, h5, h6):hover .heading-anchor,
+ .markdown-body .heading-anchor:focus-visible {
+   opacity: 1;
+ }

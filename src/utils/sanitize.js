@@ -19,10 +19,12 @@ const ARTICLE_CONFIG = {
     'ul', 'ol', 'li', 'dl', 'dt', 'dd',
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
     'figure', 'figcaption',
+    'details', 'summary', // 提示框 ::: details 可折叠容器
   ],
   ALLOWED_ATTR: [
     'href', 'src', 'alt', 'title', 'class', 'id', 'style',
     'target', 'rel', 'width', 'height', 'colspan', 'rowspan',
+    'open', // <details> 展开态
   ],
   // 禁止危险协议（javascript:）等由 DOMPurify 默认处理；这里额外强制移除事件属性
   FORBID_ATTR: ['onclick', 'onload', 'onerror', 'onmouseover', 'onfocus'],
