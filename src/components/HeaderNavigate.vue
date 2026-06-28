@@ -1,8 +1,10 @@
 <script setup>
+import { ref } from "vue";
 import useDeviceInfo from "@/stores/deviceInfo.js";
 import useUserInfo from "@/stores/userInfo";
 import { storeToRefs } from "pinia";
 import { logout } from "@/utils/logout";
+import SearchPalette from "@/components/SearchPalette.vue";
 
 // // // // // ↓ 状态管理 ↓ // // // // //
 
@@ -22,6 +24,14 @@ const toggleTheme = () => {
 };
 
 // // // // // // // // // // ↑ 昼夜主题切换（图标式） ↑ // // // // // // // // // //
+
+// // // // // // // // // // ↓ 站内搜索（⌘K 命令面板） ↓ // // // // // // // // // //
+
+// 顶栏放大镜按钮与 ⌘K 复用同一面板实例；面板自身已注册全局快捷键。
+const searchPaletteRef = ref(null);
+const openSearch = () => searchPaletteRef.value?.open();
+
+// // // // // // // // // // ↑ 站内搜索（⌘K 命令面板） ↑ // // // // // // // // // //
 
 // // // // // // // // // // ↓ 登录功能 ↓ // // // // // // // // // //
 
@@ -57,6 +67,29 @@ const handleCommand = async (command) => {
     </el-col>
 
     <el-col span="12" class="nav_right">
+      <div class="search">
+        <!-- 站内搜索：幽灵风放大镜，点击或按 ⌘K 打开命令面板 -->
+        <button
+          class="theme-toggle"
+          type="button"
+          aria-label="搜索文章"
+          title="搜索文章 (⌘K)"
+          @click="openSearch"
+        >
+          <svg
+            class="theme-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.2-4.2" />
+          </svg>
+        </button>
+      </div>
+
       <div class="theme">
         <!-- 昼/夜切换：内联 SVG 图标式（方向A·子曰·墨），点击在明暗间切换 -->
         <button
@@ -146,6 +179,9 @@ const handleCommand = async (command) => {
       </div>
     </el-col>
   </el-row>
+
+  <!-- 站内搜索命令面板（顶栏放大镜与全局 ⌘K 共用此实例） -->
+  <SearchPalette ref="searchPaletteRef" />
 </template>
 
 <style scoped>
@@ -278,6 +314,13 @@ const handleCommand = async (command) => {
   right: 0;
   display: flex;
   justify-content: end;
+}
+
+.nav_right .search {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  height: 60px;
 }
 
 .nav_right .theme {
