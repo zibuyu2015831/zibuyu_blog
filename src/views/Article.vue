@@ -1,10 +1,14 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeMount, onBeforeUnmount, nextTick } from "vue";
+import { useRoute } from "vue-router";
 import { Marked } from "marked";
 import hljs from "highlight.js";
 import { getArticle } from "@/api/getArticle";
 import { markedHighlight } from "marked-highlight";
 import { sanitizeArticleContent } from "@/utils/sanitize";
+import { makeSlugger } from "@/utils/slugify";
+import { admonitionExtension } from "@/utils/markedAdmonition";
+import { mermaidExtension, renderMermaidBlocks } from "@/utils/mermaid";
 import "highlight.js/styles/atom-one-dark-reasonable.css";
 import "@/assets/css/zibuyu-markdown.css";
 
@@ -17,6 +21,7 @@ defineOptions({ name: "ArticleView" });
 // // // // // ↓ 状态管理 ↓ // // // // //
 
 const deviceInfo = useDeviceInfo(); // 执行函数，拿到Store
+const route = useRoute(); // 读取当前路由（用于 #锚点 深链定位）
 
 const {
   isShowHeaderNavigate,
@@ -45,6 +50,8 @@ function stripHtmlTags(html) {
 
 const toc = []; // 存放目录的标题与id
 const imageIdList = []; // 存放图片的id与url
+// 标题 slug 生成器（带去重）：每篇文章渲染前重置，保证锚点稳定且页内唯一
+let slugger = makeSlugger();
 const article = ref("");
 const tocItems = ref([]);
 const activeTocId = ref(""); // 当前阅读到的章节标题 id（用于 TOC 高亮）
@@ -64,7 +71,6 @@ marked.use({
   gfm: true,
   renderer: {
     heading: function heading(text, depth) {
-      let headId = "uuid" + uuidv4().replace(/-/g, "");
       let depth_class = "";
 
       switch (depth) {
@@ -82,10 +88,13 @@ marked.use({
       }
 
       const real_text = stripHtmlTags(text);
+      // 稳定锚点：由标题文本派生 slug（保留中文、页内去重），替代随机 uuid
+      const headId = slugger(real_text);
 
       toc.push({ real_text, headId, depth_class });
 
-      return `<h${depth} id="${headId}"><span>${text}</span></h${depth}>`;
+      // 标题末尾追加 hover 显形的「#」锚点，便于复制/深链到该节
+      return `<h${depth} id="${headId}"><span>${text}</span><a class="heading-anchor" href="#${headId}" aria-label="链接到此节：${real_text}">#</a></h${depth}>`;
     },
     image: function image(img_url, second, title) {
       let imageId = "uuid" + uuidv4().replace(/-/g, "");
@@ -106,8 +115,9 @@ marked.use({
       return `<a href="${content}" target="_blank">${title}</a>`;
     },
     html: function html(content) {
-      console.log("123");
-      console.log("123", content);
+      // 原样透传内联 HTML，交由后续 sanitizeArticleContent 统一净化
+      // （此前这里直接丢弃并打印调试日志，导致正文中的内联 HTML 失效）
+      return content;
     },
   },
 });
@@ -121,6 +131,11 @@ marked.use(
     },
   })
 );
+
+// 提示框容器（::: tip/info/warning/danger/details）与 Mermaid 图块扩展。
+// 二者均为 block 级自定义 tokenizer，优先于内置 fences 解析——故 ```mermaid
+// 会被 mermaidExtension 截获为占位，不进入 markedHighlight 的代码高亮。
+marked.use({ extensions: [admonitionExtension, mermaidExtension] });
 
 const generateTOC = () => {
   return toc.map((item) => ({
@@ -188,12 +203,20 @@ onBeforeMount(async () => {
   const plainLength = bodyMarkdown.replace(/[#>*`\-![\]()]/g, "").replace(/\s/g, "").length;
   articleReadMinutes.value = Math.max(1, Math.round(plainLength / 350));
 
+  // 渲染前重置标题/锚点累加器，保证 slug 去重计数从头开始
+  slugger = makeSlugger();
+  toc.length = 0;
+
   // 渲染前做 XSS 净化（保留代码高亮所需标签/类，见 utils/sanitize.js）
   article.value = sanitizeArticleContent(marked.parse(bodyMarkdown));
   tocItems.value = generateTOC();
   // 等待 v-html 把标题渲染进 DOM 后再建立观察器
   await nextTick();
   setupTocObserver();
+  // 若带 #锚点 进入（深链到某一节），渲染后滚动定位
+  if (route.hash) {
+    scrollToAnchor(decodeURIComponent(route.hash.slice(1)));
+  }
 });
 
 onBeforeUnmount(() => {
@@ -268,7 +291,9 @@ const injectCopyButtons = () => {
   // 先清理旧的，保证幂等
   clearCopyButtons();
 
-  const blocks = root.querySelectorAll("pre");
+  // 跳过 Mermaid 占位（.mermaid-src）：它即将被替换为 SVG，且注入按钮文本会
+  // 混入 textContent 污染图源码（曾导致 mermaid 解析报错）
+  const blocks = root.querySelectorAll("pre:not(.mermaid-src)");
   blocks.forEach((pre) => {
     // 防御：避免对同一 pre 重复注入
     if (pre.querySelector(":scope > .code-copy-btn")) return;
@@ -337,6 +362,15 @@ const closeZoom = () => {
 // 事件委托：在正文容器统一监听 click，命中 img 即放大
 const onBodyClick = (e) => {
   const target = e.target;
+  // 标题锚点「#」：平滑滚动并把 #slug 写入地址栏（便于复制深链），不触发整页跳转
+  const anchor = target.closest && target.closest("a.heading-anchor");
+  if (anchor) {
+    e.preventDefault();
+    const id = decodeURIComponent((anchor.getAttribute("href") || "").slice(1));
+    scrollToAnchor(id);
+    if (id) history.replaceState(null, "", `#${id}`);
+    return;
+  }
   if (target && target.tagName === "IMG") {
     zoomedImage.value = target.getAttribute("src");
   }
@@ -349,15 +383,22 @@ const onKeydown = (e) => {
 
 // // // // // ↑ C. 图片 lightbox（事件委托） ↑ // // // // //
 
-// 内容渲染完成后（或内容变化时）重新注入复制按钮并刷新进度
+// 内容渲染完成后（或内容变化时）重新注入复制按钮、渲染 Mermaid 图、刷新进度
 const refreshEnhancements = async () => {
   await nextTick();
   injectCopyButtons();
+  // 把 .mermaid-src 占位渲染成 SVG（动态加载 mermaid，无图块时不加载）
+  renderMermaidBlocks(articleBodyRef.value, webTheme.value);
   computeReadingProgress();
 };
 
 watch(article, () => {
   refreshEnhancements();
+});
+
+// 昼夜切换时按当前主题重渲已有的 Mermaid 图（配色跟随主题）
+watch(webTheme, (theme) => {
+  renderMermaidBlocks(articleBodyRef.value, theme);
 });
 
 onMounted(() => {
