@@ -1,186 +1,149 @@
- function getArticle(_article_id){
-  return `# \`Anaconda\` 安装与使用
+function getArticle(_article_id){
+  return `# 在浏览器里把 Markdown 渲染好，是怎样一件事
 
-  **虚拟环境**是一个可以隔离项目的\`python\`解释器和安装模块的工具，
+这篇文章本身，就是一次渲染能力的现场演示——你正在读的每一行，都由本站的 Markdown 管线（\`marked\` 解析 → 代码高亮 → \`DOMPurify\` 净化 → 挂载后增强）实时生成。下面从最朴素的文本，一路走到流程图与时序图。
 
-  [image-20231002222837381](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  > 使用虚拟环境可以实现：一个项目对应一个python解释器及其对应模块包，不同项目独立隔离在不同的目录下。
-  
-  工作中常用的虚拟环境工具：anaconda（开发环境）、virtualenv、miniconda（生产环境）
-  
-  本文记录Anaconda的安装过程与基本使用命令。
-  
-  ## 01 Linux安装
-  
-  第一步：下载Anaconda安装包，需注意安装包存放目录。
-  
-  \`\`\`bash
-  wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh
-  \`\`\`
-    
-  \`\`\`python
-  import time
+> 工具的好坏，不在于它能做多少花样，而在于它把最常用的那几样做得够稳、够安静。
 
-  print(time.time.now())
-  \`\`\`
+## 一、文本的基本功
 
-  ![image-20231002210654869](https://pic.dmjnb.com/pic/cbea51521d791bfe2bf0993d19ba0e46)
-  
-  ![image-20231002220516926](https://wallpaperm.cmcm.com/dcf1a499b17a0ce4ff0ecc11bd2ff8dc.jpg)
-  
-  第二步：下载的安装包是一个sh脚本文件，执行此文件即可。
-  
-  ![image-20231002221016264](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  阅读协议，按enter、空格、字母f都可...
-  
-  ![image-20231002221057713](https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg)
-  
-  同意协议
-  
-  ![image-20231002221213122](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
-  
-  ![image-20231002221704155](https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg)
-  
-  ![image-20231002221815965](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  安装完成，初始化
-  
-  ![image-20231002222417525](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
-  
-  ![image-20231002222837381](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  命令：
-  
-  \`\`\`bash
-  eval "$(/home/zibuyu/anaconda3/bin/conda shell.bash hook)"
-  \`\`\`
-  
-  ![image-20231002223050477](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  ## 02 小工具
+正文里该有的强调都在：**加粗**用来立论点，*斜体*用来打节奏，\`行内代码\`用来指称符号，~~删除线~~用来留下修改的痕迹，还有指向外部的[链接](https://github.com/zibuyu2015831)。
 
-  ### ipython
-  
-  ![image-20231002223447882](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
-  
-  ### jupyter-notebook
-  
-  ![image-20231002223958363](https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg)
-  
-  ![image-20231002224040514](https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg)
-  
-  
-  
-  ## 03 常用命令
-  
-  
-  创建环境
-  \`\`\`bash
-  conda create -n 虚拟环境名称 python=版本号
-  \`\`\`
-  
-  查看所有环境
-  \`\`\`bash
-  conda env list
-  \`\`\`
-  
-  激活虚拟环境
-  \`\`\`bash
-  conda activate 虚拟环境名称
-  \`\`\`
-  
-  退出当前虚拟环境
-  \`\`\`bash
-  conda deactivate
-  \`\`\`
-  
-  删除虚拟环境（需先退出）
-  \`\`\`bash
-  conda remove -n 虚拟环境名称 --all
-  \`\`\`
-  
-  在当前虚拟环境安装第三方包
-  \`\`\`bash
-   conda install -c conda-forge 包名==版本号
-   \`\`\`
-  
-  删除第三方包
-  \`\`\`bash
-  conda remove 包名
-  \`\`\`
-  
-  
-  其他相关命令：
-  
-  查看虚拟环境中安装的包：pip freeze 或者 pip list
-  
-  收集当前环境中安装的包及其版本：pip freeze > requirements.txt
-  
-  在部署项目的服务器中安装项目使用的模块： pip install -r requirements.txt
-  
-  
-  
-  > 注意：
-  >
-  > 创建虚拟环境时，名称不能使用特殊符号，
-  >
-  > 虚拟环境名称将来会作为目录名，所以也不能使用特殊符号或中文！！！
-  
-  提示:
-  
-  - 虚拟环境只会管理环境内部的模块和python解析器，对于项目源代码毫无关系；
-  
-  - 创建虚拟环境需要联网；
-  - 创建成功后, 需要手动切换到虚拟环境中；
-  - 工作在虚拟环境上, 提示符最前面会出现 “(虚拟环境名称)”。
+中文排印上，标题用宋体（\`--font-display\`），正文用黑体，引号用「」而非英文直引号——这些是「有人校对过」的细节信号。
 
-## 04 渲染能力演示
+---
+
+## 二、列表与表格
+
+无序列表适合并列要点：
+
+- 解析：把文本切成 token 树
+- 净化：在 token 落地为 HTML 后做 XSS 兜底
+- 增强：挂载后再补复制按钮、图表、锚点
+
+有序列表适合讲步骤，并且可以嵌套：
+
+1. 写下 Markdown
+2. 交给管线
+   1. 先解析
+   2. 再净化
+   3. 后增强
+3. 在页面上看到结果
+
+表格则适合做对比——比如本站管线与 VitePress 的取舍：
+
+| 维度 | 本站（运行时 SPA） | VitePress（构建时 SSG） |
+| --- | --- | --- |
+| 渲染时机 | 浏览器实时渲染 | 构建期预渲染 |
+| 内容来源 | 后端 / 接口 | 本地 \`.md\` 文件 |
+| 动态能力 | 登录 / 评论 / 打赏 | 基本静态 |
+| SEO 首屏 | 较弱 | 天然占优 |
+
+## 三、代码高亮
+
+代码块由 \`highlight.js\` 着色，右上角有「复制」按钮（hover 代码块时浮现）。支持多语言：
+
+\`\`\`javascript
+// 把 Markdown 渲染为安全的 HTML
+const html = sanitizeArticleContent(marked.parse(source));
+\`\`\`
+
+\`\`\`python
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+\`\`\`
+
+\`\`\`bash
+npm run build   # 构建，Mermaid 会被拆为独立异步 chunk
+\`\`\`
+
+## 四、用图说话：Mermaid
+
+复杂的关系，一张图胜过十行字。Mermaid 图块在挂载后渲染为 SVG，并随昼夜主题自动换色。
 
 ### 流程图
 
-下面是一张 Mermaid 流程图：
-
 \`\`\`mermaid
 flowchart TD
-    A[开始] --> B{是否已装 conda?}
-    B -- 是 --> C[创建虚拟环境]
-    B -- 否 --> D[下载安装包]
-    D --> C
-    C --> E[激活环境]
-    E --> F[愉快开发]
+    A[Markdown 源文本] --> B[marked 解析为 token]
+    B --> C{含 mermaid 块?}
+    C -- 是 --> D[输出纯文本占位]
+    C -- 否 --> E[常规高亮 / 渲染]
+    D --> F[DOMPurify 净化]
+    E --> F
+    F --> G[挂载到 DOM]
+    G --> H[占位渲染为 SVG]
 \`\`\`
 
-### 提示框
+### 时序图
+
+\`\`\`mermaid
+sequenceDiagram
+    participant 读者
+    participant 页面
+    participant 管线
+    读者->>页面: 打开文章
+    页面->>管线: 传入 Markdown
+    管线->>管线: 解析 → 净化 → 增强
+    管线-->>页面: 返回安全 HTML
+    页面-->>读者: 呈现 + 渲染图表
+\`\`\`
+
+### 类图
+
+\`\`\`mermaid
+classDiagram
+    class 渲染管线 {
+      +parse(src) tokens
+      +sanitize(html) html
+      +enhance(dom) void
+    }
+    class 提示框扩展
+    class Mermaid扩展
+    渲染管线 <|-- 提示框扩展
+    渲染管线 <|-- Mermaid扩展
+\`\`\`
+
+## 五、提示框
+
+用容器把「旁白」与正文分开，各司其职：
 
 ::: tip 提示
-虚拟环境只隔离解释器与依赖，与项目源码无关。
+善用提示框，能让关键信息从正文里「跳出来」，但别滥用——满屏都是框，等于没有框。
 :::
 
 ::: info 信息
-\`conda\` 与 \`pip\` 可以混用，但建议优先用同一来源以避免依赖冲突。
+本站提示框沿用 VitePress 的 \`:::\` 语法，容器内支持完整 Markdown：列表、代码、**强调**都行。
 :::
 
 ::: warning 注意
-创建虚拟环境时名称不要使用中文或特殊符号——它会成为目录名。
+渲染第三方或大模型输出时，务必保留净化环节；本演示为作者自有内容，风险较低。
 :::
 
 ::: danger 警告
-\`conda remove -n env --all\` 会**彻底删除**该环境，操作前请确认已退出。
+切勿为了「让某段 HTML 生效」而关闭 \`DOMPurify\`——这是一道不该省的保险。
 :::
 
-::: details 点开看完整命令清单
-\`\`\`bash
-conda create -n demo python=3.11
-conda activate demo
-conda deactivate
-\`\`\`
+::: details 点开看：管线的三段职责
+1. **解析**：\`marked\` 把文本变成结构化 token，自定义扩展在此截获 \`:::\` 容器与 mermaid 代码块。
+2. **净化**：\`DOMPurify\` 按白名单清洗，挡住 \`<script>\`、\`onerror=\` 等注入。
+3. **增强**：挂载后再补复制按钮、Mermaid SVG、标题锚点——这些都绕开 \`v-html\`。
 :::
 
-### 提示框
+## 六、稳定锚点与配图
 
-> 上面这个二级小节标题「提示框」与前一个重复，用于验证锚点去重（应得 \`提示框\` 与 \`提示框-1\`）。`
+每个标题都带一个可读、稳定的锚点（鼠标移到标题上会显形「#」），点击即可复制深链、定位到某一节——刷新或分享都不会失效。
+
+![示例配图：图片居中展示，下方自动生成图注](https://picsum.photos/seed/ziyue/900/380)
+
+## 小结
+
+一套好的渲染管线，应当**默认安全、按需增强、克制呈现**。把文本、代码、表格、图表、提示框这些日常元素都稳稳托住，剩下的，就交给内容本身。
+
+> 把最常用的几样做到够稳够安静，工具便隐身了，只剩下你想表达的东西。`
 }
 
  function getArticleHeads(markdown){
