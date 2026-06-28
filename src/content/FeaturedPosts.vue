@@ -42,6 +42,9 @@ const featured = computed(() =>
 <style scoped>
 .featured {
   padding-top: var(--space-6);
+  /* 与文章列表（.article_list margin: 0 var(--space-1)）同样的 4px 侧缩，
+     使精选卡与下方文章卡左右边缘对齐 */
+  margin: 0 var(--space-1);
 }
 
 /* 焦点块：纸墨编辑式——左对齐、宋体标题、朱砂细节，去 3D/虚化 */

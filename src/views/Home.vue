@@ -81,12 +81,14 @@ const {
 
   <div class="main" v-if="!isBigScreen">
     <el-row justify="center">
-      <el-col :span="20">
+      <!-- 小屏（无右栏）精选满宽，与下方文章列表对齐、不留侧白；
+           中屏（有右栏）维持居中 20 栏的原观感 -->
+      <el-col :span="isShowRightBox ? 20 : 24">
         <FeaturedPosts />
       </el-col>
     </el-row>
 
-    <el-row justify="center" style="margin-top: 50px">
+    <el-row justify="center" style="margin-top: 24px">
       <el-col :span="isShowRightBox ? 14 : 24" class="left">
         <el-col class="article_list">
           <ArticleCard

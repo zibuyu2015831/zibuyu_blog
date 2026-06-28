@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { Search } from "@element-plus/icons-vue";
 import useUserInfo from "@/stores/userInfo";
 import useDeviceInfo from "@/stores/deviceInfo";
-import { ElButton, ElDrawer } from "element-plus";
+import { ElDrawer } from "element-plus";
 import { storeToRefs } from "pinia";
 import { logout } from "@/utils/logout";
+import SearchPalette from "@/components/SearchPalette.vue";
 
 // // // // // ↓ 状态读取 ↓ // // // // //
 
@@ -36,13 +36,10 @@ function goHomeClick() {
 
 // // // // // // // // // // ↓ 搜索功能 ↓ // // // // // // // // // //
 
-const search_input = ref("");
-const search_option = ref("1");
-
-function submintSearch() {
-  console.log("用户输入的搜索关键词是: ", search_input.value);
-  console.log("搜索选项", search_option.value);
-}
+// 复用与桌面顶栏同一套搜索命令面板（原 submintSearch 仅 console.log，已废弃）。
+// 移动端点击搜索栏即唤起浮层，行为与桌面 ⌘K 一致。
+const searchPaletteRef = ref(null);
+const openSearch = () => searchPaletteRef.value?.open();
 
 // // // // // // // // // // ↑ 搜索功能 ↑ // // // // // // // // // //
 
@@ -74,28 +71,28 @@ function useLightTheme() {
 </script>
 
 <template>
-  <el-row justify="center" class="search_row">
-    <el-col span="24" class="search_input">
-      <el-input
-        v-model="search_input"
-        style="max-width: 600px"
-        placeholder="请输入搜索关键词"
-        class="input-with-select"
+  <!-- 搜索触发栏：满宽，点击唤起命令面板（与桌面 ⌘K 同一实例）。
+       原 el-col span="24" 在此场景收缩成内容宽度（约 126px）居中、又窄又贴图，
+       改为普通 div + CSS 满宽，并与 hero 留出上方呼吸空间。 -->
+  <div class="search_row">
+    <button type="button" class="search_trigger" @click="openSearch">
+      <svg
+        class="search_trigger_icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
       >
-        <template #prepend>
-          <el-select v-model="search_option" placeholder="选项" style="width: 115px">
-            <el-option label="文章" value="1" />
-            <el-option label="资源" value="2" />
-          </el-select>
-        </template>
-        <template #append>
-          <el-button :icon="Search" @click="submintSearch" />
-        </template>
-      </el-input>
-    </el-col>
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.2-4.2" />
+      </svg>
+      <span>搜索文章…</span>
+    </button>
+  </div>
 
-    <el-col :span="2"> </el-col>
-  </el-row>
+  <!-- 站内搜索命令面板（移动端搜索栏复用此实例） -->
+  <SearchPalette ref="searchPaletteRef" />
 
   <div class="bottom_menu">
     <div class="menu_item" @click="showMenu">
@@ -230,11 +227,37 @@ function useLightTheme() {
 
 .search_row {
   background-color: var(--home_background);
+  /* 上方与 hero 拉开呼吸距离；左右用 4px（var(--space-1)）与精选/文章列表
+     的侧缩对齐，三者左右一条线，下方略收避免贴着图片 */
+  padding: 16px var(--space-1) 8px;
 }
 
-.search_input {
-  margin: 5px 10px;
-  margin-left: 15px;
+/* 搜索触发栏：满宽，外观似输入框，点击唤起命令面板 */
+.search_trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 11px var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  text-align: left;
+  background: var(--color-bg-inset);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease-standard);
+}
+
+.search_trigger:hover {
+  border-color: var(--color-primary);
+}
+
+.search_trigger_icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
 }
 
 .top_menu {
