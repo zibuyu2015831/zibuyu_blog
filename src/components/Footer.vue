@@ -26,9 +26,9 @@ onBeforeUnmount(() => {
 
 // 社交链接（保留真实链接，统一为带框图标处理，对齐原型）
 const socials = [
-  { name: "哔哩哔哩", href: "#", icon: new URL("../assets/image/bilibili.png", import.meta.url).href },
+  { name: "哔哩哔哩", href: "https://space.bilibili.com/414065497", icon: new URL("../assets/image/bilibili.png", import.meta.url).href },
   { name: "Gitee", href: "https://gitee.com/zibuyu2015831", icon: new URL("../assets/image/gitee.png", import.meta.url).href },
-  { name: "GitHub", href: "#", icon: new URL("../assets/image/github.png", import.meta.url).href },
+  { name: "GitHub", href: "https://github.com/zibuyu2015831", icon: new URL("../assets/image/github.png", import.meta.url).href },
   { name: "QQ", href: "#", icon: new URL("../assets/image/qq.png", import.meta.url).href },
   { name: "微信", href: "#", icon: new URL("../assets/image/wechat.png", import.meta.url).href },
 ];

@@ -48,19 +48,6 @@ const {
       <el-col class="article_list">
         <ArticleCard v-for="post in posts" :key="post.id" :post="post" />
       </el-col>
-
-      <el-col class="article_page">
-        <el-row justify="center">
-          <div>
-            <el-pagination
-              background
-              layout="prev, pager, next"
-              :total="1000"
-              :small="isPaginationmall"
-            />
-          </div>
-        </el-row>
-      </el-col>
     </el-col>
 
     <el-col :span="5" :offset="1" class="right">
@@ -75,6 +62,20 @@ const {
       <div class="right_card">
         <RewardList> </RewardList>
       </div>
+    </el-col>
+
+    <!-- 分页器跨整行（span 24）独占一行，在整页内容宽度内居中 -->
+    <el-col :span="24" class="article_page">
+      <el-row justify="center">
+        <div>
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="1000"
+            :small="isPaginationmall"
+          />
+        </div>
+      </el-row>
     </el-col>
   </el-row>
 
@@ -95,19 +96,6 @@ const {
             :show-cover="isShowArticleImageInSmallScreen"
           />
         </el-col>
-
-        <el-col class="article_page">
-          <el-row justify="center">
-            <div>
-              <el-pagination
-                background
-                layout="prev, pager, next"
-                :total="1000"
-                :small="isPaginationmall"
-              />
-            </div>
-          </el-row>
-        </el-col>
       </el-col>
 
       <el-col :span="6" class="right" v-if="isShowRightBox">
@@ -122,6 +110,20 @@ const {
         <div class="right_card">
           <RewardList> </RewardList>
         </div>
+      </el-col>
+
+      <!-- 分页器跨整行（span 24）独占一行，在整页内容宽度内居中 -->
+      <el-col :span="24" class="article_page">
+        <el-row justify="center">
+          <div>
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="1000"
+              :small="isPaginationmall"
+            />
+          </div>
+        </el-row>
       </el-col>
     </el-row>
   </div>
@@ -151,6 +153,7 @@ const {
 }
 
 .article_page {
+  margin-top: 30px;
   margin-bottom: 30px;
 }
 
