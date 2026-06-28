@@ -99,7 +99,9 @@
      --fgColor-danger: #d1242f;
      --fgColor-done: #8250df;
      --bgColor-default: #ffffff;
-     --bgColor-muted: #161b22;
+     /* 表格隔行/kbd/CSV 表头的浅底：原值 #161b22 是 GitHub 暗色误植到亮色块，
+        亮色下渲染成近黑、深色单元格文字不可见。改用站点暖纸次级底，明暗一致。 */
+     --bgColor-muted: var(--color-bg-subtle, #f6f8fa);
      --bgColor-attention-muted: #fff8c5;
      --borderColor-default: #d0d7de;
      --borderColor-muted: #d0d7deb3;
@@ -210,7 +212,9 @@
    --fgColor-danger: #d1242f;
    --fgColor-done: #8250df;
    --bgColor-default: #ffffff;
-   --bgColor-muted: #161b22;
+   /* 表格隔行/kbd/CSV 表头的浅底：原值 #161b22 是 GitHub 暗色误植到亮色块，
+      亮色下渲染成近黑、深色单元格文字不可见。改用站点暖纸次级底，明暗一致。 */
+   --bgColor-muted: var(--color-bg-subtle, #f6f8fa);
    --bgColor-attention-muted: #fff8c5;
    --borderColor-default: #d0d7de;
    --borderColor-muted: #d0d7deb3;

@@ -27,9 +27,9 @@ const cardWidth = `${props.width}px`;
 // 头像与社交方框图标（与页脚 / 阅读页作者卡同款本地资源）
 const userAvatar = new URL("../assets/image/user_avatar.png", import.meta.url).href;
 const authorSocials = [
-  { name: "GitHub", href: "#", icon: new URL("../assets/image/github.png", import.meta.url).href },
+  { name: "GitHub", href: "https://github.com/zibuyu2015831", icon: new URL("../assets/image/github.png", import.meta.url).href },
   { name: "Gitee", href: "https://gitee.com/zibuyu2015831", icon: new URL("../assets/image/gitee.png", import.meta.url).href },
-  { name: "哔哩哔哩", href: "#", icon: new URL("../assets/image/bilibili.png", import.meta.url).href },
+  { name: "哔哩哔哩", href: "https://space.bilibili.com/414065497", icon: new URL("../assets/image/bilibili.png", import.meta.url).href },
 ];
 
 // 二维码默认收纳，点击「扫码联系」展开——保留真实联系资产但不抢视觉

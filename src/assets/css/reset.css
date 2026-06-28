@@ -15,6 +15,24 @@ body {
   box-sizing: border-box;
 }
 
+/* 粘性页脚：内容不足一屏时，页脚仍贴在视口底部，而非整体上移留出空白。
+   #app 设为纵向 flex 容器并撑满一屏，页脚以 margin-top:auto 被推到底部；
+   固定定位的顶栏/门帘动画/弹窗脱离文档流，不参与此布局，故不受影响。 */
+html,
+body {
+  min-height: 100vh;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.footer {
+  margin-top: auto;
+}
+
 a {
   all: unset;
   cursor: pointer;

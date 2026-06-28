@@ -48,7 +48,14 @@ const featured = computed(() =>
 .featured-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* 卡片是 <router-link>(<a>)，被 reset.css 的 a{all:unset} 把 box-sizing 复位成
+     content-box，导致 height:100% + padding + border 超出轮播项(176px)，底边框被
+     el-carousel__item 的 overflow:hidden 裁掉。显式声明 border-box 修复。 */
+  box-sizing: border-box;
+  /* 留 4px 上下内缩，给 hover 的 translateY(-2px) 抬升留出空间，
+     否则卡片刚好撑满轮播项、抬升后顶边框会被 overflow:hidden 裁掉。 */
+  height: calc(100% - 8px);
+  margin: 4px 0;
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-5) var(--space-6);
